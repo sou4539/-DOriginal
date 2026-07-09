@@ -19,16 +19,20 @@ void GameScene::Event()
 
 void GameScene::Init()
 {
-	std::shared_ptr<TPSCamera> camera = std::make_shared<TPSCamera>();
+	std::shared_ptr<TPSCamera> camera;
+	camera = std::make_shared<TPSCamera>();
+	camera->Init();
 	m_objList.push_back(camera);
 
-	std::shared_ptr<Player> player = std::make_shared<Player>();
+	std::shared_ptr<Player> player;
+	player = std::make_shared<Player>();
 	m_objList.push_back(player);
 
-	std::shared_ptr<Status> status = std::make_shared<Status>();
+	std::shared_ptr<Status> status;
+	status = std::make_shared<Status>();
 	m_objList.push_back(status);
 
-	//camera->SetTarget(player);
+	camera->SetTarget(player);
 	player->SetStatus(status);
 	status->SetPlayer(player);
 }

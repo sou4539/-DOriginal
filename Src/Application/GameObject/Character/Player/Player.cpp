@@ -17,11 +17,12 @@ void Player::Update()
 {
 	CharaBase::Update();
 
+	Math::Matrix m_scale = Math::Matrix::CreateScale(1);
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
-	m_mWorld = m_trans;
+	m_mWorld = m_scale * m_trans;
 }
 
 void Player::PostUpdate()
 {
-
+	CharaBase::PostUpdate();
 }
