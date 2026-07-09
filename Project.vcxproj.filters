@@ -94,6 +94,9 @@
     <Filter Include="Src\Application\GameObject\Character\Player">
       <UniqueIdentifier>{93f029a6-35a8-4324-9c3d-20ee3d3f40da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Status">
+      <UniqueIdentifier>{99da4729-b022-4fe4-b671-b8702df275ba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -285,6 +288,9 @@
     <ClInclude Include="Src\Application\GameObject\Character\Player\Player.h">
       <Filter>Src\Application\GameObject\Character\Player</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Status\Status.h">
+      <Filter>Src\Application\GameObject\Character\Status</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -445,6 +451,9 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Player\Player.cpp">
       <Filter>Src\Application\GameObject\Character\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Status\Status.cpp">
+      <Filter>Src\Application\GameObject\Character\Status</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

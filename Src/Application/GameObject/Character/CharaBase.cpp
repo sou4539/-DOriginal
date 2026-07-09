@@ -1,20 +1,14 @@
 ﻿#include "CharaBase.h"
 
-CharaBase::CharaBase()
-{}
-
-CharaBase::~CharaBase()
-{
-	Release();
-}
-
 // 初期化
 void CharaBase::Init()
 {}
 
 // 更新
 void CharaBase::Update()
-{}
+{
+	
+}
 
 void CharaBase::PostUpdate()
 {
@@ -26,11 +20,11 @@ void CharaBase::PostUpdate()
 // 描画
 void CharaBase::DrawLit()
 {
-	if (m_spPoly)
-	{
-		KdShaderManager::Instance().
-			m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld);
-	}
+	//if (m_spPoly)
+	//{
+	//	KdShaderManager::Instance().
+	//		m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld);
+	//}
 
 	if (m_spModel)
 	{

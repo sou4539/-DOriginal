@@ -6,7 +6,7 @@ public:
 	CharaBase() {}
 	~CharaBase() override { Release(); }
 	void Init() override;
-	void Update() override;
+	virtual void Update() override;
 	void PostUpdate() override;
 	void DrawLit() override;
 

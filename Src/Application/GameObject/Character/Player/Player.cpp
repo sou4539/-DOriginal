@@ -2,23 +2,26 @@
 
 void Player::Init()
 {
-	if (!m_spPoly)
+	if (!m_spModel)
 	{
-		m_spPoly = std::make_shared<KdSquarePolygon>();
-		m_spPoly->SetMaterial("Asset/Data/LessonData/Character/Hamu.png");
-		m_spPoly->SetPivot(KdSquarePolygon::PivotType::Center_Bottom);
+		m_spModel = std::make_shared<KdModelWork>();
+		m_spModel->SetModelData("Asset/Models/Objects/Witch/Witch.gltf");
 	}
 
-	m_pos = { -12.0f, 2.5f, 1.5f };
+	m_pos = {};
 
 	//SetPos(m_pos);
 }
 
 void Player::Update()
 {
+	CharaBase::Update();
+
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = m_trans;
 }
 
 void Player::PostUpdate()
-{}
+{
+
+}
