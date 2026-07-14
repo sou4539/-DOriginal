@@ -123,21 +123,26 @@ void CharaBase::UpdateCollision()
 	// ============================================================
 	// 壁・障害物との当たり判定
 	//
-	// キャラクターの体を球として扱い、Bump属性の物に重なっていたら、
+	// キャラクターの体を球として扱い、登録されたステージのCOLに重なっていたら、
 	// 重なっている方向と距離を使って外側へ押し戻す。
+	//
+	// 現在は村のコライダーをTypeGroundに統一しているため、
+	// スフィア判定でもTypeGroundを見るようにしている。
 	// ============================================================
 	// ----- ----- ----- ----- -----
 
 	// ① 球判定に必要な情報を作る。
 	DirectX::BoundingSphere sphere;
 
-	// GetPosは足元の座標なので、球の中心を0.5だけ上へずらす。
-	// 半径も0.5のため、現在は足元から高さ1.0までが判定範囲になる。
-	sphere.Center = GetPos() + Math::Vector3(0, 0.5f, 0);
+	// GetPosは足元の座標なので、球の中心を1.0だけ上へずらす。
+	// 柵など少し高い位置にある障害物にも当たりやすくする。
+	sphere.Center = GetPos() + Math::Vector3(0, 1.0f, 0);
 	sphere.Radius = 0.5f;
 
-	// Bump属性を持つコライダーを壁・障害物として判定する。
-	KdCollider::SphereInfo spherInfo(KdCollider::TypeBump, sphere);
+	// Ground属性を持つコライダーを壁・障害物としても判定する。
+	// ※将来的に地面と壁を分けたくなったら、ここをTypeBumpに戻し、
+	//   ステージ側にもTypeBumpのコライダーを登録する。
+	KdCollider::SphereInfo spherInfo(KdCollider::TypeGround, sphere);
 
 	// ② 登録されている当たり判定対象を1つずつ調べる。
 	for (std::weak_ptr<KdGameObject> wpGameObj : m_wpHitObjectList)
@@ -149,12 +154,26 @@ void CharaBase::UpdateCollision()
 			std::list<KdCollider::CollisionResult> retBumpList;
 			spGameObj->Intersects(spherInfo, &retBumpList);
 
-			// ③ 重なっている分だけ、衝突面の外側へ座標を移動する。
+			// ③ 複数当たった場合は、一番深くめり込んでいる結果を使う。
+			float maxOverLap = 0.0f;
+			Math::Vector3 hitDir = Math::Vector3::Zero;
+			bool hit = false;
+
 			for (auto& ret : retBumpList)
+			{
+				if (maxOverLap < ret.m_overlapDistance)
+				{
+					maxOverLap = ret.m_overlapDistance;
+					hitDir = ret.m_hitDir;
+					hit = true;
+				}
+			}
+
+			if (hit)
 			{
 				// m_hitDirは押し戻す方向、m_overlapDistanceは重なった距離。
 				// 方向 × 距離を現在位置へ足して、めり込みを解消する。
-				Math::Vector3 newPos = GetPos() + (ret.m_hitDir * ret.m_overlapDistance);
+				Math::Vector3 newPos = GetPos() + (hitDir * maxOverLap);
 				SetPos(newPos);
 			}
 		}

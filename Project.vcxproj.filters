@@ -97,6 +97,15 @@
     <Filter Include="Src\Application\GameObject\Character\Status">
       <UniqueIdentifier>{99da4729-b022-4fe4-b671-b8702df275ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Stage">
+      <UniqueIdentifier>{42e3ee62-afbf-4a3b-b6c4-bc40d2841b67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Stage\Village">
+      <UniqueIdentifier>{43d12fa6-ef8c-4e7d-9336-639552cf64cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Stage\Ground">
+      <UniqueIdentifier>{286fdd9b-397b-4647-a7a7-f582c5be1598}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -291,6 +300,15 @@
     <ClInclude Include="Src\Application\GameObject\Character\Status\Status.h">
       <Filter>Src\Application\GameObject\Character\Status</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Stage\StageBase.h">
+      <Filter>Src\Application\GameObject\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Stage\Ground\Ground.h">
+      <Filter>Src\Application\GameObject\Stage\Ground</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Stage\Village\Village.h">
+      <Filter>Src\Application\GameObject\Stage\Village</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -454,6 +472,15 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Status\Status.cpp">
       <Filter>Src\Application\GameObject\Character\Status</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Stage\StageBase.cpp">
+      <Filter>Src\Application\GameObject\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Stage\Ground\Ground.cpp">
+      <Filter>Src\Application\GameObject\Stage\Ground</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Stage\Village\Village.cpp">
+      <Filter>Src\Application\GameObject\Stage\Village</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
