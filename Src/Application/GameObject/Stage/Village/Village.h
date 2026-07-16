@@ -6,11 +6,10 @@ class Village :public StageBase
 {
 public:
 	Village() { Init(); }
-	~Village(){}
+	~Village() override {}
 
-	
-	void Update() override;
-	void PostUpdate() override;
+	// 村のCOLは壁・柵としても使うため、スフィア判定対象にする。
+	bool EnableSphereCollision() const override { return true; }
 
 private:
 	void Init() override;

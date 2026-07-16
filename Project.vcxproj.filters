@@ -97,6 +97,9 @@
     <Filter Include="Src\Application\GameObject\Character\Status">
       <UniqueIdentifier>{99da4729-b022-4fe4-b671-b8702df275ba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Bat">
+      <UniqueIdentifier>{1a973e84-cbe1-4dfd-9ffb-4935be6c847d}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Src\Application\GameObject\Stage">
       <UniqueIdentifier>{42e3ee62-afbf-4a3b-b6c4-bc40d2841b67}</UniqueIdentifier>
     </Filter>
@@ -294,6 +297,9 @@
     <ClInclude Include="Src\Application\GameObject\Character\CharaBase.h">
       <Filter>Src\Application\GameObject\Character</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Bat\Bat.h">
+      <Filter>Src\Application\GameObject\Character\Bat</Filter>
+    </ClInclude>
     <ClInclude Include="Src\Application\GameObject\Character\Player\Player.h">
       <Filter>Src\Application\GameObject\Character\Player</Filter>
     </ClInclude>
@@ -466,6 +472,9 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\CharaBase.cpp">
       <Filter>Src\Application\GameObject\Character</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Bat\Bat.cpp">
+      <Filter>Src\Application\GameObject\Character\Bat</Filter>
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Player\Player.cpp">
       <Filter>Src\Application\GameObject\Character\Player</Filter>

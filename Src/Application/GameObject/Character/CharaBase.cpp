@@ -1,5 +1,7 @@
 ﻿#include "CharaBase.h"
 
+#include "../Stage/StageBase.h"
+
 // 初期化
 void CharaBase::Init()
 {}
@@ -35,6 +37,10 @@ void CharaBase::DrawLit()
 
 void CharaBase::UpdateCollision()
 {
+	// 当たり判定対象がないキャラは、レイやスフィアを作る必要がない。
+	// 例：今のBatは表示確認用なので、ここで早期終了できる。
+	if (m_wpHitObjectList.empty()) { return; }
+
 	// ============================================================
 	// 地面との当たり判定
 	//
@@ -70,7 +76,7 @@ void CharaBase::UpdateCollision()
 
 	// ② 登録されている当たり判定対象を1つずつ調べる。
 	// weak_ptrで保持しているため、対象が削除済みならlockに失敗して無視する。
-	for (std::weak_ptr<KdGameObject> wpGameObj : m_wpHitObjectList)
+	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
 		if (spGameObj)
@@ -145,11 +151,21 @@ void CharaBase::UpdateCollision()
 	KdCollider::SphereInfo spherInfo(KdCollider::TypeGround, sphere);
 
 	// ② 登録されている当たり判定対象を1つずつ調べる。
-	for (std::weak_ptr<KdGameObject> wpGameObj : m_wpHitObjectList)
+	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
 		if (spGameObj)
 		{
+			// StageBaseを継承しているオブジェクトは、
+			// スフィア判定が必要かどうかをステージ側で決める。
+			// Groundのような広い地面モデルに球判定をすると重くなりやすいので、
+			// EnableSphereCollision() が false のものはここでスキップする。
+			std::shared_ptr<StageBase> spStage = std::dynamic_pointer_cast<StageBase>(spGameObj);
+			if (spStage && !spStage->EnableSphereCollision())
+			{
+				continue;
+			}
+
 			// 球と対象オブジェクトのすべての衝突結果を受け取る。
 			std::list<KdCollider::CollisionResult> retBumpList;
 			spGameObj->Intersects(spherInfo, &retBumpList);

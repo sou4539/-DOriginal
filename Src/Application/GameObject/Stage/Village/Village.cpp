@@ -1,16 +1,8 @@
 ﻿#include "Village.h"
 
-void Village::Update()
-{}
-
-void Village::PostUpdate()
-{}
-
 void Village::Init()
 {
 	// 村モデルを読み込む。
-	// モデル内に「COL」という名前のノードがある場合、
-	// フレームワーク側でそのノードが当たり判定用として使われる。
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/World/village.gltf");
 
@@ -23,9 +15,8 @@ void Village::Init()
 	m_pCollider = std::make_unique<KdCollider>();
 	m_pCollider->RegisterCollisionShape
 	(
-		"Village", 
-		m_spModel, 
+		"Village",
+		m_spModel,
 		KdCollider::TypeGround
 	);
-
 }

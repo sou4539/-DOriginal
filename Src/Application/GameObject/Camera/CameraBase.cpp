@@ -39,9 +39,7 @@ void CameraBase::UpdateRotateByMouse()
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
 
 	// 実際にカメラを回転させる処理(0.15はただの補正値)
-	m_DegAng.x += _mouseMove.y * 0.15f;
+	// 上下方向の見回しは使わないため、マウスのY移動は反映しない。
+	// 横方向だけ反映して、プレイヤーの周囲を左右に見回せるようにする。
 	m_DegAng.y += _mouseMove.x * 0.15f;
-
-	// 回転制御
-	m_DegAng.x = std::clamp(m_DegAng.x, -45.f, 45.f);
 }
