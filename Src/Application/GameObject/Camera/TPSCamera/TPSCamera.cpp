@@ -7,7 +7,7 @@ void TPSCamera::Init()
 
 	// プレイヤーから見たカメラの相対位置。
 	// yを高くすると見下ろしやすくなり、zをマイナスにするとプレイヤーの後ろへ下がる。
-	m_mLocalPos = Math::Matrix::CreateTranslation(0, 10.0f, -15.0f);
+	m_mLocalPos = Math::Matrix::CreateTranslation(0, 15.0f, -15.0f);
 
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
 }

@@ -4,7 +4,7 @@ void Village::Init()
 {
 	// 村モデルを読み込む。
 	m_spModel = std::make_shared<KdModelWork>();
-	m_spModel->SetModelData("Asset/Models/Objects/World/village.gltf");
+	m_spModel->SetModelData("Asset/Models/Objects/Stage/World/village.gltf");
 
 	// 村は原点・等倍で配置する。
 	m_mWorld = Math::Matrix::Identity;

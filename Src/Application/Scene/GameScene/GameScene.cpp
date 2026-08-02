@@ -2,7 +2,7 @@
 #include"../SceneManager.h"
 
 #include "../../GameObject/Camera/TPSCamera/TPSCamera.h"
-#include "../../GameObject/Character/Bat/Bat.h"
+#include "../../GameObject/Character/Bat/BatGroup.h"
 #include "../../GameObject/Character/Player/Player.h"
 //#include "../../GameObject/Character/Enemy/Enemy.h"
 #include "../../GameObject/Character/Status/Status.h"
@@ -36,9 +36,9 @@ void GameScene::Init()
 
 	// コウモリを作成する。
 	// 現在は表示確認用として、プレイヤーと同じ初期座標に配置している。
-	std::shared_ptr<Bat> bat;
-	bat = std::make_shared<Bat>();
-	m_objList.push_back(bat);
+	std::shared_ptr<BatGroup> batGroup;
+	batGroup = std::make_shared<BatGroup>();
+	m_objList.push_back(batGroup);
 
 	// ステータスUI/情報管理用のオブジェクトを作成する。
 	std::shared_ptr<Status> status;
@@ -61,6 +61,7 @@ void GameScene::Init()
 	camera->SetTarget(player);
 	player->SetStatus(status);
 	player->SetCamera(camera);
+	batGroup->SetTarget(player);
 
 	// プレイヤーが当たり判定を調べる対象を登録する。
 	player->RegistHitObject(ground);

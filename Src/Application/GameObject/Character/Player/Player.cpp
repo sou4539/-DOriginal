@@ -8,7 +8,7 @@ void Player::Init()
 	if (!m_spModel)
 	{
 		m_spModel = std::make_shared<KdModelWork>();
-		m_spModel->SetModelData("Asset/Models/Objects/Witch/Witch.gltf");
+		m_spModel->SetModelData("Asset/Models/Objects/Character/Witch/Witch.gltf");
 	}
 
 	// 現在の初期位置。

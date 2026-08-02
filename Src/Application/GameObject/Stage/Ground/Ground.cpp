@@ -4,7 +4,7 @@ void Ground::Init()
 {
 	// 地面モデルを読み込む。
 	m_spModel = std::make_shared<KdModelWork>();
-	m_spModel->SetModelData("Asset/Models/Objects/Ground/Ground.gltf");
+	m_spModel->SetModelData("Asset/Models/Objects/Stage/Ground/Ground.gltf");
 
 	// 元のGroundモデルは小さいため、表示確認しやすいように100倍へ拡大する。
 	m_mWorld = Math::Matrix::CreateScale(100.0f);
