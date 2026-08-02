@@ -1,26 +1,18 @@
-﻿#pragma once
+#pragma once
 
 #include "../CharaBase.h"
-#include "Bat.h"
 
 class Bat;
 
-class BatGroup :public CharaBase
+class BatGroup : public CharaBase
 {
 public:
 	BatGroup() { Init(); }
-	~BatGroup() {}
-	void Init();
-	void Update();
+	~BatGroup() override {}
 
-	void SetTarget(const std::shared_ptr<KdGameObject>& target)
-	{
-		if (m_spBat)
-		{
-			m_spBat->SetTarget(target);
-		}
-	}
+	void Init() override;
+	void Update() override;
 
-private:
-	std::shared_ptr<Bat> m_spBat;
+	void SetTarget(const std::shared_ptr<KdGameObject>& target);
+	void AddBatsToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target);
 };

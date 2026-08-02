@@ -19,6 +19,8 @@ public:
 	void SetStartPos(const Math::Vector3& pos)
 	{
 		m_pos = pos;
+		m_startPos = pos;
+		SetPos(pos);
 	}
 
 private:
