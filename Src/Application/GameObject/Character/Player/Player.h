@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../CharaBase.h"
 
 class Status;
@@ -7,32 +7,84 @@ class CameraBase;
 class Player : public CharaBase
 {
 public:
+	// Player‚ğì¬‚µ‚½‚ÉA©“®‚ÅInit()‚ğŒÄ‚ñ‚Å‰Šú‰»‚·‚éB
+	// GameScene‚Å‚Í std::make_shared<Player>() ‚·‚é‚¾‚¯‚ÅAƒ‚ƒfƒ‹‚Æ‰ŠúÀ•W‚ª€”õ‚³‚ê‚éB
 	Player() { Init(); }
-	~Player()				override	{}
 
-	
-	void Update()			override;
-	void PostUpdate()		override;
-	//void DrawLit()			override;
+	// Player”jŠü‚Ìˆ—B
+	// CharaBase‘¤‚ÌƒfƒXƒgƒ‰ƒNƒ^‚Åƒ‚ƒfƒ‹‰ğ•ú‚ğs‚¤‚½‚ßA‚±‚±‚Å‚Í’Ç‰Áˆ—‚ğ‚½‚¹‚Ä‚¢‚È‚¢B
+	~Player() override {}
 
-	void SetStatus(const std::shared_ptr<Status>& status) 
-	{ 
+	// –ˆƒtƒŒ[ƒ€‚Ì’ÊíXVB
+	// “ü—ÍAˆÚ“®AŒü‚«Aƒ[ƒ‹ƒhs—ñ‚ÌXV‚ğs‚¤B
+	void Update() override;
+
+	// UpdateŒã‚ÉŒÄ‚Î‚ê‚éXVB
+	// ’n–ÊE•Ç‚Ì“–‚½‚è”»’èA“G‚Æ‚Ìƒ_ƒ[ƒW”»’èA€–S‚Ì•œŠˆ”»’è‚ğs‚¤B
+	void PostUpdate() override;
+
+	// Player‚ªƒ_ƒ[ƒW‚ğó‚¯‚½‚É‘€ì‚·‚éStatus‚ğ“o˜^‚·‚éB
+	// GameScene‚ÅStatus‚ğì¬‚µ‚½ŒãAplayer->SetStatus(status) ‚ÌŒ`‚ÅŒÄ‚ÔB
+	void SetStatus(const std::shared_ptr<Status>& status)
+	{
 		m_status = status;
 	}
 
-	// ã‚«ãƒ¡ãƒ©ã®å‘ãã‚’åŸºæº–ã«ç§»å‹•æ–¹å‘ã‚’æ±ºã‚ã‚‹ãŸã‚ã€GameSceneã‹ã‚‰ã‚«ãƒ¡ãƒ©ã‚’å—ã‘å–ã‚‹ã€‚
+	// ƒJƒƒ‰Šî€‚ÅˆÚ“®‚·‚é‚½‚ß‚ÉAŒ»İg‚Á‚Ä‚¢‚éƒJƒƒ‰‚ğ“o˜^‚·‚éB
+	// “o˜^‚µ‚Ä‚¨‚­‚ÆAWASDˆÚ“®‚ªƒJƒƒ‰‚ÌŒü‚«‚É‡‚í‚¹‚½•ûŒü‚É‚È‚éB
 	void SetCamera(const std::shared_ptr<CameraBase>& camera)
 	{
 		m_wpCamera = camera;
 	}
+
+	// HP‚ª0‚É‚È‚Á‚½‚É–ß‚éÀ•W‚ğŠO‚©‚çİ’è‚·‚éB
+	// ‘º‚ÌˆÊ’u‚ğ•Ï‚¦‚½‚ÉAPlayer.cpp‚Ì’†‚ğ‘‚«Š·‚¦‚È‚­‚ÄÏ‚Ş‚æ‚¤‚É‚µ‚Ä‚¢‚éB
+	void SetRespawnPos(const Math::Vector3& respawnPos)
+	{
+		m_respawnPos = respawnPos;
+	}
+
 private:
+	// Player‚Ì‰Šú‰»ˆ—B
+	// ƒ‚ƒfƒ‹“Ç‚İ‚İA‰ŠúˆÊ’uA•œŠˆ’n“_‚Ì‰Šú’l‚ğİ’è‚·‚éB
+	void Init() override;
+
+	// –³“GŠÔ‚ğXV‚·‚éB
+	// ƒ_ƒ[ƒWˆ—‚Æ•ª‚¯‚Ä‚¨‚­‚±‚Æ‚ÅAUpdate‚Ì—¬‚ê‚ğ“Ç‚İ‚â‚·‚­‚·‚éB
+	void UpdateInvincible();
+
+	// “ü—Í‚ÆƒJƒƒ‰Œü‚«‚©‚çˆÚ“®•ûŒü‚ğì‚èAƒvƒŒƒCƒ„[‚ğˆÚ“®‚³‚¹‚éB
+	void UpdateMove();
+
+	// m_pos‚Æm_angle‚©‚çA•`‰æ—p‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éB
+	void UpdateWorldMatrix();
+
+	// ƒvƒŒƒCƒ„[‚Ì‘Ì—pƒXƒtƒBƒA‚ªATypeDamage‚Ì“–‚½‚è”»’è‚ÉG‚ê‚Ä‚¢‚é‚©Šm”F‚·‚éB
+	// ƒRƒEƒ‚ƒŠ‚ÍTypeDamage‚ğ‚Á‚Ä‚¢‚é‚Ì‚ÅAƒRƒEƒ‚ƒŠÚGƒ_ƒ[ƒW‚ÌŠm”F‚Ég‚¤B
+	void UpdateDamageCollision();
+
+	// HP‚ª0‚É‚È‚Á‚Ä‚¢‚é‚©Šm”F‚µA0‚È‚ç‘º‚Ì•œŠˆ’n“_‚Ö–ß‚·B
+	// ‚±‚ÌƒQ[ƒ€‚Å‚ÍƒŠƒUƒ‹ƒg‚âƒ^ƒCƒgƒ‹‚Ö–ß‚ç‚¸A‘º‚Ì’†‚Å•œŠˆ‚·‚éB
+	void RespawnIfDead();
+
+	// ƒvƒŒƒCƒ„[HP‚ÍStatus‚ªŠÇ—‚µ‚Ä‚¢‚éB
+	// Player‚Íƒ_ƒ[ƒW‚ª”­¶‚µ‚½‚¾‚¯AStatus‚ÌDamagePlayer‚ğŒÄ‚ÔB
 	std::weak_ptr<Status> m_status;
 
-	// weak_ptrã§æŒã¤ã“ã¨ã§ã€ã‚«ãƒ¡ãƒ©ãŒå‰Šé™¤ã•ã‚ŒãŸå¾Œã«å‚ç…§ã—ç¶šã‘ãªã„ã‚ˆã†ã«ã™ã‚‹ã€‚
+	// WASD“ü—Í‚ğƒJƒƒ‰Šî€‚ÌˆÚ“®•ûŒü‚Ö•ÏŠ·‚·‚é‚½‚ß‚Ég‚¤B
+	// weak_ptr‚É‚µ‚ÄAPlayer‚ªCamera‚ğŸè‚É¶‘¶‚³‚¹‘±‚¯‚È‚¢‚æ‚¤‚É‚µ‚Ä‚¢‚éB
 	std::weak_ptr<CameraBase> m_wpCamera;
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã€‚ç§»å‹•æ–¹å‘ã‹ã‚‰Yè»¸å›è»¢ã‚’ä½œã‚‹ãŸã‚ã«ä½¿ã†ã€‚
+	// ƒvƒŒƒCƒ„[‚ÌY²‰ñ“]Šp“xB
+	// ˆÚ“®•ûŒü‚©‚çŠp“x‚ğì‚èAƒ‚ƒfƒ‹‚ğis•ûŒü‚ÖŒü‚¯‚é‚½‚ß‚Ég‚¤B
 	float m_angle = 0.0f;
 
-	void Init()				override;
+	// ƒ_ƒ[ƒW‚ğó‚¯‚½Œã‚Ì–³“GŠÔB
+	// ‚±‚Ì’l‚ª0‚æ‚è‘å‚«‚¢ŠÔ‚ÍAƒRƒEƒ‚ƒŠ‚ÉG‚ê‚Ä‚¢‚Ä‚à’Ç‰Áƒ_ƒ[ƒW‚ğó‚¯‚È‚¢B
+	// ‚±‚ê‚ª‚È‚¢‚ÆAÚG’†‚É–ˆƒtƒŒ[ƒ€HP‚ªŒ¸‚Á‚Ä‚µ‚Ü‚¤B
+	float m_damageCoolTime = 0.0f;
+
+	// HP‚ª0‚É‚È‚Á‚½‚É–ß‚é‘º‚Ì’†‚ÌÀ•WB
+	// ¡‚ÍƒvƒŒƒCƒ„[‰ŠúˆÊ’u‚Æ“¯‚¶êŠ‚ğ•œŠˆ’n“_‚Æ‚µ‚Äg‚¤B
+	Math::Vector3 m_respawnPos = Math::Vector3::Zero;
 };

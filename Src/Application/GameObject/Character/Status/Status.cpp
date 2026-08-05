@@ -1,11 +1,168 @@
-ï»¿#include "Status.h"
+#include "Status.h"
 
+namespace
+{
+	// HPƒo[‚Ì•\¦İ’èB
+	// ‰æ‘œ‚ğ·‚µ‘Ö‚¦‚½‚èA•\¦ˆÊ’u‚ğ’²®‚µ‚½‚¢‚Í‚Ü‚¸‚±‚±‚ğŒ©‚éB
+	constexpr int HpBarX = -660;
+	constexpr int HpBarY = 320;
+	constexpr int HpBarDrawW = 400;
+	constexpr int HpBarDrawH = 45;
+
+	// HP_Bar.png ‚Ìˆê”Ôã‚É‚ ‚é‰¡ƒo[•”•ªB
+	const Math::Rectangle HpBarSrcRect = { 0, 0, 384, 128 };
+
+	// •\¦Œã‚ÌHPƒo[“à‚ÅAÀÛ‚ÉÔƒQ[ƒW‚ª“ü‚Á‚Ä‚¢‚é”ÍˆÍB
+	// Œ¸‚Á‚½HP‚Í‚±‚Ì”ÍˆÍ‚¾‚¯‚ğ‰E‚©‚ç‰B‚·B
+	constexpr int HpGaugeOffsetX = 42;
+	constexpr int HpGaugeOffsetY = 10;
+	constexpr int HpGaugeW = 333;
+	constexpr int HpGaugeH = 24;
+
+const Math::Color HpHideColor = { 0.08f, 0.07f, 0.13f, 1.0f };
+}
+
+// Status‚Ì‰Šú‰»ˆ—B
+// g‚¢•ûF
+//   Status¶¬‚ÉƒRƒ“ƒXƒgƒ‰ƒNƒ^‚©‚ç©“®‚ÅŒÄ‚Î‚ê‚éB
+//   HPƒo[‰æ‘œ‚ğ·‚µ‘Ö‚¦‚½ê‡‚ÍALoad()‚ÌƒpƒX‚ğ•ÏX‚·‚éB
+// ˆ—“à—eF
+//   HPƒo[‰æ‘œ‚ğ“Ç‚İ‚İA“Ç‚İ‚İ¸”s‚ÍDrawSprite‚Åg‚í‚È‚¢‚æ‚¤nullptr‚É–ß‚·B
 void Status::Init()
 {
+	// HPƒo[‚Ég‚¤‰æ‘œ‚ğ“Ç‚İ‚ŞB
+	// ‰æ‘œ‚ÍAsset/Textures/UIƒtƒHƒ‹ƒ_‚É’u‚¢‚Ä‚¢‚é‰¡Œü‚«ƒo[‚ğg‚¤B
+	if (!m_hpBarTex)
+	{
+		m_hpBarTex = std::make_shared<KdTexture>();
 
+		// Load‚É¸”s‚µ‚½ê‡Am_hpBarTex©‘Ì‚Í‘¶İ‚µ‚Ä‚¢‚Ä‚à’†g‚Ì‰æ‘œî•ñ‚ª‹ó‚É‚È‚éB
+		// ‚»‚Ìó‘Ô‚ÅDrawTex‚·‚é‚Æ—áŠO‚ÌŒ´ˆö‚É‚È‚é‚½‚ßA¸”s‚Ínullptr‚É–ß‚µ‚Ä‚¨‚­B
+		if (!m_hpBarTex->Load("Asset/Textures/UI/HP_Bar.png"))
+		{
+			m_hpBarTex = nullptr;
+		}
+	}
 }
 
 void Status::Update()
 {
+}
 
+// HPƒo[‚Ì•`‰æˆ—B
+// g‚¢•ûF
+//   BaseScene‚ÌDrawSprite‚©‚ç–ˆƒtƒŒ[ƒ€©“®‚ÅŒÄ‚Î‚ê‚éB
+// ˆ—“à—eF
+//   –ƒ^ƒ“ó‘Ô‚ÌHPƒo[‰æ‘œ‚ğ•`‰æ‚µAŒ¸‚Á‚½HP•ª‚¾‚¯‰E‘¤‚ğˆÃ‚¢F‚Å‰B‚·B
+// ’ˆÓF
+//   HPƒo[‰æ‘œ‚ÌƒTƒCƒY‚âƒfƒUƒCƒ“‚ğ•Ï‚¦‚½ê‡‚ÍAã‚ÌHpGaugeŒn’è”‚à’²®‚·‚éB
+void Status::DrawSprite()
+{
+	if (!m_hpBarTex) { return; }
+	if (!m_hpBarTex->GetSRView()) { return; }
+
+	// ‰æ–ÊƒTƒCƒY‚Í1280x720‚È‚Ì‚ÅA2DÀ•W‚Í‚¾‚¢‚½‚¢
+	// ¶’[‚ª -640A‰E’[‚ª 640Aã’[‚ª 360A‰º’[‚ª -360 ‚É‚È‚éB
+	// HPƒo[‚Í‰æ–Ê¶ã‚É’u‚­‚½‚ßA‚©‚È‚è¶Šñ‚è‚ÌÀ•W‚ğg‚¤B
+	const int barX = HpBarX;
+	const int barY = HpBarY;
+
+	// •\¦‚·‚éHPƒo[‚Ì‘å‚«‚³B
+	// Œ³‰æ‘œ‚Í384x384‚ÅA‰¡ƒo[‚ªc‚É3í—Ş•À‚ñ‚Å‚¢‚éB
+	// ‚±‚±‚Å‚Íˆê”Ôã‚Ì‰¡ƒo[•”•ª‚¾‚¯‚ğØ‚è”²‚¢‚Äg‚¤B
+	const int drawW = HpBarDrawW;
+	const int drawH = HpBarDrawH;
+
+	// Œ³‰æ‘œ‚Ìˆê”Ôã‚Ì‰¡ƒo[•”•ª‚ğØ‚è”²‚­B
+	// 0`128px‚Ì”ÍˆÍ‚ÉA–ƒ^ƒ“ó‘Ô‚Ì‰¡ƒo[‚ª“ü‚Á‚Ä‚¢‚éB
+	Math::Rectangle srcRect = HpBarSrcRect;
+
+	// HPƒo[‰æ‘œ‚ğ•`‰æ‚·‚éB
+	// pivot‚ğ¶ãŠî€‚É‚·‚é‚±‚Æ‚ÅAbarX/barY‚ğ¶ãÀ•W‚Æ‚µ‚Äˆµ‚¦‚éB
+	KdShaderManager::Instance().m_spriteShader.DrawTex
+	(
+		m_hpBarTex.get(),
+		barX,
+		barY,
+		drawW,
+		drawH,
+		&srcRect,
+		&kWhiteColor,
+		{ 0.0f, 0.0f }
+	);
+
+	// Œ»İHP‚ÌŠ„‡‚ğ0.0`1.0‚Éû‚ß‚éB
+	float hpRate = 0.0f;
+	if (m_pMaxHp > 0.0f)
+	{
+		hpRate = m_pHp / m_pMaxHp;
+	}
+	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+
+	// HP_Bar.png‚ÌÔ‚¢•”•ª‚ÍA‰æ‘œ‚Ì“à‘¤‚É—]”’‚ª‚ ‚éB
+	// ‚»‚Ì‚½‚ßAÔƒo[‚Ì“à‘¤‚¾‚¯‚ğ‰B‚·‚æ‚¤‚ÉÀ•W‚ğ­‚µ“à‘¤‚Ö‚¸‚ç‚·B
+	const int innerX = barX + HpGaugeOffsetX;
+	// ÔƒQ[ƒW‚Ìã’[‚ª1px‚Ù‚Çc‚ç‚È‚¢‚æ‚¤‚ÉA‰B‚·”ÍˆÍ‚ğ­‚µã‚©‚çn‚ß‚éB
+	const int innerY = barY + HpGaugeOffsetY;
+	const int innerW = HpGaugeW;
+	const int innerH = HpGaugeH;
+
+	// Œ¸‚Á‚½HP•ª‚¾‚¯A‰E‘¤‚ğˆÃ‚¢F‚Å‰B‚·B
+	// ‰æ‘œ©‘Ì‚Í–ƒ^ƒ“‚ÌÔƒo[‚È‚Ì‚ÅA‘«‚è‚È‚¢•”•ª‚ğã‚©‚ç“h‚Á‚ÄŒ¸‚Á‚ÄŒ©‚¹‚éB
+	const int hideW = static_cast<int>(innerW * (1.0f - hpRate));
+	if (hideW > 0)
+	{
+		const int hideCenterX = innerX + innerW - (hideW / 2);
+		const int hideCenterY = innerY + (innerH / 2);
+
+		KdShaderManager::Instance().m_spriteShader.DrawBox
+		(
+			hideCenterX,
+			hideCenterY,
+			hideW / 2,
+			innerH / 2,
+			&HpHideColor,
+			true
+		);
+	}
+
+	// ‚±‚±‚Å‚Í•¶š•\¦‚Ís‚í‚È‚¢B
+	// DrawFont‚Í“à•”‚ÅƒtƒHƒ“ƒg‰æ‘œ‚ğ¶¬‚·‚é‚½‚ßAŠÂ‹«‚É‚æ‚Á‚Ä—áŠOŒ´ˆö‚É‚È‚è‚â‚·‚¢B
+	// ‚Ü‚¸‚ÍHPƒo[‰æ‘œ‚¾‚¯‚ÅHP‚ÌŒ¸­‚ğŠm”F‚Å‚«‚é‚æ‚¤‚É‚µ‚Ä‚¢‚éB
+}
+
+// ƒvƒŒƒCƒ„[HP‚ğŒ¸‚ç‚·ˆ—B
+// g‚¢•ûF
+//   “G‚âƒ_ƒ[ƒW”»’è‘¤‚©‚ç spStatus->DamagePlayer(ƒ_ƒ[ƒW—Ê) ‚ÌŒ`‚ÅŒÄ‚ÔB
+// ˆ—“à—eF
+//   ó‚¯æ‚Á‚½ƒ_ƒ[ƒW—Ê‚¾‚¯HP‚ğŒ¸‚ç‚µA0–¢–‚É‚È‚ç‚È‚¢‚æ‚¤‚É‚·‚éB
+// ’ˆÓF
+//   0ˆÈ‰º‚Ì’l‚Í–³‹‚·‚éB‰ñ•œ‚µ‚½‚¢ê‡‚Í•Ê‚Ì‰ñ•œ—pŠÖ”‚ğg‚¤B
+void Status::DamagePlayer(float damage)
+{
+	// 0ˆÈ‰º‚Ì’l‚ğó‚¯æ‚Á‚½ê‡‚Í‰½‚à‚µ‚È‚¢B
+	// ‰ñ•œˆ—‚ÍResetPlayerHp‚È‚Ç•ÊŠÖ”‚É•ª‚¯ADamagePlayer‚ÍuŒ¸‚ç‚·‚¾‚¯v‚É‚·‚éB
+	if (damage <= 0.0f) { return; }
+
+	// ó‚¯æ‚Á‚½ƒ_ƒ[ƒW—Ê‚¾‚¯AƒvƒŒƒCƒ„[HP‚ğŒ¸‚ç‚·B
+	m_pHp -= damage;
+
+	// HP‚ª0‚æ‚è‰º‚És‚­‚ÆAUI•\¦‚â€–S”»’è‚ªˆµ‚¢‚É‚­‚­‚È‚éB
+	// ‚»‚Ì‚½‚ßAÅ’á’l‚Í0‚Å~‚ß‚Ä‚¨‚­B
+	if (m_pHp < 0.0f)
+	{
+		m_pHp = 0.0f;
+	}
+}
+
+// ƒvƒŒƒCƒ„[HP‚ğÅ‘å‚Ü‚Å–ß‚·ˆ—B
+// g‚¢•ûF
+//   Player‚Ì•œŠˆˆ—‚©‚çŒÄ‚ÔB
+// ˆ—“à—eF
+//   Œ»İHP‚ğÅ‘åHP‚Æ“¯‚¶’l‚É–ß‚µAHPƒo[•\¦‚à–ƒ^ƒ“‚É‚·‚éB
+void Status::ResetPlayerHp()
+{
+	// ‘º‚Å•œŠˆ‚·‚é‚ÍAƒvƒŒƒCƒ„[HP‚ğÅ‘å’l‚Ü‚Å–ß‚·B
+	// HPƒo[‚Ím_pHp / m_pMaxHp‚Å•\¦‚µ‚Ä‚¢‚é‚½‚ßA‚±‚±‚ğ–ß‚·‚¾‚¯‚Å•\¦‚à–ƒ^ƒ“‚É‚È‚éB
+	m_pHp = m_pMaxHp;
 }

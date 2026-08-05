@@ -59,7 +59,9 @@ void KdDebugGUI::GuiProcess()
 //	ImGui::End();
 
 	// ログウィンドウ
-	m_uqLog->Draw("Log Window");
+	// 画面上にLog Windowを表示したくないため、描画処理は止めておく。
+	// ログ機能自体は残しているので、必要になったら下の行を戻せば再表示できる。
+	// m_uqLog->Draw("Log Window");
 
 	//=====================================================
 	// ログ出力 ・・・ AddLog("～") で追加

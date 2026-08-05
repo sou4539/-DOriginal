@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include"../BaseScene/BaseScene.h"
 
@@ -6,11 +6,20 @@ class GameScene : public BaseScene
 {
 public :
 
+	// GameScene‚ğì¬‚µ‚½‚ÉA©“®‚ÅInit()‚ğŒÄ‚ñ‚ÅƒQ[ƒ€—pƒIƒuƒWƒFƒNƒg‚ğ”z’u‚·‚éB
 	GameScene()  { Init(); }
+
+	// GameScene”jŠü‚Ìˆ—B
+	// m_objList“à‚Ìshared_ptr‚ªŠeƒIƒuƒWƒFƒNƒg‚ğ‰ğ•ú‚·‚é‚½‚ßA‚±‚±‚Å‚Í’Ç‰Áˆ—‚ğ‚½‚¹‚Ä‚¢‚È‚¢B
 	~GameScene() {}
 
 private:
 
+	// GameScene’†‚Ì“ü—ÍƒCƒxƒ“ƒgˆ—B
+	// ¡‚ÍTƒL[‚Åƒ^ƒCƒgƒ‹‚Ö–ß‚éƒfƒoƒbƒO—pˆ—‚ğs‚¤B
 	void Event() override;
+
+	// GameScene‚Ì‰Šú‰»ˆ—B
+	// ƒJƒƒ‰AƒvƒŒƒCƒ„[A“GAUIAƒXƒe[ƒW‚ğì¬‚µ‚ÄQÆŠÖŒW‚ğ‚Â‚È‚®B
 	void Init()  override;
 };

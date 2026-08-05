@@ -1,30 +1,86 @@
-ï»¿#include "Player.h"
-#include "../../Camera/CameraBase.h"
+#include "Player.h"
 
+#include "../../Camera/CameraBase.h"
+#include "../Status/Status.h"
+#include "../../../Scene/SceneManager.h"
+
+namespace
+{
+	constexpr float PlayerMoveSpeed = 0.1f;
+	constexpr float PlayerDamageRadius = 1.2f;
+	constexpr float PlayerDamageSphereHeight = 1.5f;
+	constexpr float BatContactDamage = 5.0f;
+	constexpr float DamageCoolTimeFrame = 60.0f;
+	constexpr float RespawnInvincibleFrame = 120.0f;
+
+const Math::Vector3 DefaultRespawnPos = { -30.0f, 0.0f, 0.0f };
+}
+
+// Player‚Ì‰Šú‰»ˆ—B
+// g‚¢•ûF
+//   Player¶¬‚ÉƒRƒ“ƒXƒgƒ‰ƒNƒ^‚©‚ç©“®‚ÅŒÄ‚Î‚ê‚éB
+//   Šî–{“I‚ÉŠO‚©‚ç’¼ÚŒÄ‚Ñ’¼‚³‚È‚¢B
+// ˆ—“à—eF
+//   ƒ‚ƒfƒ‹‚ğ“Ç‚İ‚İA‰ŠúˆÊ’u‚Æ•œŠˆ’n“_‚ğİ’è‚·‚éB
 void Player::Init()
 {
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®è¦‹ãŸç›®ãƒ¢ãƒ‡ãƒ«ã‚’èª­ã¿è¾¼ã‚€ã€‚
-	// ã™ã§ã«ãƒ¢ãƒ‡ãƒ«ãŒã‚ã‚‹å ´åˆã¯å†èª­ã¿è¾¼ã¿ã—ãªã„ã€‚
+	// ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚ğ“Ç‚İ‚ŞB
+	// ‚·‚Å‚É“Ç‚İ‚İÏ‚İ‚Ìê‡‚ÍA“¯‚¶ƒ‚ƒfƒ‹‚ğ“ñd‚É“Ç‚İ‚Ü‚È‚¢B
 	if (!m_spModel)
 	{
 		m_spModel = std::make_shared<KdModelWork>();
 		m_spModel->SetModelData("Asset/Models/Objects/Character/Witch/Witch.gltf");
 	}
 
-	// ç¾åœ¨ã®åˆæœŸä½ç½®ã€‚
-	// æ‘ã‚„ã‚°ãƒ©ã‚¦ãƒ³ãƒ‰ã®é…ç½®ç¢ºèªã‚’ã—ã‚„ã™ã„ã‚ˆã†ã«ã€å°‘ã—å·¦å´ã‹ã‚‰é–‹å§‹ã—ã¦ã„ã‚‹ã€‚
-	m_pos = { -30,0,0 };
+	// ƒvƒŒƒCƒ„[‚Ì‰ŠúˆÊ’uB
+	// m_pos‚ÍˆÚ“®ŒvZ‚Åg‚¤Player‘¤‚ÌÀ•WB
+	m_respawnPos = DefaultRespawnPos;
+	m_pos = m_respawnPos;
 
-	// KdGameObjectå´ã®åº§æ¨™ã‚‚åˆæœŸä½ç½®ã«åˆã‚ã›ã‚‹ã€‚
+	// KdGameObject‘¤‚Ìƒ[ƒ‹ƒhs—ñ‚É‚à‰ŠúˆÊ’u‚ğ”½‰f‚·‚éB
 	SetPos(m_pos);
 }
 
+// Player‚Ì–ˆƒtƒŒ[ƒ€XVB
+// g‚¢•ûF
+//   ƒV[ƒ“‚ÌUpdateˆ—‚©‚ç–ˆƒtƒŒ[ƒ€©“®‚ÅŒÄ‚Î‚ê‚éB
+// ˆ—“à—eF
+//   –³“GŠÔAˆÚ“®“ü—ÍA•`‰æ—pƒ[ƒ‹ƒhs—ñ‚ğXV‚·‚éB
 void Player::Update()
 {
+	// CharaBase‘¤‚ÌŠî–{XV‚ğŒÄ‚ÔB
+	// ¡‚Íˆ—‚ª­‚È‚­‚Ä‚àAŠî’êƒNƒ‰ƒX‘¤‚Ìˆ—‚ğc‚·‚½‚ß‚ÉŒÄ‚ñ‚Å‚¨‚­B
 	CharaBase::Update();
 
-	// WASDå…¥åŠ›ã‹ã‚‰ã€Œç§»å‹•ã—ãŸã„æ–¹å‘ã€ã‚’ä½œã‚‹ã€‚
-	// ã“ã®æ™‚ç‚¹ã§ã¯ã‚«ãƒ¡ãƒ©ã‚’è€ƒæ…®ã—ãªã„ã€ãƒ¯ãƒ¼ãƒ«ãƒ‰åŸºæº–ã®å…¥åŠ›æ–¹å‘ã€‚
+	UpdateInvincible();
+	UpdateMove();
+	UpdateWorldMatrix();
+}
+
+// –³“GŠÔ‚ÌXVˆ—B
+// g‚¢•ûF
+//   Update()‚Ì’†‚©‚ç–ˆƒtƒŒ[ƒ€ŒÄ‚ÔB
+// ˆ—“à—eF
+//   ƒ_ƒ[ƒWŒã‚â•œŠˆŒã‚Éİ’è‚µ‚½–³“GŠÔ‚ğ1ƒtƒŒ[ƒ€‚¸‚ÂŒ¸‚ç‚·B
+void Player::UpdateInvincible()
+{
+	if (m_damageCoolTime <= 0.0f) { return; }
+
+	// –³“GŠÔ‚ğ1ƒtƒŒ[ƒ€‚¸‚ÂŒ¸‚ç‚·B
+	// 60FPS‘z’è‚È‚çA60ƒtƒŒ[ƒ€‚Å–ñ1•b‚É‚È‚éB
+	m_damageCoolTime -= 1.0f;
+}
+
+// ƒvƒŒƒCƒ„[‚ÌˆÚ“®ˆ—B
+// g‚¢•ûF
+//   Update()‚Ì’†‚©‚ç–ˆƒtƒŒ[ƒ€ŒÄ‚ÔB
+// ˆ—“à—eF
+//   WASD“ü—Í‚ğŠm”F‚µAƒJƒƒ‰‚ÌŒü‚«‚É‡‚í‚¹‚ÄˆÚ“®•ûŒü‚ğì‚éB
+//   Î‚ßˆÚ“®‚ª‘¬‚­‚È‚ç‚È‚¢‚æ‚¤‚ÉNormalize‚Å³‹K‰»‚·‚éB
+void Player::UpdateMove()
+{
+	// WASD“ü—Í‚©‚çˆÚ“®‚µ‚½‚¢•ûŒü‚ğì‚éB
+	// ‚±‚Ì“_‚Å‚Í‚Ü‚¾ƒJƒƒ‰‚ÌŒü‚«‚Íl—¶‚µ‚Ä‚¢‚È‚¢B
 	Math::Vector3 moveDir = Math::Vector3::Zero;
 
 	if (GetAsyncKeyState('W') & 0x8000)
@@ -46,45 +102,153 @@ void Player::Update()
 
 	if (moveDir.LengthSquared() > 0.0f)
 	{
-		// æ–œã‚ç§»å‹•æ™‚ã«é€Ÿåº¦ãŒé€Ÿããªã‚‰ãªã„ã‚ˆã†ã«æ­£è¦åŒ–ã™ã‚‹ã€‚
+		// Î‚ßˆÚ“®‚É‘¬“x‚ª‘¬‚­‚È‚ç‚È‚¢‚æ‚¤A•ûŒüƒxƒNƒgƒ‹‚ğ³‹K‰»‚·‚éB
 		moveDir.Normalize();
 
-		// å®Ÿéš›ã«ä½¿ã†ç§»å‹•æ–¹å‘ã€‚
-		// ã‚«ãƒ¡ãƒ©ãŒãªã‘ã‚Œã°ã€å…¥åŠ›æ–¹å‘ã‚’ãã®ã¾ã¾ä½¿ã†ã€‚
+		// ƒJƒƒ‰‚ª‚È‚¢ê‡‚ÍA“ü—Í•ûŒü‚ğ‚»‚Ì‚Ü‚ÜˆÚ“®•ûŒü‚Æ‚µ‚Äg‚¤B
 		m_dir = moveDir;
 
 		std::shared_ptr<CameraBase> spCamera = m_wpCamera.lock();
 		if (spCamera)
 		{
-			// ã‚«ãƒ¡ãƒ©ã®Yå›è»¢ã ã‘ã‚’ä½¿ã£ã¦ã€å…¥åŠ›æ–¹å‘ã‚’ã‚«ãƒ¡ãƒ©åŸºæº–ã®æ–¹å‘ã¸å›è»¢ã•ã›ã‚‹ã€‚
-			// ä¸Šä¸‹ã®è§’åº¦ã¯ä½¿ã‚ãªã„ã®ã§ã€åœ°é¢ã«æ²¿ã£ã¦ç§»å‹•ã§ãã‚‹ã€‚
+			// ƒJƒƒ‰‚ÌY‰ñ“]‚¾‚¯‚ğg‚¢A“ü—Í•ûŒü‚ğƒJƒƒ‰Šî€‚Ì•ûŒü‚Ö•ÏŠ·‚·‚éB
+			// ã‰º‰ñ“]‚ğg‚í‚È‚¢‚½‚ßAƒvƒŒƒCƒ„[‚Í’n–Ê‚É‰ˆ‚Á‚ÄˆÚ“®‚Å‚«‚éB
 			m_dir = Math::Vector3::TransformNormal(moveDir, spCamera->GetRotationYMatrix());
 			m_dir.Normalize();
 		}
 
-		// ã‚«ãƒ¡ãƒ©åŸºæº–ã«å¤‰æ›ã—ãŸæ–¹å‘ã¸ç§»å‹•ã™ã‚‹ã€‚
-		const float moveSpeed = 0.1f;
-		m_pos += m_dir * moveSpeed;
+		// ÀÛ‚ÉƒvƒŒƒCƒ„[À•W‚ğˆÚ“®‚³‚¹‚éB
+		m_pos += m_dir * PlayerMoveSpeed;
 
-		// ç§»å‹•æ–¹å‘ã‹ã‚‰ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘ãã‚’ä½œã‚‹ã€‚
-		// xã¨zã‹ã‚‰Yè»¸å›è»¢è§’åº¦ã‚’æ±‚ã‚ã‚‹ã“ã¨ã§ã€é€²è¡Œæ–¹å‘ã‚’å‘ãã€‚
+		// ˆÚ“®•ûŒü‚©‚çY²‰ñ“]Šp“x‚ğì‚éB
+		// ‚±‚ê‚É‚æ‚èAƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚ªis•ûŒü‚ğŒü‚­B
 		m_angle = atan2(m_dir.x, m_dir.z);
 	}
+}
 
-	// æ‹¡å¤§ãƒ»å›è»¢ãƒ»ç§»å‹•ã®é †ã«ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’ä½œã‚‹ã€‚
-	// å›è»¢ã«ã¯m_angleã‚’ä½¿ã†ãŸã‚ã€ç§»å‹•æ–¹å‘ã¸ä½“ãŒå‘ãã€‚
+// ƒvƒŒƒCƒ„[‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éˆ—B
+// g‚¢•ûF
+//   m_pos‚âm_angle‚ğ•ÏX‚µ‚½Œã‚ÉŒÄ‚ÔB
+// ˆ—“à—eF
+//   Šg‘åA‰ñ“]AˆÚ“®‚ğ‡¬‚µ‚ÄAƒ‚ƒfƒ‹‚Ì•\¦ˆÊ’u‚ÆŒü‚«‚ğŒˆ‚ß‚éB
+void Player::UpdateWorldMatrix()
+{
+	// ƒvƒŒƒCƒ„[‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éB
+	// Šg‘åA‰ñ“]AˆÚ“®‚Ì‡‚É‡¬‚µ‚ÄAƒ‚ƒfƒ‹‚Ì•\¦ˆÊ’u‚ÆŒü‚«‚ğŒˆ‚ß‚éB
 	Math::Matrix m_scale = Math::Matrix::CreateScale(1);
 	Math::Matrix m_rot = Math::Matrix::CreateRotationY(m_angle);
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = m_scale * m_rot * m_trans;
 }
 
+// UpdateŒã‚Ì•â³E”»’èˆ—B
+// g‚¢•ûF
+//   ƒV[ƒ“‚ÌPostUpdateˆ—‚©‚ç–ˆƒtƒŒ[ƒ€©“®‚ÅŒÄ‚Î‚ê‚éB
+// ˆ—“à—eF
+//   ’nŒ`‚Æ‚Ì“–‚½‚è”»’è‚ÅˆÊ’u‚ğ•â³‚µA‚»‚ÌŒã‚É“GÚGƒ_ƒ[ƒW‚Æ•œŠˆ”»’è‚ğs‚¤B
 void Player::PostUpdate()
 {
-	// CharaBaseå´ã§åœ°é¢ãƒ»å£ã¨ã®å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã†ã€‚
+	// CharaBase‘¤‚Å’n–Ê‚â•Ç‚Æ‚Ì“–‚½‚è”»’è‚ğs‚¤B
+	// ‚ß‚è‚İ‚ª‚ ‚Á‚½ê‡‚ÍASetPos‚ÅÀ•W‚ª•â³‚³‚ê‚éB
 	CharaBase::PostUpdate();
 
-	// å½“ãŸã‚Šåˆ¤å®šã§SetPosã•ã‚ŒãŸå ´åˆã«ã€Playerå´ã®m_posã‚‚åŒã˜åº§æ¨™ã¸åˆã‚ã›ã‚‹ã€‚
-	// ã“ã‚Œã‚’ã—ãªã„ã¨ã€æ¬¡ã®Updateã§è£œæ­£å‰ã®m_posã«æˆ»ã£ã¦ã—ã¾ã†ã€‚
+	// CharaBase‚Ì“–‚½‚è”»’è‚Å•â³‚³‚ê‚½À•W‚ğAPlayer‘¤‚Ìm_pos‚É‚à”½‰f‚·‚éB
+	// ‚±‚ê‚ğ‚µ‚È‚¢‚ÆAŸ‚ÌUpdate‚Å•â³‘O‚ÌÀ•W‚É–ß‚Á‚Ä‚µ‚Ü‚¤B
 	m_pos = GetPos();
+
+	// ˆÚ“®‚Æ’nŒ`•â³‚ªI‚í‚Á‚½Œã‚Ì³‚µ‚¢À•W‚ÅA
+	// ƒRƒEƒ‚ƒŠ‚È‚Ç‚Æ‚Ìƒ_ƒ[ƒW”»’è‚ğŠm”F‚·‚éB
+	UpdateDamageCollision();
+
+	// ƒ_ƒ[ƒW”»’è‚ÌŒ‹‰ÊHP‚ª0‚É‚È‚Á‚½ê‡‚ÍAƒ^ƒCƒgƒ‹‚Ö–ß‚ç‚¸‘º‚Ì’†‚Å•œŠˆ‚·‚éB
+	RespawnIfDead();
+}
+
+// “G‚Æ‚ÌÚGƒ_ƒ[ƒW”»’èB
+// g‚¢•ûF
+//   PostUpdate()‚ÅA’nŒ`‚Æ‚ÌˆÊ’u•â³‚ªI‚í‚Á‚½Œã‚ÉŒÄ‚ÔB
+// ˆ—“à—eF
+//   ƒvƒŒƒCƒ„[‚Ì‘Ì‚ğƒXƒtƒBƒA‚Æ‚µ‚Äˆµ‚¢ATypeDamage‚ÌƒRƒ‰ƒCƒ_[‚Æd‚È‚Á‚Ä‚¢‚é‚©’²‚×‚éB
+//   d‚È‚Á‚Ä‚¢‚½ê‡‚ÍStatus‚Öƒ_ƒ[ƒWˆ—‚ğˆË—Š‚µA˜A‘±ƒqƒbƒg–h~—p‚Ì–³“GŠÔ‚ğİ’è‚·‚éB
+void Player::UpdateDamageCollision()
+{
+	// –³“GŠÔ’†‚Íƒ_ƒ[ƒW‚ğó‚¯‚È‚¢B
+	// ˜A‘±ƒqƒbƒg‚ÅHP‚ªˆêu‚Å0‚É‚È‚é‚Ì‚ğ–h‚®‚½‚ßB
+	if (m_damageCoolTime > 0.0f) { return; }
+
+	// HP‚ÍStatus‚ª‚Á‚Ä‚¢‚é‚½‚ßA‚Ü‚¸Status‚ğæ“¾‚·‚éB
+	// æ“¾‚Å‚«‚È‚¢ê‡‚ÍHP‚ğŒ¸‚ç‚¹‚È‚¢‚Ì‚ÅA‚±‚±‚ÅI—¹‚·‚éB
+	std::shared_ptr<Status> spStatus = m_status.lock();
+	if (!spStatus) { return; }
+
+	// ƒvƒŒƒCƒ„[‚Ì‘Ì‚ğ‹…‚Æ‚µ‚Äˆµ‚¤B
+	// ƒRƒEƒ‚ƒŠ‚Í­‚µ‚‚¢ˆÊ’u‚ğ”ò‚Ô‚½‚ßA‹…‚Ì’†S‚ğ‘«Œ³‚æ‚èã‚Ö‚¸‚ç‚µ‚Ä‚¢‚éB
+	DirectX::BoundingSphere playerSphere;
+	playerSphere.Center = GetPos() + Math::Vector3(0.0f, PlayerDamageSphereHeight, 0.0f);
+	playerSphere.Radius = PlayerDamageRadius;
+
+	// TypeDamage‚¾‚¯‚ğŒ©‚éSphereInfo‚ğì‚éB
+	// ‚±‚ê‚É‚æ‚èA’n–Ê‚â•Ç‚Å‚Í‚È‚­A“G‚Ìƒ_ƒ[ƒW”»’è‚¾‚¯‚ğ‘ÎÛ‚É‚Å‚«‚éB
+	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, playerSphere);
+
+	// Œ»İ‚ÌƒV[ƒ“‚É‘¶İ‚·‚é‘SƒIƒuƒWƒFƒNƒg‚ğ’²‚×‚éB
+	// BatGroup‚Å’Ç‰Á‚µ‚½Bat‚àA‚±‚ÌƒŠƒXƒg‚Ì’†‚É“ü‚Á‚Ä‚¢‚éB
+	const std::list<std::shared_ptr<KdGameObject>>& objList = SceneManager::Instance().GetObjList();
+	for (const std::shared_ptr<KdGameObject>& spObj : objList)
+	{
+		// ‹ó‚Ìƒ|ƒCƒ“ƒ^‚Í–³‹‚·‚éB
+		if (!spObj) { continue; }
+
+		// ©•ª©g‚Æ‚Í”»’è‚µ‚È‚¢B
+		if (spObj.get() == this) { continue; }
+
+		// ‘ÎÛƒIƒuƒWƒFƒNƒg‚ªTypeDamage‚ÌƒRƒ‰ƒCƒ_[‚ğ‚Á‚Ä‚¢‚ÄA
+		// playerSphere‚Æd‚È‚Á‚Ä‚¢‚ê‚Îtrue‚É‚È‚éB
+		std::list<KdCollider::CollisionResult> retList;
+		if (spObj->Intersects(sphereInfo, &retList))
+		{
+			// ƒ_ƒ[ƒW”»’è‚ÉG‚ê‚½‚Ì‚ÅAƒvƒŒƒCƒ„[HP‚ğ5Œ¸‚ç‚·B
+			spStatus->DamagePlayer(BatContactDamage);
+
+			// Ÿ‚Ìƒ_ƒ[ƒW‚Ü‚Å–ñ1•b‘Ò‚ÂB
+			// 60FPS‘z’è‚È‚Ì‚Å60ƒtƒŒ[ƒ€‚É‚µ‚Ä‚¢‚éB
+			m_damageCoolTime = DamageCoolTimeFrame;
+
+			// 1‘Ì‚Å‚à“–‚½‚Á‚Ä‚¢‚ê‚ÎA¡‰ñ‚Ìƒ_ƒ[ƒWˆ—‚ÍI‚í‚èB
+			break;
+		}
+	}
+}
+
+// HP‚ª0‚É‚È‚Á‚½‚Ì•œŠˆˆ—B
+// g‚¢•ûF
+//   ƒ_ƒ[ƒW”»’èŒã‚ÉŒÄ‚ÑAHP‚ª0‚È‚ç‘º‚Ì•œŠˆ’n“_‚Ö–ß‚·B
+// ˆ—“à—eF
+//   ƒvƒŒƒCƒ„[À•W‚ğm_respawnPos‚Ö–ß‚µAHP‚ğÅ‘å‚Ü‚Å‰ñ•œ‚µA•œŠˆ’¼Œã‚Ì–³“GŠÔ‚ğ•t‚¯‚éB
+void Player::RespawnIfDead()
+{
+	// HP‚ÍStatus‘¤‚ÅŠÇ—‚µ‚Ä‚¢‚é‚½‚ßA‚Ü‚¸Status‚ğæ“¾‚·‚éB
+	// æ“¾‚Å‚«‚È‚¢ê‡‚Í•œŠˆ”»’è‚ª‚Å‚«‚È‚¢‚Ì‚Å‰½‚à‚µ‚È‚¢B
+	std::shared_ptr<Status> spStatus = m_status.lock();
+	if (!spStatus) { return; }
+
+	// HP‚ª‚Ü‚¾c‚Á‚Ä‚¢‚é‚È‚ç•œŠˆˆ—‚Í•s—vB
+	if (!spStatus->IsPlayerDead()) { return; }
+
+	// ƒvƒŒƒCƒ„[‚ğ‘º‚Ì•œŠˆ’n“_‚Ö–ß‚·B
+	// m_pos‚ÆKdGameObject‘¤‚ÌÀ•W‚ğ—¼•ûXV‚µ‚È‚¢‚ÆA
+	// Ÿ‚ÌUpdate‚ÅŒÃ‚¢m_pos‚©‚çƒ[ƒ‹ƒhs—ñ‚ªì‚ç‚ê‚ÄˆÊ’u‚ª–ß‚Á‚Ä‚µ‚Ü‚¤B
+	m_pos = m_respawnPos;
+	SetPos(m_respawnPos);
+
+	// •œŠˆ’¼Œã‚Ìƒ[ƒ‹ƒhs—ñ‚à‚·‚®³‚µ‚¢ˆÊ’u‚É‚µ‚Ä‚¨‚­B
+	// ‚±‚ê‚Å•œŠˆ‚µ‚½ƒtƒŒ[ƒ€‚©‚ç•\¦ˆÊ’u‚ª‘º‚Ì’†‚É‚È‚éB
+	UpdateWorldMatrix();
+
+	// HP‚ğÅ‘å‚Ü‚Å‰ñ•œ‚·‚éB
+	spStatus->ResetPlayerHp();
+
+	// •œŠˆ’¼Œã‚ÉƒRƒEƒ‚ƒŠ‚ÖG‚ê‚Ä‚¢‚Ä‚àA‚·‚®Äƒ_ƒ[ƒW‚ğó‚¯‚È‚¢‚æ‚¤‚É‚·‚éB
+	// 60FPS‘z’è‚Å–ñ2•b‚Ì–³“GŠÔB
+	m_damageCoolTime = RespawnInvincibleFrame;
 }

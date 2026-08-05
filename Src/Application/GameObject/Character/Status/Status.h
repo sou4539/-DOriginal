@@ -1,28 +1,74 @@
-ï»¿#pragma once
+#pragma once
 
 class Status : public KdGameObject
 {
 public:
-	Status() {}
+	// Status‚ğì¬‚µ‚½‚ÉA©“®‚ÅInit()‚ğŒÄ‚ñ‚ÅHPƒo[‰æ‘œ‚ğ“Ç‚İ‚ŞB
+	// GameScene‚Å‚Í std::make_shared<Status>() ‚·‚é‚¾‚¯‚Åg‚¦‚éB
+	Status() { Init(); }
+
+	// Status”jŠü‚Ìˆ—B
+	// shared_ptr‚Å‚Á‚Ä‚¢‚é‰æ‘œ‚Í©“®‰ğ•ú‚³‚ê‚é‚½‚ßA‚±‚±‚Å‚Í’Ç‰Áˆ—‚ğ‚½‚¹‚Ä‚¢‚È‚¢B
 	~Status() {}
+
+	// Status‚Ì‰Šú‰»ˆ—B
+	// HPƒo[‰æ‘œ‚Ì“Ç‚İ‚İ‚ğs‚¤B
 	void Init();
+
+	// –ˆƒtƒŒ[ƒ€XV—pB
+	// ¡‚Íˆ—‚È‚µB¡ŒãA“Å‚â©“®‰ñ•œ‚È‚ÇŠÔ‚Å•Ï‰»‚·‚éƒXƒe[ƒ^ƒXˆ—‚ğ“ü‚ê‚ç‚ê‚éB
 	void Update();
 
+	// 2D‚ÌUI•`‰æˆ—B
+	// HPƒo[‰æ‘œ‚ğ‰æ–Ê¶ã‚É•`‰æ‚µAŒ»İHP‚É‡‚í‚¹‚ÄÔƒQ[ƒW‚ğ‰B‚·B
+	void DrawSprite() override;
+
+	// Status‚ªƒvƒŒƒCƒ„[î•ñ‚ğQÆ‚µ‚½‚¢‚Ég‚¤B
+	// Œ»İ‚ÍHPŠÇ—’†S‚¾‚ªA¡ŒãˆÊ’u‚âó‘Ô‚ğŒ©‚½‚¢ê‡‚Ég‚¦‚éB
 	void SetPlayer(const std::weak_ptr<KdGameObject>& player) { m_player = player; }
+
+	// Status‚ª“Gî•ñ‚ğQÆ‚µ‚½‚¢‚Ég‚¤B
+	// Œ»İ‚Í–¢g—p‚¾‚ªA“GHP‚âƒ{ƒXHP•\¦‚ğ’Ç‰Á‚·‚é‚Ég‚¦‚éB
 	void SetEnemy(const std::weak_ptr<KdGameObject>& enemy) { m_enemy = enemy; }
+
+	// ƒvƒŒƒCƒ„[‚ÌHP‚ğŒ¸‚ç‚·ŠÖ”B
+	// Player‘¤‚ÅHP‚ğ’¼Ú•ÏX‚¹‚¸AStatus‚ÉˆË—Š‚·‚éŒ`‚É‚µ‚Ä‚¢‚éB
+	// ‚±‚¤‚·‚é‚ÆAHP•\¦‚â€–S”»’è‚ğStatus‘¤‚É‚Ü‚Æ‚ß‚â‚·‚¢B
+	void DamagePlayer(float damage);
+
+	// ƒvƒŒƒCƒ„[‚ğ•œŠˆ‚³‚¹‚é‚ÉAHP‚ğÅ‘å’l‚Ü‚Å–ß‚·B
+	// •œŠˆˆ—©‘Ì‚ÍPlayer‘¤‚Ås‚¢AHP‚ÌŠÇ—‚¾‚¯Status‘¤‚Å’S“–‚·‚éB
+	void ResetPlayerHp();
+
+	// ƒvƒŒƒCƒ„[‚ÌHP‚ª0‚É‚È‚Á‚Ä‚¢‚é‚©‚ğŠm”F‚·‚éB
+	// €–S”»’è‚ÌğŒ‚ğStatus‘¤‚É‚Ü‚Æ‚ß‚é‚±‚Æ‚ÅAPlayer‘¤‚Ìˆ—‚ğ“Ç‚İ‚â‚·‚­‚·‚éB
+	bool IsPlayerDead() const { return m_pHp <= 0.0f; }
+
+	// UI•\¦‚âƒfƒoƒbƒO•\¦‚ÅAŒ»İ‚ÌƒvƒŒƒCƒ„[HP‚ğŠm”F‚µ‚½‚¢‚Ég‚¤B
+	float GetPlayerHp() const { return m_pHp; }
+
 private:
+	// Status‘¤‚©‚çƒvƒŒƒCƒ„[‚â“G‚Ìî•ñ‚ğQÆ‚µ‚½‚¢‚Ég‚¤B
+	// weak_ptr‚É‚µ‚Ä‚¨‚­‚±‚Æ‚ÅA‘ÎÛƒIƒuƒWƒFƒNƒg‚ğŸè‚É¶‘¶‚³‚¹‘±‚¯‚È‚¢B
 	std::weak_ptr<KdGameObject> m_player;
 	std::weak_ptr<KdGameObject> m_enemy;
 
-	//å„ç¨®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹
-	//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼
+	// HPƒo[‰æ‘œB
+	// ¡‰ñ‚ÍAsset/Textures/UI‚É’u‚¢‚½ HP_Bar.png ‚ğ¶ã‚ÌUI‚Æ‚µ‚Äg‚¤B
+	std::shared_ptr<KdTexture> m_hpBarTex = nullptr;
+
+	// ƒvƒŒƒCƒ„[‚ÌƒXƒe[ƒ^ƒXB
+	// m_pHp ‚ªŒ»İHPAm_pMaxHp ‚ªÅ‘åHPB
+	// HPƒo[‚Ì‰¡•‚Í m_pHp / m_pMaxHp ‚ÌŠ„‡‚ÅŒˆ‚ß‚éB
 	float m_pHp = 100.0f;
+	float m_pMaxHp = 100.0f;
 	float m_pMp = 100.0f;
 	float m_pAttack = 10.0f;
 	float m_pDefense = 5.0f;
 	float m_pSpeed = 1.0f;
 
-	//æ•µ
+	// “G‚ÌƒXƒe[ƒ^ƒXB
+	// ¡‰ñ‚Í‚Ü‚¾g‚Á‚Ä‚¢‚È‚¢‚ªA¡ŒãƒRƒEƒ‚ƒŠ‚âƒ{ƒX‚ÌHPŠÇ—‚Ég‚¦‚éB
 	float m_eHp = 50.0f;
 	float m_eMp = 50.0f;
 	float m_eAttack = 5.0f;

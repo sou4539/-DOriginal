@@ -109,6 +109,18 @@
     <Filter Include="Src\Application\GameObject\Stage\Ground">
       <UniqueIdentifier>{286fdd9b-397b-4647-a7a7-f582c5be1598}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Staff">
+      <UniqueIdentifier>{58ecf3a1-5ea7-4e40-b531-d7d7bba673c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Staff\FireStaff">
+      <UniqueIdentifier>{a85bac15-b516-4dc9-bd08-dd721e83b07f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Staff\IceStaff">
+      <UniqueIdentifier>{3c66fc99-62e8-4183-8fa9-464d6a5dddbc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Staff\VoltStaff">
+      <UniqueIdentifier>{a5de2a12-c162-4c95-9d6a-161b9654abec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -318,6 +330,18 @@
     <ClInclude Include="Src\Application\GameObject\Character\Bat\BatGroup.h">
       <Filter>Src\Application\GameObject\Character\Bat</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Staff\StaffBase.h">
+      <Filter>Src\Application\GameObject\Character\Staff</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Staff\VoltStaff\VoltStaff.h">
+      <Filter>Src\Application\GameObject\Character\Staff\VoltStaff</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Staff\IceStaff\IceStaff.h">
+      <Filter>Src\Application\GameObject\Character\Staff\IceStaff</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.h">
+      <Filter>Src\Application\GameObject\Character\Staff\FireStaff</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -496,6 +520,18 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Bat\BatGroup.cpp">
       <Filter>Src\Application\GameObject\Character\Bat</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Staff\StaffBase.cpp">
+      <Filter>Src\Application\GameObject\Character\Staff</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Staff\VoltStaff\VoltStaff.cpp">
+      <Filter>Src\Application\GameObject\Character\Staff\VoltStaff</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Staff\IceStaff\IceStaff.cpp">
+      <Filter>Src\Application\GameObject\Character\Staff\IceStaff</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.cpp">
+      <Filter>Src\Application\GameObject\Character\Staff\FireStaff</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
