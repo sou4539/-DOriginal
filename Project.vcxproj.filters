@@ -121,6 +121,9 @@
     <Filter Include="Src\Application\GameObject\Character\Staff\VoltStaff">
       <UniqueIdentifier>{a5de2a12-c162-4c95-9d6a-161b9654abec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Staff\Magic">
+      <UniqueIdentifier>{1ae1be84-1cd8-4843-8fd5-dc6917aba075}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -342,6 +345,9 @@
     <ClInclude Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.h">
       <Filter>Src\Application\GameObject\Character\Staff\FireStaff</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Staff\Magic\MagicBase.h">
+      <Filter>Src\Application\GameObject\Character\Staff\Magic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -532,6 +538,9 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.cpp">
       <Filter>Src\Application\GameObject\Character\Staff\FireStaff</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Staff\Magic\MagicBase.cpp">
+      <Filter>Src\Application\GameObject\Character\Staff\Magic</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

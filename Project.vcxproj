@@ -282,6 +282,7 @@
     <ClInclude Include="Src\Application\GameObject\Character\Player\Player.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Staff\IceStaff\IceStaff.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Staff\Magic\MagicBase.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Staff\StaffBase.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Staff\VoltStaff\VoltStaff.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Status\Status.h" />
@@ -350,6 +351,7 @@
     <ClCompile Include="Src\Application\GameObject\Character\Player\Player.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Staff\IceStaff\IceStaff.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Character\Staff\Magic\MagicBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Staff\StaffBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Staff\VoltStaff\VoltStaff.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Status\Status.cpp" />

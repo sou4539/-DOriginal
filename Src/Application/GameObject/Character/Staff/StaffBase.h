@@ -25,6 +25,8 @@ protected:
 
 	std::weak_ptr<KdGameObject> m_wpTarget;
 
+	float MagicCD;
+
 private:
 
 	float m_angle = 0.0f;
