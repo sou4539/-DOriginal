@@ -122,3 +122,15 @@ void Bat::Update()
 	Math::Matrix transMat = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = scaleMat * rotMat * transMat;
 }
+
+void Bat::Damage(float damage)
+{
+	// 受け取ったダメージ分だけHPを減らす。
+	m_hp -= damage;
+
+	// HPが0以下になったら、BaseScene::PreUpdateで削除されるようにする。
+	if (m_hp <= 0.0f)
+	{
+		m_isExpired = true;
+	}
+}

@@ -11,6 +11,10 @@ public:
 	void Init() override;
 	void Update() override;
 
+	// 魔法などからダメージを受けた時に呼ぶ。
+	// HPが0以下になったら、シーンから削除されるようにする。
+	void Damage(float damage);
+
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{
 		m_wpTarget = target;
@@ -38,4 +42,5 @@ private:
 	float m_searchRadius = 8.0f;
 	float m_damageRadius = 0.7f;
 	float m_moveSpeed = 0.08f;
+	float m_hp = 30.0f;
 };

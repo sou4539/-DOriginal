@@ -19,6 +19,7 @@ public:
 
 	void Init();
 	void Update();
+	void PostUpdate();
 	void DrawLit();
 
 	//魔法を発射する関数

@@ -1,5 +1,8 @@
 ﻿#include "MagicBase.h"
 
+#include "../../../../Scene/SceneManager.h"
+#include "../../Bat/Bat.h"
+
 void MagicBase::Init()
 {
 	m_pDebugWire = std::make_unique<KdDebugWireFrame>();
@@ -29,6 +32,49 @@ void MagicBase::Update()
 	}
 
 	m_mWorld = Math::Matrix::CreateTranslation(m_pos);
+}
+
+void MagicBase::PostUpdate()
+{
+	// すでに寿命切れなどで消える予定の魔法は、当たり判定を行わない。
+	if (m_isExpired)
+	{
+		return;
+	}
+
+	// 魔法の当たり判定用スフィアを作成する。
+	// TypeDamageを見ることで、敵が持っているダメージ判定に当たったかを確認する。
+	DirectX::BoundingSphere magicSphere;
+	magicSphere.Center = GetPos();
+	magicSphere.Radius = m_radius;
+
+	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
+
+	// シーン内のオブジェクトを調べ、Batに当たったらダメージを与える。
+	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
+	{
+		if (!spObj)
+		{
+			continue;
+		}
+
+		// 今は敵がBatだけなので、Batに変換できたものだけを攻撃対象にする。
+		// 後でEnemyBaseを作ったら、ここをEnemyBase判定に変更する。
+		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
+		if (!spBat)
+		{
+			continue;
+		}
+
+		std::list<KdCollider::CollisionResult> retList;
+		if (spBat->Intersects(sphereInfo, &retList))
+		{
+			// 敵にダメージを与え、魔法自身は消す。
+			spBat->Damage(m_damage);
+			m_isExpired = true;
+			break;
+		}
+	}
 }
 
 void MagicBase::DrawLit()
