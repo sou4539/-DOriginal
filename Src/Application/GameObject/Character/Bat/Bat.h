@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include "../CharaBase.h"
 
@@ -11,9 +11,13 @@ public:
 	void Init() override;
 	void Update() override;
 
-	// é­”æ³•ãªã©ã‹ã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’å—ã‘ãŸæ™‚ã«å‘¼ã¶ã€‚
-	// HPãŒ0ä»¥ä¸‹ã«ãªã£ãŸã‚‰ã€ã‚·ãƒ¼ãƒ³ã‹ã‚‰å‰Šé™¤ã•ã‚Œã‚‹ã‚ˆã†ã«ã™ã‚‹ã€‚
-	void Damage(float damage);
+	// –‚–@‚È‚Ç‚ª“–‚½‚Á‚½‚ÉŒÄ‚ÔB
+	// HP‚ª0ˆÈ‰º‚É‚È‚Á‚½‚çAƒV[ƒ“‚©‚çíœ‚³‚ê‚é‚æ‚¤‚É‚·‚éB
+	void OnHit() override;
+
+	// –‚–@‚È‚Ç‚©‚çƒ_ƒ[ƒW—Ê‚ğw’è‚µ‚ÄŒÄ‚ÔB
+	// ñ‚²‚Æ‚ÌUŒ‚—Í·‚âA¡Œã‚ÌƒŒƒxƒ‹•â³‚ğ”½‰f‚µ‚½‚¢‚Í‚±‚¿‚ç‚ğg‚¤B
+	void OnHit(float damage);
 
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{
@@ -29,8 +33,8 @@ public:
 
 private:
 	/*
-		Bat.gltfã«å…¥ã£ã¦ã„ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’å†ç”Ÿãƒ»æ›´æ–°ã™ã‚‹ãŸã‚ã®ã‚¯ãƒ©ã‚¹ã€‚
-		ä»Šå›ã¯ç¾½ã°ãŸãç”¨ã® "flap_loop" ã‚’å†ç”Ÿã™ã‚‹ã€‚
+		Bat.gltf‚É“ü‚Á‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚ğÄ¶EXV‚·‚é‚½‚ß‚ÌƒNƒ‰ƒXB
+		¡‰ñ‚Í‰H‚Î‚½‚«—p‚Ì "flap_loop" ‚ğÄ¶‚·‚éB
 	*/
 	KdAnimator m_animator;
 
@@ -44,3 +48,5 @@ private:
 	float m_moveSpeed = 0.08f;
 	float m_hp = 30.0f;
 };
+
+

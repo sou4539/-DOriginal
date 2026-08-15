@@ -1,4 +1,4 @@
-ï»¿#include "MagicBase.h"
+#include "MagicBase.h"
 
 #include "../../../../Scene/SceneManager.h"
 #include "../../Bat/Bat.h"
@@ -36,21 +36,21 @@ void MagicBase::Update()
 
 void MagicBase::PostUpdate()
 {
-	// ã™ã§ã«å¯¿å‘½åˆ‡ã‚Œãªã©ã§æ¶ˆãˆã‚‹äºˆå®šã®é­”æ³•ã¯ã€å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã‚ãªã„ã€‚
+	// ‚·‚Å‚Éõ–½Ø‚ê‚È‚Ç‚ÅÁ‚¦‚é—\’è‚Ì–‚–@‚ÍA“–‚½‚è”»’è‚ğs‚í‚È‚¢B
 	if (m_isExpired)
 	{
 		return;
 	}
 
-	// é­”æ³•ã®å½“ãŸã‚Šåˆ¤å®šç”¨ã‚¹ãƒ•ã‚£ã‚¢ã‚’ä½œæˆã™ã‚‹ã€‚
-	// TypeDamageã‚’è¦‹ã‚‹ã“ã¨ã§ã€æ•µãŒæŒã£ã¦ã„ã‚‹ãƒ€ãƒ¡ãƒ¼ã‚¸åˆ¤å®šã«å½“ãŸã£ãŸã‹ã‚’ç¢ºèªã™ã‚‹ã€‚
+	// –‚–@‚Ì“–‚½‚è”»’è—pƒXƒtƒBƒA‚ğì¬‚·‚éB
+	// TypeDamage‚ğŒ©‚é‚±‚Æ‚ÅA“G‚ª‚Á‚Ä‚¢‚éƒ_ƒ[ƒW”»’è‚É“–‚½‚Á‚½‚©‚ğŠm”F‚·‚éB
 	DirectX::BoundingSphere magicSphere;
 	magicSphere.Center = GetPos();
 	magicSphere.Radius = m_radius;
 
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
 
-	// ã‚·ãƒ¼ãƒ³å†…ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’èª¿ã¹ã€Batã«å½“ãŸã£ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹ã€‚
+	// ƒV[ƒ““à‚ÌƒIƒuƒWƒFƒNƒg‚ğ’²‚×ABat‚É“–‚½‚Á‚½‚çƒ_ƒ[ƒW‚ğ—^‚¦‚éB
 	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
 	{
 		if (!spObj)
@@ -58,10 +58,14 @@ void MagicBase::PostUpdate()
 			continue;
 		}
 
-		// ä»Šã¯æ•µãŒBatã ã‘ãªã®ã§ã€Batã«å¤‰æ›ã§ããŸã‚‚ã®ã ã‘ã‚’æ”»æ’ƒå¯¾è±¡ã«ã™ã‚‹ã€‚
-		// å¾Œã§EnemyBaseã‚’ä½œã£ãŸã‚‰ã€ã“ã“ã‚’EnemyBaseåˆ¤å®šã«å¤‰æ›´ã™ã‚‹ã€‚
+		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
+		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
 		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
 		if (!spBat)
+		{
+			continue;
+		}
+		if (spBat->IsExpired())
 		{
 			continue;
 		}
@@ -69,8 +73,9 @@ void MagicBase::PostUpdate()
 		std::list<KdCollider::CollisionResult> retList;
 		if (spBat->Intersects(sphereInfo, &retList))
 		{
-			// æ•µã«ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã€é­”æ³•è‡ªèº«ã¯æ¶ˆã™ã€‚
-			spBat->Damage(m_damage);
+			// “G‚É–‚–@‚Ìƒ_ƒ[ƒW—Ê‚ğ“n‚µA–‚–@©g‚ÍÁ‚·B
+			// m_damage‚É‚ÍFire/Ice/Volt‚È‚Çñ‚²‚Æ‚ÌUŒ‚—Í‚ª“ü‚Á‚Ä‚¢‚éB
+			spBat->OnHit(m_damage);
 			m_isExpired = true;
 			break;
 		}
@@ -108,3 +113,5 @@ void MagicBase::Shot(const Math::Vector3& startPos, const Math::Vector3& dir, Ma
 		break;
 	}
 }
+
+

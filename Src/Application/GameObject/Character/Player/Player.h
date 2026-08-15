@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../CharaBase.h"
 
 class Status;
@@ -7,84 +7,111 @@ class CameraBase;
 class Player : public CharaBase
 {
 public:
-	// Player���쐬�������ɁA������Init()���Ă�ŏ���������B
-	// GameScene�ł� std::make_shared<Player>() ���邾���ŁA���f���Ə������W�����������B
+	// Playerを作成した時に、自動でInit()を呼んで初期化する。
+	// GameSceneでは std::make_shared<Player>() するだけで、モデルと初期座標が準備される。
 	Player() { Init(); }
 
-	// Player�j�����̏����B
-	// CharaBase���̃f�X�g���N�^�Ń��f��������s�����߁A�����ł͒ǉ��������������Ă��Ȃ��B
+	// Player破棄時の処理。
+	// CharaBase側のデストラクタでモデル解放を行うため、ここでは追加処理を持たせていない。
 	~Player() override {}
 
-	// ���t���[���̒ʏ�X�V�B
-	// ���́A�ړ��A�����A���[���h�s��̍X�V���s���B
+	// 毎フレームの通常更新。
+	// 入力、移動、向き、ワールド行列の更新を行う。
 	void Update() override;
 
-	// Update��ɌĂ΂��X�V�B
-	// �n�ʁE�ǂ̓����蔻��A�G�Ƃ̃_���[�W����A���S���̕���������s���B
+	// Update後に呼ばれる更新。
+	// 地面・壁の当たり判定、敵とのダメージ判定、死亡時の復活判定を行う。
 	void PostUpdate() override;
 
-	// Player���_���[�W���󂯂����ɑ��삷��Status��o�^����B
-	// GameScene��Status���쐬������Aplayer->SetStatus(status) �̌`�ŌĂԁB
+	// Playerがダメージを受けた時に操作するStatusを登録する。
+	// GameSceneでStatusを作成した後、player->SetStatus(status) の形で呼ぶ。
 	void SetStatus(const std::shared_ptr<Status>& status)
 	{
 		m_status = status;
 	}
 
-	// �J������ňړ����邽�߂ɁA���ݎg���Ă���J������o�^����B
-	// �o�^���Ă����ƁAWASD�ړ����J�����̌����ɍ��킹�������ɂȂ�B
+	// カメラ基準で移動するために、現在使っているカメラを登録する。
+	// 登録しておくと、WASD移動がカメラの向きに合わせた方向になる。
 	void SetCamera(const std::shared_ptr<CameraBase>& camera)
 	{
 		m_wpCamera = camera;
 	}
 
-	// HP��0�ɂȂ������ɖ߂���W���O����ݒ肷��B
-	// ���̈ʒu��ς������ɁAPlayer.cpp�̒������������Ȃ��čςނ悤�ɂ��Ă���B
+	// HPが0になった時に戻る座標を外から設定する。
+	// 村の位置を変えた時に、Player.cppの中を書き換えなくて済むようにしている。
 	void SetRespawnPos(const Math::Vector3& respawnPos)
 	{
 		m_respawnPos = respawnPos;
 	}
 
+	// 村の安全地帯スフィアを設定する。
+	// この範囲内にいる間は、敵がプレイヤーを追わないようにする。
+	void SetSafeArea(const Math::Vector3& center, float radius)
+	{
+		m_safeAreaCenter = center;
+		m_safeAreaRadius = radius;
+
+		Math::Vector3 toPlayer = GetPos() - m_safeAreaCenter;
+		toPlayer.y = 0.0f;
+		m_isInSafeArea = toPlayer.LengthSquared() <= m_safeAreaRadius * m_safeAreaRadius;
+	}
+
+	// プレイヤーが安全地帯にいるかを返す。
+	bool IsInSafeArea() const { return m_isInSafeArea; }
+
 private:
-	// Player�̏����������B
-	// ���f���ǂݍ��݁A�����ʒu�A�����n�_�̏����l��ݒ肷��B
+	// Playerの初期化処理。
+	// モデル読み込み、初期位置、復活地点の初期値を設定する。
 	void Init() override;
 
-	// ���G���Ԃ��X�V����B
-	// �_���[�W�����ƕ����Ă������ƂŁAUpdate�̗����ǂ݂₷������B
+	// 無敵時間を更新する。
+	// ダメージ処理と分けておくことで、Updateの流れを読みやすくする。
 	void UpdateInvincible();
 
-	// ���͂ƃJ������������ړ����������A�v���C���[���ړ�������B
+	// 入力とカメラ向きから移動方向を作り、プレイヤーを移動させる。
 	void UpdateMove();
 
-	// m_pos��m_angle����A�`��p�̃��[���h�s������B
+	// m_posとm_angleから、描画用のワールド行列を作る。
 	void UpdateWorldMatrix();
 
-	// �v���C���[�̗̑p�X�t�B�A���ATypeDamage�̓����蔻��ɐG��Ă��邩�m�F����B
-	// �R�E������TypeDamage�������Ă���̂ŁA�R�E�����ڐG�_���[�W�̊m�F�Ɏg���B
+	// プレイヤーの体用スフィアが、TypeDamageの当たり判定に触れているか確認する。
+	// コウモリはTypeDamageを持っているので、コウモリ接触ダメージの確認に使う。
 	void UpdateDamageCollision();
 
-	// HP��0�ɂȂ��Ă��邩�m�F���A0�Ȃ瑺�̕����n�_�֖߂��B
-	// ���̃Q�[���ł̓��U���g��^�C�g���֖߂炸�A���̒��ŕ�������B
+	// HPが0になっているか確認し、0なら村の復活地点へ戻す。
+	// このゲームではリザルトやタイトルへ戻らず、村の中で復活する。
 	void RespawnIfDead();
 
-	// �v���C���[HP��Status���Ǘ����Ă���B
-	// Player�̓_���[�W�����������������AStatus��DamagePlayer���ĂԁB
+	// プレイヤーが村の安全地帯内にいるか確認する。
+	void UpdateSafeAreaFlag();
+
+	// プレイヤーHPはStatusが管理している。
+	// Playerはダメージが発生した時だけ、StatusのDamagePlayerを呼ぶ。
 	std::weak_ptr<Status> m_status;
 
-	// WASD���͂��J������̈ړ������֕ϊ����邽�߂Ɏg���B
-	// weak_ptr�ɂ��āAPlayer��Camera������ɐ������������Ȃ��悤�ɂ��Ă���B
+	// WASD入力をカメラ基準の移動方向へ変換するために使う。
+	// weak_ptrにして、PlayerがCameraを勝手に生存させ続けないようにしている。
 	std::weak_ptr<CameraBase> m_wpCamera;
 
-	// �v���C���[��Y����]�p�x�B
-	// �ړ���������p�x�����A���f����i�s�����֌����邽�߂Ɏg���B
+	// プレイヤーのY軸回転角度。
+	// 移動方向から角度を作り、モデルを進行方向へ向けるために使う。
 	float m_angle = 0.0f;
 
-	// �_���[�W���󂯂���̖��G���ԁB
-	// ���̒l��0���傫���Ԃ́A�R�E�����ɐG��Ă��Ă��ǉ��_���[�W���󂯂Ȃ��B
-	// ���ꂪ�Ȃ��ƁA�ڐG���ɖ��t���[��HP�������Ă��܂��B
+	// ダメージを受けた後の無敵時間。
+	// この値が0より大きい間は、コウモリに触れていても追加ダメージを受けない。
+	// これがないと、接触中に毎フレームHPが減ってしまう。
 	float m_damageCoolTime = 0.0f;
 
-	// HP��0�ɂȂ������ɖ߂鑺�̒��̍��W�B
-	// ���̓v���C���[�����ʒu�Ɠ����ꏊ�𕜊��n�_�Ƃ��Ďg���B
+	// HPが0になった時に戻る村の中の座標。
+	// 今はプレイヤー初期位置と同じ場所を復活地点として使う。
 	Math::Vector3 m_respawnPos = Math::Vector3::Zero;
+
+	// 村の安全地帯にいるかどうか。
+	// Batなどの敵はこのフラグを見て、追跡するか初期位置へ戻るかを決める。
+	bool m_isInSafeArea = false;
+
+	// 村を覆う安全地帯スフィア。
+	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
+	float m_safeAreaRadius = 0.0f;
 };
+

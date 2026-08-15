@@ -40,10 +40,7 @@ public:
 	virtual void SetPos(const Math::Vector3& pos) { m_mWorld.Translation(pos); }
 	virtual Math::Vector3 GetPos() const { return m_mWorld.Translation(); }
 
-	//追加した関数
-	//正面の角度
-	virtual void SetDir(const Math::Vector3& dir) { m_mWorld.Backward(dir); }
-	virtual Math::Vector3 GetDir() const { return m_mWorld.Backward(); }
+
 
 	// 拡大率を変更する関数
 	void SetScale(float scalar);
@@ -70,6 +67,14 @@ public:
 	bool Intersects(const KdCollider::SphereInfo& targetShape, std::list<KdCollider::CollisionResult>* pResults);
 	bool Intersects(const KdCollider::BoxInfo& targetBox, std::list<KdCollider::CollisionResult>* pResults);
 	bool Intersects(const KdCollider::RayInfo& targetShape, std::list<KdCollider::CollisionResult>* pResults);
+
+	//追加した関数
+	//正面の角度
+	virtual void SetDir(const Math::Vector3& dir) { m_mWorld.Backward(dir); }
+	virtual Math::Vector3 GetDir() const { return m_mWorld.Backward(); }
+
+	//ヒット関数
+	virtual void OnHit();
 
 protected:
 

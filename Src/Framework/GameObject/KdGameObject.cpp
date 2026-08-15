@@ -60,3 +60,7 @@ bool KdGameObject::Intersects(const KdCollider::RayInfo& targetShape, std::list<
 
 	return m_pCollider->Intersects(targetShape, m_mWorld, pResults);
 }
+
+void KdGameObject::OnHit()
+{
+}

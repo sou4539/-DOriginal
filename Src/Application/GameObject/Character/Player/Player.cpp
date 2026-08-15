@@ -156,6 +156,9 @@ void Player::PostUpdate()
 	// これをしないと、次のUpdateで補正前の座標に戻ってしまう。
 	m_pos = GetPos();
 
+	// 現在位置が村の安全地帯内かどうかを更新する。
+	UpdateSafeAreaFlag();
+
 	// 移動と地形補正が終わった後の正しい座標で、
 	// コウモリなどとのダメージ判定を確認する。
 	UpdateDamageCollision();
@@ -172,6 +175,9 @@ void Player::PostUpdate()
 //   重なっていた場合はStatusへダメージ処理を依頼し、連続ヒット防止用の無敵時間を設定する。
 void Player::UpdateDamageCollision()
 {
+	// 安全地帯内では敵との接触ダメージを受けない。
+	if (m_isInSafeArea) { return; }
+
 	// 無敵時間中はダメージを受けない。
 	// 連続ヒットでHPが一瞬で0になるのを防ぐため。
 	if (m_damageCoolTime > 0.0f) { return; }
@@ -252,3 +258,22 @@ void Player::RespawnIfDead()
 	// 60FPS想定で約2秒の無敵時間。
 	m_damageCoolTime = RespawnInvincibleFrame;
 }
+
+void Player::UpdateSafeAreaFlag()
+{
+	// 半径が0以下なら、安全地帯が未設定なのでfalseにする。
+	if (m_safeAreaRadius <= 0.0f)
+	{
+		m_isInSafeArea = false;
+		return;
+	}
+
+	// XZ平面上で、プレイヤーが村の安全地帯スフィア内にいるか確認する。
+	// 高さの差で判定がぶれないよう、Yは見ない。
+	Math::Vector3 toPlayer = GetPos() - m_safeAreaCenter;
+	toPlayer.y = 0.0f;
+
+	float distanceSqr = toPlayer.LengthSquared();
+	m_isInSafeArea = distanceSqr <= m_safeAreaRadius * m_safeAreaRadius;
+}
+

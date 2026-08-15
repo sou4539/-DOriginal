@@ -1,4 +1,4 @@
-ï»¿#include "GameScene.h"
+#include "GameScene.h"
 #include "../SceneManager.h"
 
 #include "../../GameObject/Camera/TPSCamera/TPSCamera.h"
@@ -12,11 +12,11 @@
 #include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
 #include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
 
-// GameSceneä¸­ã®å…¥åŠ›ã‚¤ãƒ™ãƒ³ãƒˆå‡¦ç†ã€‚
-// ä½¿ã„æ–¹ï¼š
-//   BaseSceneå´ã‹ã‚‰æ¯ãƒ•ãƒ¬ãƒ¼ãƒ å‘¼ã°ã‚Œã‚‹ã€‚
-// å‡¦ç†å†…å®¹ï¼š
-//   ä»Šã¯ãƒ‡ãƒãƒƒã‚°ç”¨ã¨ã—ã¦ã€Tã‚­ãƒ¼ã‚’æŠ¼ã—ãŸã‚‰ã‚¿ã‚¤ãƒˆãƒ«ã‚·ãƒ¼ãƒ³ã¸æˆ»ã‚‹ã€‚
+// GameScene’†‚Ì“ü—ÍƒCƒxƒ“ƒgˆ—B
+// g‚¢•ûF
+//   BaseScene‘¤‚©‚ç–ˆƒtƒŒ[ƒ€ŒÄ‚Î‚ê‚éB
+// ˆ—“à—eF
+//   ¡‚ÍƒfƒoƒbƒO—p‚Æ‚µ‚ÄATƒL[‚ğ‰Ÿ‚µ‚½‚çƒ^ƒCƒgƒ‹ƒV[ƒ“‚Ö–ß‚éB
 void GameScene::Event()
 {
 	if (GetAsyncKeyState('T') & 0x8000)
@@ -28,55 +28,58 @@ void GameScene::Event()
 	}
 }
 
-// GameSceneã®åˆæœŸåŒ–å‡¦ç†ã€‚
-// ä½¿ã„æ–¹ï¼š
-//   GameSceneç”Ÿæˆæ™‚ã«ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã‹ã‚‰è‡ªå‹•ã§å‘¼ã°ã‚Œã‚‹ã€‚
-// å‡¦ç†å†…å®¹ï¼š
-//   ã‚²ãƒ¼ãƒ ã§ä½¿ã†ã‚«ãƒ¡ãƒ©ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã€ã‚³ã‚¦ãƒ¢ãƒªã€UIã€åœ°é¢ã€æ‘ã‚’ä½œæˆã—ã¦m_objListã«ç™»éŒ²ã™ã‚‹ã€‚
-//   ãã®å¾Œã€ã‚«ãƒ¡ãƒ©ã®è¿½å¾“å¯¾è±¡ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®Statusã€å¾©æ´»åœ°ç‚¹ã€å½“ãŸã‚Šåˆ¤å®šå¯¾è±¡ã‚’è¨­å®šã™ã‚‹ã€‚
+// GameScene‚Ì‰Šú‰»ˆ—B
+// g‚¢•ûF
+//   GameScene¶¬‚ÉƒRƒ“ƒXƒgƒ‰ƒNƒ^‚©‚ç©“®‚ÅŒÄ‚Î‚ê‚éB
+// ˆ—“à—eF
+//   ƒQ[ƒ€‚Åg‚¤ƒJƒƒ‰AƒvƒŒƒCƒ„[AƒRƒEƒ‚ƒŠAUIA’n–ÊA‘º‚ğì¬‚µ‚Äm_objList‚É“o˜^‚·‚éB
+//   ‚»‚ÌŒãAƒJƒƒ‰‚Ì’Ç]‘ÎÛAƒvƒŒƒCƒ„[‚ÌStatusA•œŠˆ’n“_A“–‚½‚è”»’è‘ÎÛ‚ğİ’è‚·‚éB
 void GameScene::Init()
 {
-	// æ‘ã®ä¸­ã§å¾©æ´»ã™ã‚‹ä½ç½®ã€‚
-	// æ‘ã®é…ç½®ã‚’å¤‰ãˆãŸæ™‚ã¯ã€Player.cppã§ã¯ãªãã“ã®å€¤ã‚’èª¿æ•´ã™ã‚‹ã€‚
+	// ‘º‚Ì’†‚Å•œŠˆ‚·‚éˆÊ’uB
+	// ‘º‚Ì”z’u‚ğ•Ï‚¦‚½‚ÍAPlayer.cpp‚Å‚Í‚È‚­‚±‚Ì’l‚ğ’²®‚·‚éB
 	const Math::Vector3 playerRespawnPos = { -30.0f, 0.0f, 0.0f };
 
-	// TPSã‚«ãƒ¡ãƒ©ã‚’ä½œæˆã™ã‚‹ã€‚
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è¿½å¾“å¯¾è±¡ã«ã™ã‚‹ãŸã‚ã€ã‚ã¨ã§SetTargetã™ã‚‹ã€‚
+	// TPSƒJƒƒ‰‚ğì¬‚·‚éB
+	// ƒvƒŒƒCƒ„[‚ğ’Ç]‘ÎÛ‚É‚·‚é‚½‚ßA‚ ‚Æ‚ÅSetTarget‚·‚éB
 	std::shared_ptr<TPSCamera> camera;
 	camera = std::make_shared<TPSCamera>();
 	camera->Init();
 	m_objList.push_back(camera);
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’ä½œæˆã™ã‚‹ã€‚
+	// ƒvƒŒƒCƒ„[‚ğì¬‚·‚éB
 	std::shared_ptr<Player> player;
 	player = std::make_shared<Player>();
 	m_objList.push_back(player);
 
-	// ã‚³ã‚¦ãƒ¢ãƒªã®ç¾¤ã‚Œã‚’ä½œæˆã™ã‚‹ã€‚
-	// BatGroupã¯è¤‡æ•°ã®Batã‚’ç”Ÿæˆã—ã¦ã€ã‚·ãƒ¼ãƒ³ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒªã‚¹ãƒˆã¸è¿½åŠ ã™ã‚‹ã€‚
+	// ƒRƒEƒ‚ƒŠ‚Ì¶‘§’n‚ğŠÇ—‚·‚éBatGroup‚ğì¬‚·‚éB
+	// ¶‘§’n‚²‚Æ‚É”’‚¢ƒXƒtƒBƒA”ÍˆÍ‚ğ‚¿A‚»‚Ì’†‚ÖƒRƒEƒ‚ƒŠ‚ğƒ‰ƒ“ƒ_ƒ€”z’u‚·‚éB
 	std::shared_ptr<BatGroup> batGroup;
 	batGroup = std::make_shared<BatGroup>();
 	m_objList.push_back(batGroup);
+	batGroup->AddHabitat({ -70.0f, 3.0f,   0.0f }, 12.0f, 4);
+	batGroup->AddHabitat({ -45.0f, 3.0f,  35.0f }, 10.0f, 3);
+	batGroup->AddHabitat({ -95.0f, 3.0f, -35.0f }, 14.0f, 5);
 	batGroup->AddBatsToScene(m_objList, player);
 
-	// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹UI/æƒ…å ±ç®¡ç†ç”¨ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ä½œæˆã™ã‚‹ã€‚
+	// ƒXƒe[ƒ^ƒXUI/î•ñŠÇ——p‚ÌƒIƒuƒWƒFƒNƒg‚ğì¬‚·‚éB
 	std::shared_ptr<Status> status;
 	status = std::make_shared<Status>();
 	m_objList.push_back(status);
 
-	// åºƒã„åœ°é¢ã‚’ä½œæˆã™ã‚‹ã€‚
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åœ°é¢åˆ¤å®šå¯¾è±¡ã«ã‚‚ç™»éŒ²ã™ã‚‹ã€‚
+	// L‚¢’n–Ê‚ğì¬‚·‚éB
+	// ƒvƒŒƒCƒ„[‚Ì’n–Ê”»’è‘ÎÛ‚É‚à“o˜^‚·‚éB
 	std::shared_ptr<Ground> ground;
 	ground = std::make_shared<Ground>();
 	m_objList.push_back(ground);
 
-	// æ‘ãƒ¢ãƒ‡ãƒ«ã‚’ä½œæˆã™ã‚‹ã€‚
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å£ãƒ»åœ°é¢åˆ¤å®šå¯¾è±¡ã«ã‚‚ç™»éŒ²ã™ã‚‹ã€‚
+	// ‘ºƒ‚ƒfƒ‹‚ğì¬‚·‚éB
+	// ƒvƒŒƒCƒ„[‚Ì•ÇE’n–Ê”»’è‘ÎÛ‚É‚à“o˜^‚·‚éB
 	std::shared_ptr<Village> village;
 	village = std::make_shared<Village>();
 	m_objList.push_back(village);
 
-	//æ–ãƒ¢ãƒ‡ãƒ«ã‚’ä½œæˆã™ã‚‹
+	//ñƒ‚ƒfƒ‹‚ğì¬‚·‚é
 	std::shared_ptr<FireStaff> fireStaff;
 	fireStaff = std::make_shared<FireStaff>();
 	m_objList.push_back(fireStaff);
@@ -89,12 +92,13 @@ void GameScene::Init()
 	voltStaff = std::make_shared<VoltStaff>();
 	m_objList.push_back(voltStaff);
 
-	// å„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆåŒå£«ã®å‚ç…§ã‚’ã¤ãªãã€‚
-	// ã“ã“ã§ã¤ãªã„ã§ãŠãã“ã¨ã§ã€Updateå†…ã§ç›¸æ‰‹ã®æƒ…å ±ã‚’ä½¿ãˆã‚‹ã€‚
+	// ŠeƒIƒuƒWƒFƒNƒg“¯m‚ÌQÆ‚ğ‚Â‚È‚®B
+	// ‚±‚±‚Å‚Â‚È‚¢‚Å‚¨‚­‚±‚Æ‚ÅAUpdate“à‚Å‘Šè‚Ìî•ñ‚ğg‚¦‚éB
 	camera->SetTarget(player);
 	player->SetStatus(status);
 	player->SetCamera(camera);
 	player->SetRespawnPos(playerRespawnPos);
+	player->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
 	fireStaff->SetTarget(player);
 	iceStaff->SetTarget(player);
 	voltStaff->SetTarget(player);
@@ -103,9 +107,12 @@ void GameScene::Init()
 	iceStaff->SetAngle(DirectX::XMConvertToRadians(120.0f));
 	voltStaff->SetAngle(DirectX::XMConvertToRadians(240.0f));
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒå½“ãŸã‚Šåˆ¤å®šã‚’èª¿ã¹ã‚‹å¯¾è±¡ã‚’ç™»éŒ²ã™ã‚‹ã€‚
+	// ƒvƒŒƒCƒ„[‚ª“–‚½‚è”»’è‚ğ’²‚×‚é‘ÎÛ‚ğ“o˜^‚·‚éB
 	player->RegistHitObject(ground);
 	player->RegistHitObject(village);
 
 	status->SetPlayer(player);
 }
+
+
+

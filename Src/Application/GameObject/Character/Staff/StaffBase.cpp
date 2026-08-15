@@ -1,4 +1,7 @@
-ï»¿#include "StaffBase.h"
+#include "StaffBase.h"
+
+#include "../../../Scene/SceneManager.h"
+#include "../Bat/Bat.h"
 
 void StaffBase::Init()
 {
@@ -13,6 +16,12 @@ void StaffBase::Update()
 		return;
 	}
 
+	UpdateAroundTarget(spTarget);
+	UpdateMagicAttack(spTarget);
+}
+
+void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget)
+{
 	m_angle += m_rotateSpeed;
 
 	float x = cos(m_angle) * m_radius;
@@ -22,3 +31,79 @@ void StaffBase::Update()
 
 	m_mWorld = Math::Matrix::CreateTranslation(m_pos);
 }
+
+void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
+{
+	// –‚–@ƒ^ƒCƒv‚ª–¢İ’è‚Ìñ‚ÍUŒ‚‚µ‚È‚¢B
+	if (m_magicType == MagicType::None)
+	{
+		return;
+	}
+
+	// –‚–@‚ÌƒN[ƒ‹ƒ^ƒCƒ€‚ğŒ¸‚ç‚·B
+	m_magicCoolTime--;
+
+	// ƒN[ƒ‹ƒ^ƒCƒ€‚ªc‚Á‚Ä‚¢‚é‚È‚çA‚Ü‚¾Œ‚‚½‚È‚¢B
+	if (m_magicCoolTime > 0.0f)
+	{
+		return;
+	}
+
+	std::shared_ptr<KdGameObject> spTargetEnemy = SearchEnemy(spPlayer);
+
+	// ”ÍˆÍ“à‚É“G‚ª‚¢‚È‚¯‚ê‚ÎŒ‚‚½‚È‚¢B
+	if (!spTargetEnemy)
+	{
+		return;
+	}
+
+	// ñ‚©‚ç“G‚ÖŒü‚©‚¤•ûŒü‚ğì‚éB
+	Math::Vector3 shotDir = spTargetEnemy->GetPos() - GetPos();
+	if (shotDir.LengthSquared() <= 0.0001f)
+	{
+		return;
+	}
+	shotDir.Normalize();
+
+	// –‚–@‚ğì‚Á‚ÄA“G‚Ì•ûŒü‚Ö”ò‚Î‚·B
+	std::shared_ptr<MagicBase> magic = std::make_shared<MagicBase>();
+	magic->Shot(GetPos(), shotDir, m_magicType, m_magicDamage, m_magicSpeed);
+	SceneManager::Instance().AddObject(magic);
+
+	// ñ‚²‚Æ‚Éİ’è‚³‚ê‚½ƒN[ƒ‹ƒ^ƒCƒ€‚Ö–ß‚·B
+	m_magicCoolTime = m_magicCoolTimeMax;
+}
+
+std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGameObject>& spPlayer)
+{
+	std::shared_ptr<KdGameObject> spTargetEnemy = nullptr;
+	float minDistanceSqr = m_searchRadius * m_searchRadius;
+
+	for (auto& spObj : SceneManager::Instance().GetObjList())
+	{
+		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
+		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
+		auto spBat = std::dynamic_pointer_cast<Bat>(spObj);
+		if (!spBat)
+		{
+			continue;
+		}
+		if (spBat->IsExpired())
+		{
+			continue;
+		}
+
+		Math::Vector3 toEnemy = spBat->GetPos() - spPlayer->GetPos();
+		float distanceSqr = toEnemy.LengthSquared();
+
+		if (distanceSqr < minDistanceSqr)
+		{
+			minDistanceSqr = distanceSqr;
+			spTargetEnemy = spBat;
+		}
+	}
+
+	return spTargetEnemy;
+}
+
+
