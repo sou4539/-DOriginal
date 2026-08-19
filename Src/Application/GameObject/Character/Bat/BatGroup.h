@@ -4,6 +4,7 @@
 #include <vector>
 
 class Bat;
+class Status;
 
 class BatGroup : public CharaBase
 {
@@ -42,6 +43,12 @@ public:
 	// 群れ全体の追跡対象を設定するための関数。
 	// Playerの安全地帯フラグを確認し、村に入った瞬間の補充判定にも使う。
 	void SetTarget(const std::shared_ptr<KdGameObject>& target);
+
+	// コウモリが倒された時に経験値を渡すStatusを設定する。
+	void SetStatus(const std::shared_ptr<Status>& status)
+	{
+		m_wpStatus = status;
+	}
 
 	// Batを複数作成して、シーンのオブジェクトリストに追加する。
 	// GameSceneでBatGroupを作った後に呼ぶ。
@@ -89,10 +96,15 @@ private:
 	// Playerなら安全地帯に入ったかどうかも確認する。
 	std::weak_ptr<KdGameObject> m_wpTarget;
 
+	// コウモリ撃破時に経験値を加算する対象。
+	std::weak_ptr<Status> m_wpStatus;
+
 	// 前フレームにターゲットが安全地帯内にいたかどうか。
 	// falseからtrueに変わった瞬間だけ、死んだコウモリを補充する。
 	bool m_wasTargetInSafeArea = false;
 };
+
+
 
 
 

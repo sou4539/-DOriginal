@@ -52,6 +52,12 @@ void GameScene::Init()
 	player = std::make_shared<Player>();
 	m_objList.push_back(player);
 
+	// ステータスUI/情報管理用のオブジェクトを作成する。
+	// コウモリ撃破時の経験値加算にも使うため、BatGroupより先に作成する。
+	std::shared_ptr<Status> status;
+	status = std::make_shared<Status>();
+	m_objList.push_back(status);
+
 	// コウモリの生息地を管理するBatGroupを作成する。
 	// 生息地ごとに白いスフィア範囲を持ち、その中へコウモリをランダム配置する。
 	std::shared_ptr<BatGroup> batGroup;
@@ -60,12 +66,8 @@ void GameScene::Init()
 	batGroup->AddHabitat({ -70.0f, 3.0f,   0.0f }, 12.0f, 4);
 	batGroup->AddHabitat({ -45.0f, 3.0f,  35.0f }, 10.0f, 3);
 	batGroup->AddHabitat({ -95.0f, 3.0f, -35.0f }, 14.0f, 5);
+	batGroup->SetStatus(status);
 	batGroup->AddBatsToScene(m_objList, player);
-
-	// ステータスUI/情報管理用のオブジェクトを作成する。
-	std::shared_ptr<Status> status;
-	status = std::make_shared<Status>();
-	m_objList.push_back(status);
 
 	// 広い地面を作成する。
 	// プレイヤーの地面判定対象にも登録する。
@@ -113,6 +115,8 @@ void GameScene::Init()
 
 	status->SetPlayer(player);
 }
+
+
 
 
 

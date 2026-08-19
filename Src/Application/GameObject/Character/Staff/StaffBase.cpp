@@ -1,4 +1,4 @@
-#include "StaffBase.h"
+ï»¿#include "StaffBase.h"
 
 #include "../../../Scene/SceneManager.h"
 #include "../Bat/Bat.h"
@@ -34,16 +34,16 @@ void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget
 
 void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 {
-	// –‚–@ƒ^ƒCƒv‚ª–¢İ’è‚Ìñ‚ÍUŒ‚‚µ‚È‚¢B
+	// é­”æ³•ã‚¿ã‚¤ãƒ—ãŒæœªè¨­å®šã®æ–ã¯æ”»æ’ƒã—ãªã„ã€‚
 	if (m_magicType == MagicType::None)
 	{
 		return;
 	}
 
-	// –‚–@‚ÌƒN[ƒ‹ƒ^ƒCƒ€‚ğŒ¸‚ç‚·B
+	// é­”æ³•ã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚’æ¸›ã‚‰ã™ã€‚
 	m_magicCoolTime--;
 
-	// ƒN[ƒ‹ƒ^ƒCƒ€‚ªc‚Á‚Ä‚¢‚é‚È‚çA‚Ü‚¾Œ‚‚½‚È‚¢B
+	// ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ãŒæ®‹ã£ã¦ã„ã‚‹ãªã‚‰ã€ã¾ã æ’ƒãŸãªã„ã€‚
 	if (m_magicCoolTime > 0.0f)
 	{
 		return;
@@ -51,13 +51,13 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 
 	std::shared_ptr<KdGameObject> spTargetEnemy = SearchEnemy(spPlayer);
 
-	// ”ÍˆÍ“à‚É“G‚ª‚¢‚È‚¯‚ê‚ÎŒ‚‚½‚È‚¢B
+	// ç¯„å›²å†…ã«æ•µãŒã„ãªã‘ã‚Œã°æ’ƒãŸãªã„ã€‚
 	if (!spTargetEnemy)
 	{
 		return;
 	}
 
-	// ñ‚©‚ç“G‚ÖŒü‚©‚¤•ûŒü‚ğì‚éB
+	// æ–ã‹ã‚‰æ•µã¸å‘ã‹ã†æ–¹å‘ã‚’ä½œã‚‹ã€‚
 	Math::Vector3 shotDir = spTargetEnemy->GetPos() - GetPos();
 	if (shotDir.LengthSquared() <= 0.0001f)
 	{
@@ -65,12 +65,12 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 	}
 	shotDir.Normalize();
 
-	// –‚–@‚ğì‚Á‚ÄA“G‚Ì•ûŒü‚Ö”ò‚Î‚·B
+	// é­”æ³•ã‚’ä½œã£ã¦ã€æ•µã®æ–¹å‘ã¸é£›ã°ã™ã€‚
 	std::shared_ptr<MagicBase> magic = std::make_shared<MagicBase>();
 	magic->Shot(GetPos(), shotDir, m_magicType, m_magicDamage, m_magicSpeed);
 	SceneManager::Instance().AddObject(magic);
 
-	// ñ‚²‚Æ‚Éİ’è‚³‚ê‚½ƒN[ƒ‹ƒ^ƒCƒ€‚Ö–ß‚·B
+	// æ–ã”ã¨ã«è¨­å®šã•ã‚ŒãŸã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã¸æˆ»ã™ã€‚
 	m_magicCoolTime = m_magicCoolTimeMax;
 }
 
@@ -81,8 +81,8 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 
 	for (auto& spObj : SceneManager::Instance().GetObjList())
 	{
-		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
-		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
+		// ä»Šã¯æ•µãŒBatã ã‘ãªã®ã§ã€Batã«å¤‰æ›ã§ããŸã‚‚ã®ã ã‘ã‚’æ”»æ’ƒå¯¾è±¡ã«ã™ã‚‹ã€‚
+		// å¾Œã§EnemyBaseã‚’ä½œã£ãŸã‚‰ã€ã“ã“ã‚’EnemyBaseåˆ¤å®šã«å¤‰æ›´ã™ã‚‹ã€‚
 		auto spBat = std::dynamic_pointer_cast<Bat>(spObj);
 		if (!spBat)
 		{

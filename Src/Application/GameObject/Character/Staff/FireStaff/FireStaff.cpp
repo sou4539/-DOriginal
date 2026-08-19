@@ -1,4 +1,4 @@
-#include "FireStaff.h"
+﻿#include "FireStaff.h"
 
 void FireStaff::Init()
 {

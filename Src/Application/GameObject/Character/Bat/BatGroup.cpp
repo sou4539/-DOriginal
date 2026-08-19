@@ -189,6 +189,13 @@ void BatGroup::AddBatToScene(std::list<std::shared_ptr<KdGameObject>>& objList, 
 	std::shared_ptr<Bat> bat = std::make_shared<Bat>();
 	bat->SetStartPos(startPos);
 	bat->SetTarget(target);
+
+	std::shared_ptr<Status> spStatus = m_wpStatus.lock();
+	if (spStatus)
+	{
+		bat->SetStatus(spStatus);
+	}
+
 	objList.push_back(bat);
 
 	BatInfo batInfo;
@@ -196,6 +203,8 @@ void BatGroup::AddBatToScene(std::list<std::shared_ptr<KdGameObject>>& objList, 
 	batInfo.habitatIndex = habitatIndex;
 	m_bats.push_back(batInfo);
 }
+
+
 
 
 

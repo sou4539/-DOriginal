@@ -1,6 +1,7 @@
 #include "Bat.h"
 
 #include "../Player/Player.h"
+#include "../Status/Status.h"
 
 void Bat::Init()
 {
@@ -143,6 +144,9 @@ void Bat::OnHit()
 
 void Bat::OnHit(float damage)
 {
+	// すでに死亡処理が入っている場合は、二重に経験値が入らないように何もしない。
+	if (m_isExpired) { return; }
+
 	// 0以下のダメージは無効にする。
 	// 回復や特殊処理を入れる場合は、別の関数として分ける。
 	if (damage <= 0.0f) { return; }
@@ -154,8 +158,18 @@ void Bat::OnHit(float damage)
 	if (m_hp <= 0.0f)
 	{
 		m_isExpired = true;
+
+		// コウモリを倒した報酬として、プレイヤーのStatusへ経験値を渡す。
+		// Statusが存在しない場合は、経験値加算だけ行わずに敵の消滅はそのまま行う。
+		std::shared_ptr<Status> spStatus = m_wpStatus.lock();
+		if (spStatus)
+		{
+			spStatus->AddExp(m_exp);
+		}
 	}
 }
+
+
 
 
 

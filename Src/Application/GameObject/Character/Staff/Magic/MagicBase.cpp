@@ -1,4 +1,4 @@
-#include "MagicBase.h"
+ï»¿#include "MagicBase.h"
 
 #include "../../../../Scene/SceneManager.h"
 #include "../../Bat/Bat.h"
@@ -14,6 +14,8 @@ void MagicBase::Init()
 	m_speed = 0.0f;
 	m_lifeTime = 0.0f;
 	m_radius = 0.0f;
+
+	m_spPoly = std::make_shared<KdSquarePolygon>();
 }
 
 void MagicBase::Update()
@@ -28,29 +30,38 @@ void MagicBase::Update()
 
 	if (m_pDebugWire)
 	{
-		m_pDebugWire->AddDebugSphere(m_pos, m_radius);
+		//m_pDebugWire->AddDebugSphere(m_pos, m_radius);
 	}
 
-	m_mWorld = Math::Matrix::CreateTranslation(m_pos);
+	//ç§»å‹•è¡Œåˆ—
+	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
+
+	//å›è»¢è¡Œåˆ—
+	Math::Matrix m_rotx = Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
+	Math::Matrix m_roty = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
+	Math::Matrix m_rotY = Math::Matrix::CreateRotationY(atan2f(m_dir.x, m_dir.z));
+
+
+	m_mWorld = m_rotx * m_roty * m_rotY * m_trans;
 }
 
 void MagicBase::PostUpdate()
 {
-	// ‚·‚Å‚Éõ–½Ø‚ê‚È‚Ç‚ÅÁ‚¦‚é—\’è‚Ì–‚–@‚ÍA“–‚½‚è”»’è‚ğs‚í‚È‚¢B
+	// ã™ã§ã«å¯¿å‘½åˆ‡ã‚Œãªã©ã§æ¶ˆãˆã‚‹äºˆå®šã®é­”æ³•ã¯ã€å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã‚ãªã„ã€‚
 	if (m_isExpired)
 	{
 		return;
 	}
 
-	// –‚–@‚Ì“–‚½‚è”»’è—pƒXƒtƒBƒA‚ğì¬‚·‚éB
-	// TypeDamage‚ğŒ©‚é‚±‚Æ‚ÅA“G‚ª‚Á‚Ä‚¢‚éƒ_ƒ[ƒW”»’è‚É“–‚½‚Á‚½‚©‚ğŠm”F‚·‚éB
+	// é­”æ³•ã®å½“ãŸã‚Šåˆ¤å®šç”¨ã‚¹ãƒ•ã‚£ã‚¢ã‚’ä½œæˆã™ã‚‹ã€‚
+	// TypeDamageã‚’è¦‹ã‚‹ã“ã¨ã§ã€æ•µãŒæŒã£ã¦ã„ã‚‹ãƒ€ãƒ¡ãƒ¼ã‚¸åˆ¤å®šã«å½“ãŸã£ãŸã‹ã‚’ç¢ºèªã™ã‚‹ã€‚
 	DirectX::BoundingSphere magicSphere;
 	magicSphere.Center = GetPos();
 	magicSphere.Radius = m_radius;
 
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
 
-	// ƒV[ƒ““à‚ÌƒIƒuƒWƒFƒNƒg‚ğ’²‚×ABat‚É“–‚½‚Á‚½‚çƒ_ƒ[ƒW‚ğ—^‚¦‚éB
+	// ã‚·ãƒ¼ãƒ³å†…ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’èª¿ã¹ã€Batã«å½“ãŸã£ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹ã€‚
 	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
 	{
 		if (!spObj)
@@ -58,8 +69,8 @@ void MagicBase::PostUpdate()
 			continue;
 		}
 
-		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
-		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
+		// ä»Šã¯æ•µãŒBatã ã‘ãªã®ã§ã€Batã«å¤‰æ›ã§ããŸã‚‚ã®ã ã‘ã‚’æ”»æ’ƒå¯¾è±¡ã«ã™ã‚‹ã€‚
+		// å¾Œã§EnemyBaseã‚’ä½œã£ãŸã‚‰ã€ã“ã“ã‚’EnemyBaseåˆ¤å®šã«å¤‰æ›´ã™ã‚‹ã€‚
 		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
 		if (!spBat)
 		{
@@ -73,8 +84,8 @@ void MagicBase::PostUpdate()
 		std::list<KdCollider::CollisionResult> retList;
 		if (spBat->Intersects(sphereInfo, &retList))
 		{
-			// “G‚É–‚–@‚Ìƒ_ƒ[ƒW—Ê‚ğ“n‚µA–‚–@©g‚ÍÁ‚·B
-			// m_damage‚É‚ÍFire/Ice/Volt‚È‚Çñ‚²‚Æ‚ÌUŒ‚—Í‚ª“ü‚Á‚Ä‚¢‚éB
+			// æ•µã«é­”æ³•ã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡ã‚’æ¸¡ã—ã€é­”æ³•è‡ªèº«ã¯æ¶ˆã™ã€‚
+			// m_damageã«ã¯Fire/Ice/Voltãªã©æ–ã”ã¨ã®æ”»æ’ƒåŠ›ãŒå…¥ã£ã¦ã„ã‚‹ã€‚
 			spBat->OnHit(m_damage);
 			m_isExpired = true;
 			break;
@@ -83,7 +94,10 @@ void MagicBase::PostUpdate()
 }
 
 void MagicBase::DrawLit()
-{}
+{
+	if (!m_spPoly) { return; }
+	KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld);
+}
 
 void MagicBase::Shot(const Math::Vector3& startPos, const Math::Vector3& dir, MagicType type, float damage, float speed)
 {
@@ -93,6 +107,7 @@ void MagicBase::Shot(const Math::Vector3& startPos, const Math::Vector3& dir, Ma
 	m_damage = damage;
 	m_speed = speed;
 
+
 	m_dir.Normalize();
 
 	switch (m_magicType)
@@ -100,14 +115,20 @@ void MagicBase::Shot(const Math::Vector3& startPos, const Math::Vector3& dir, Ma
 	case MagicType::Fire:
 		m_lifeTime = 90;
 		m_radius = 0.5f;
+		m_spPoly->SetMaterial("Asset/Textures/Magic/Fire/Fire.png");
+		m_spPoly->SetScale(10.0f);
 		break;
 	case MagicType::Ice:
 		m_lifeTime = 120;
 		m_radius = 0.3f;
+		m_spPoly->SetMaterial("Asset/Textures/Magic/Ice/Ice1.png");
+		m_spPoly->SetScale(10.0f);
 		break;
 	case MagicType::Volt:
 		m_lifeTime = 60;
 		m_radius = 0.2f;
+		m_spPoly->SetMaterial("Asset/Textures/Magic/Volt/Volt1.png");
+		m_spPoly->SetScale(10.0f);
 		break;
 	default:
 		break;

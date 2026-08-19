@@ -2,6 +2,8 @@
 
 #include "../CharaBase.h"
 
+class Status;
+
 class Bat : public CharaBase
 {
 public:
@@ -24,6 +26,11 @@ public:
 		m_wpTarget = target;
 	}
 
+	void SetStatus(const std::shared_ptr<Status>& status)
+	{
+		m_wpStatus = status;
+	}
+
 	void SetStartPos(const Math::Vector3& pos)
 	{
 		m_pos = pos;
@@ -39,6 +46,7 @@ private:
 	KdAnimator m_animator;
 
 	std::weak_ptr<KdGameObject> m_wpTarget;
+	std::weak_ptr<Status> m_wpStatus;
 
 	Math::Vector3 m_startPos = Math::Vector3::Zero;
 
@@ -47,6 +55,9 @@ private:
 	float m_damageRadius = 0.7f;
 	float m_moveSpeed = 0.08f;
 	float m_hp = 30.0f;
+	float m_exp = 20.0f;
 };
+
+
 
 

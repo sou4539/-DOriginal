@@ -34,4 +34,5 @@ private:
 	float m_speed;
 	float m_lifeTime;
 	float m_radius;
+
 };

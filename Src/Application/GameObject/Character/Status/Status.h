@@ -47,7 +47,24 @@ public:
 	// UI表示やデバッグ表示で、現在のプレイヤーHPを確認したい時に使う。
 	float GetPlayerHp() const { return m_pHp; }
 
+	// 敵を倒した時に経験値を加算する。
+	// 必要経験値を超えた場合は、内部でレベルアップ処理も行う。
+	void AddExp(float exp);
+
+	// 現在のレベルを確認したい時に使う。
+	int GetLevel() const { return m_level; }
+
+	// 現在の経験値を確認したい時に使う。
+	float GetExp() const { return m_exp; }
+
+	// 次のレベルまでに必要な経験値を確認したい時に使う。
+	float GetNextExp() const { return m_nextExp; }
+
 private:
+	// レベルアップ処理。
+	// AddExp()から呼び、プレイヤーの能力値を上げる。
+	void LevelUp();
+
 	// Status側からプレイヤーや敵の情報を参照したい時に使う。
 	// weak_ptrにしておくことで、対象オブジェクトを勝手に生存させ続けない。
 	std::weak_ptr<KdGameObject> m_player;
@@ -67,6 +84,12 @@ private:
 	float m_pDefense = 5.0f;
 	float m_pSpeed = 1.0f;
 
+	// プレイヤーの成長情報。
+	// 敵を倒してm_expを増やし、m_nextExp以上になったらレベルアップする。
+	int m_level = 1;
+	float m_exp = 0.0f;
+	float m_nextExp = 100.0f;
+
 	// 敵のステータス。
 	// 今回はまだ使っていないが、今後コウモリやボスのHP管理に使える。
 	float m_eHp = 50.0f;
@@ -75,3 +98,5 @@ private:
 	float m_eDefense = 2.0f;
 	float m_eSpeed = 0.5f;
 };
+
+
