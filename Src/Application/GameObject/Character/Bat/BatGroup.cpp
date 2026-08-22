@@ -2,67 +2,41 @@
 
 #include "Bat.h"
 #include "../Player/Player.h"
+#include <algorithm>
 
-#include <random>
-
-// BatGroupの初期化処理。
-// 使い方：
-//   BatGroup生成時にコンストラクタから自動で呼ばれる。
-// 処理内容：
-//   コウモリの生息地を確認するためのデバッグワイヤを作成する。
+// デバッグ表示用のワイヤを準備する。
 void BatGroup::Init()
 {
 	m_pDebugWire = std::make_unique<KdDebugWireFrame>();
 }
 
-// BatGroupの更新処理。
-// 使い方：
-//   シーンのUpdate処理から毎フレーム自動で呼ばれる。
-// 処理内容：
-//   コウモリの生息地をデバッグ表示する。
-//   さらに、プレイヤーが村の安全地帯に入った瞬間だけ死んだコウモリを補充する。
+// 出現範囲の表示と、コウモリ数の維持を行う。
 void BatGroup::Update()
 {
-	// コウモリの生息地をデバッグ表示する。
-	// この白いスフィア内のランダムな位置にコウモリを生成・補充する。
+	// 白が最大出現距離、赤が出現させない近距離。
 	if (m_pDebugWire)
 	{
-		for (const Habitat& habitat : m_habitats)
+		std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+		if (spTarget)
 		{
-			m_pDebugWire->AddDebugSphere(habitat.center, habitat.radius, kWhiteColor);
+			Math::Vector3 debugCenter = spTarget->GetPos();
+			debugCenter.y = 3.0f;
+			m_pDebugWire->AddDebugSphere(debugCenter, m_spawnMaxRadius, kWhiteColor);
+			m_pDebugWire->AddDebugSphere(debugCenter, m_spawnMinRadius, kRedColor);
 		}
 	}
 
-	std::shared_ptr<Player> spPlayer = std::dynamic_pointer_cast<Player>(m_wpTarget.lock());
-	if (!spPlayer) { return; }
-
-	// 村の安全地帯に入った瞬間だけ、死んだコウモリを補充する。
-	// 安全地帯内にいる間ずっと補充判定すると毎フレーム処理されるため、
-	// 前フレームの状態と比較して「外から中へ入った時」だけ処理する。
-	bool isTargetInSafeArea = spPlayer->IsInSafeArea();
-	if (isTargetInSafeArea && !m_wasTargetInSafeArea)
-	{
-		RefillDeadBats();
-	}
-
-	m_wasTargetInSafeArea = isTargetInSafeArea;
+	UpdateBatCountByDistance();
+	MaintainBatCount();
 }
 
-// 群れ全体のターゲット設定。
-// 使い方：
-//   BatGroupが生成したBat全体に、同じ追跡対象を共有する時に使う。
-//   また、Playerが安全地帯に入った瞬間を確認するためにも使う。
+// 生成するコウモリ全体の追跡対象を設定する。
 void BatGroup::SetTarget(const std::shared_ptr<KdGameObject>& target)
 {
 	m_wpTarget = target;
 }
 
-// コウモリの生息地追加。
-// 使い方：
-//   GameScene::Init()で、batGroup->AddHabitat(中心座標, 半径, コウモリ数) の形で呼ぶ。
-// 処理内容：
-//   コウモリが出現する白いスフィア範囲を追加する。
-//   生息地を複数追加すると、それぞれの範囲に指定数のコウモリが出現する。
+// コウモリの生息地情報を追加する。
 void BatGroup::AddHabitat(const Math::Vector3& center, float radius, int count)
 {
 	Habitat habitat;
@@ -73,19 +47,13 @@ void BatGroup::AddHabitat(const Math::Vector3& center, float radius, int count)
 	m_habitats.push_back(habitat);
 }
 
-// コウモリを複数生成してシーンへ追加する処理。
-// 使い方：
-//   GameScene::Init()で、batGroup->AddBatsToScene(m_objList, player) の形で呼ぶ。
-// 引数：
-//   objList : 作成したBatを追加するシーンのオブジェクトリスト。
-//   target  : Batが追いかける対象。今はPlayerを渡している。
-// 処理内容：
-//   登録されている生息地ごとに、指定数のBatをランダム配置する。
+// 登録済みの生息地情報をもとに、初期コウモリをシーンへ追加する。
 void BatGroup::AddBatsToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target)
 {
 	SetTarget(target);
 	m_pObjList = &objList;
 	m_bats.clear();
+	UpdateBatCountByDistance();
 
 	for (int habitatIndex = 0; habitatIndex < static_cast<int>(m_habitats.size()); ++habitatIndex)
 	{
@@ -93,18 +61,31 @@ void BatGroup::AddBatsToScene(std::list<std::shared_ptr<KdGameObject>>& objList,
 
 		for (int i = 0; i < habitat.count; ++i)
 		{
+			if (GetTotalBatCount() >= m_nowMaxBatCount) { return; }
+
 			AddBatToScene(objList, target, habitatIndex);
 		}
 	}
 }
 
-// コウモリのランダム座標作成。
-// 使い方：
-//   初回生成時と補充時の両方から呼ぶ。
-// 処理内容：
-//   指定された生息地の中心から見たランダムな方向と距離を作り、
-//   XZ平面上の生息地範囲内にコウモリを配置する。
-//   Y座標は生息地の中心と同じ高さに固定する。
+void BatGroup::UpdateBatCountByDistance()
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return; }
+
+	Math::Vector3 toPlayer = spTarget->GetPos() - m_safeAreaCenter;
+	toPlayer.y = 0.0f;
+
+	float distance = toPlayer.Length() - m_safeAreaRadius;
+	distance = std::max(distance, 0.0f);
+
+	float rate = distance / m_maxBatCountDistance;
+	rate = std::clamp(rate, 0.0f, 1.0f);
+
+	m_nowMaxBatCount = static_cast<int>(m_minBatCount + (m_maxBatCount - m_minBatCount) * rate);
+}
+
+// プレイヤー周辺かつ村の外になるランダム出現座標を作る。
 Math::Vector3 BatGroup::MakeRandomPos(int habitatIndex) const
 {
 	if (habitatIndex < 0 || habitatIndex >= static_cast<int>(m_habitats.size()))
@@ -113,29 +94,77 @@ Math::Vector3 BatGroup::MakeRandomPos(int habitatIndex) const
 	}
 
 	const Habitat& habitat = m_habitats[habitatIndex];
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget)
+	{
+		return habitat.center;
+	}
 
-	static std::mt19937 randomEngine(std::random_device{}());
-	std::uniform_real_distribution<float> angleDist(0.0f, DirectX::XM_2PI);
-	std::uniform_real_distribution<float> radiusDist(0.0f, 1.0f);
+	const Math::Vector3 targetPos = spTarget->GetPos();
+	Math::Vector3 pos = targetPos;
+	Math::Vector3 habitatDir = habitat.center - m_safeAreaCenter;
+	habitatDir.y = 0.0f;
 
-	float angle = angleDist(randomEngine);
-	float radius = std::sqrt(radiusDist(randomEngine)) * habitat.radius;
+	float baseAngle = KdRandom::GetFloat(0.0f, DirectX::XM_2PI);
+	if (habitatDir.LengthSquared() > 0.0001f)
+	{
+		baseAngle = std::atan2(habitatDir.z, habitatDir.x);
+	}
 
-	Math::Vector3 pos;
-	pos.x = habitat.center.x + std::cos(angle) * radius;
+	for (int i = 0; i < 30; ++i)
+	{
+		// 生息地ごとの方向を基準に、少しだけ散らしてまとまった群れにする。
+		float angle = baseAngle + KdRandom::GetFloat
+		(
+			-DirectX::XMConvertToRadians(18.0f),
+			DirectX::XMConvertToRadians(18.0f)
+		);
+
+		// プレイヤーから少し離れた位置に、まとまりを保ったまま出す。
+		float radiusRate = std::sqrt(KdRandom::GetFloat(0.0f, 1.0f));
+		float radius = m_spawnMinRadius + (m_spawnMaxRadius - m_spawnMinRadius) * radiusRate;
+
+		pos.x = targetPos.x + std::cos(angle) * radius;
+		pos.y = habitat.center.y;
+		pos.z = targetPos.z + std::sin(angle) * radius;
+
+		if (!IsInSafeArea(pos))
+		{
+			return pos;
+		}
+	}
+
+	// 抽選に失敗した時は、プレイヤーから離れた位置へ出す。
+	pos.x = targetPos.x - m_spawnMaxRadius;
 	pos.y = habitat.center.y;
-	pos.z = habitat.center.z + std::sin(angle) * radius;
+	pos.z = targetPos.z;
 
 	return pos;
 }
 
-// コウモリの補充処理。
-// 使い方：
-//   プレイヤーが村の安全地帯に入った瞬間に呼ぶ。
-// 処理内容：
-//   生きているコウモリはそのまま残し、死んでいるコウモリだけ管理リストから外す。
-//   その後、生息地ごとの数が設定数に戻るように足りない分だけ新しく生成する。
-void BatGroup::RefillDeadBats()
+bool BatGroup::IsInSafeArea(const Math::Vector3& pos) const
+{
+	if (m_safeAreaRadius <= 0.0f) { return false; }
+
+	Math::Vector3 toPos = pos - m_safeAreaCenter;
+	toPos.y = 0.0f;
+
+	return toPos.LengthSquared() <= m_safeAreaRadius * m_safeAreaRadius;
+}
+
+bool BatGroup::IsOutsideSpawnSphere(const Math::Vector3& pos) const
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return false; }
+
+	Math::Vector3 toPos = pos - spTarget->GetPos();
+	toPos.y = 0.0f;
+
+	return toPos.LengthSquared() > m_spawnMaxRadius * m_spawnMaxRadius;
+}
+
+// 消えたコウモリを整理し、足りない分を1フレーム1体ずつ補充する。
+void BatGroup::MaintainBatCount()
 {
 	std::vector<BatInfo> liveBats;
 
@@ -145,8 +174,14 @@ void BatGroup::RefillDeadBats()
 		if (!spBat) { continue; }
 		if (spBat->IsExpired()) { continue; }
 
-		// 生きているコウモリは補充対象ではない。
-		// ここでSetStartPos()を呼ぶと、戦闘中のコウモリまで一括リセットされてしまう。
+		// 出現スフィア外まで離れたコウモリは消す。
+		if (IsOutsideSpawnSphere(spBat->GetPos()))
+		{
+			spBat->Expire();
+			continue;
+		}
+
+		// 生きているコウモリだけ管理リストへ残す。
 		liveBats.push_back(batInfo);
 	}
 
@@ -155,7 +190,8 @@ void BatGroup::RefillDeadBats()
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (!m_pObjList || !spTarget) { return; }
 
-	// 倒されて消えたコウモリがいる場合は、
+	if (GetTotalBatCount() >= m_nowMaxBatCount) { return; }
+
 	// 生息地ごとの数が設定数に戻るように補充する。
 	for (int habitatIndex = 0; habitatIndex < static_cast<int>(m_habitats.size()); ++habitatIndex)
 	{
@@ -168,26 +204,26 @@ void BatGroup::RefillDeadBats()
 			}
 		}
 
-		while (batCountInHabitat < m_habitats[habitatIndex].count)
+		if (batCountInHabitat < m_habitats[habitatIndex].count)
 		{
 			AddBatToScene(*m_pObjList, spTarget, habitatIndex);
-			++batCountInHabitat;
+
+			if (m_isSpawnOnePerFrame)
+			{
+				return;
+			}
 		}
 	}
 }
 
-// コウモリの追加処理。
-// 使い方：
-//   初回生成時と、村に入った時の補充処理から呼ぶ。
-// 処理内容：
-//   指定した生息地の範囲内にランダムな初期位置を作り、
-//   Batに開始位置と追跡対象を設定してシーンへ追加する。
+// コウモリを1体作成し、初期位置や追跡対象を設定してシーンへ追加する。
 void BatGroup::AddBatToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target, int habitatIndex)
 {
 	Math::Vector3 startPos = MakeRandomPos(habitatIndex);
 
 	std::shared_ptr<Bat> bat = std::make_shared<Bat>();
 	bat->SetStartPos(startPos);
+	bat->SetAngle(KdRandom::GetFloat(0.0f, DirectX::XM_2PI));
 	bat->SetTarget(target);
 
 	std::shared_ptr<Status> spStatus = m_wpStatus.lock();
@@ -203,6 +239,14 @@ void BatGroup::AddBatToScene(std::list<std::shared_ptr<KdGameObject>>& objList, 
 	batInfo.habitatIndex = habitatIndex;
 	m_bats.push_back(batInfo);
 }
+
+
+
+
+
+
+
+
 
 
 

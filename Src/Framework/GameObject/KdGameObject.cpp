@@ -1,11 +1,18 @@
-ï»¿#include "KdGameObject.h"
+#include "KdGameObject.h"
 
 void KdGameObject::DrawDebug()
 {
-	// æ—©æœŸãƒªã‚¿ãƒ¼ãƒ³
+	// ‘ŠúƒŠƒ^[ƒ“
 	if (!m_pDebugWire)return;
 
 	m_pDebugWire->Draw();
+}
+
+void KdGameObject::ClearDebugWire()
+{
+	if (!m_pDebugWire) { return; }
+
+	m_pDebugWire->Clear();
 }
 
 void KdGameObject::SetScale(float scalar)
@@ -64,3 +71,5 @@ bool KdGameObject::Intersects(const KdCollider::RayInfo& targetShape, std::list<
 void KdGameObject::OnHit()
 {
 }
+
+

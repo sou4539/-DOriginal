@@ -1,18 +1,13 @@
-﻿#include "Ground.h"
+#include "Ground.h"
 
 void Ground::Init()
 {
-	// 地面モデルを読み込む。
+	// �n�ʃ��f���Ɠ����蔻�����������B
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/Stage/Ground/Ground.gltf");
 
-	// 元のGroundモデルは小さいため、ゲームで使いやすい広さまで拡大する。
-	// サイズだけ大きくするとテクスチャが引き延ばされるため、
-	// DrawLit()側でUVも同じ比率で繰り返す。
 	m_mWorld = Math::Matrix::CreateScale(m_groundScale);
 
-	// 地面として使うため、TypeGroundの当たり判定を登録する。
-	// CharaBaseの下向きレイ判定とスフィア判定が、このコライダーを参照する。
 	m_pCollider = std::make_unique<KdCollider>();
 	m_pCollider->RegisterCollisionShape
 	(
@@ -22,14 +17,47 @@ void Ground::Init()
 	);
 }
 
+void Ground::Update()
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return; }
+
+	// �v���C���[�ʒu��n��1�����̋�؂�Ɋۂ߂�B
+	Math::Vector3 targetPos = spTarget->GetPos();
+	m_basePos.x = std::floor((targetPos.x / m_tileLength) + 0.5f) * m_tileLength;
+	m_basePos.y = 0.0f;
+	m_basePos.z = std::floor((targetPos.z / m_tileLength) + 0.5f) * m_tileLength;
+
+	// �����蔻��͒��S�̒n�ʂɍ��킹��B
+	m_mWorld = Math::Matrix::CreateScale(m_groundScale) *
+			   Math::Matrix::CreateTranslation(m_basePos);
+}
+
 void Ground::DrawLit()
 {
 	if (!m_spModel) { return; }
 
-	// GroundだけUVを繰り返して描画する。
-	// これにより、地面を広くしても画像が大きく引き延ばされず、
-	// 同じ模様がタイル状に表示される。
-	KdShaderManager::Instance().m_StandardShader.SetUVTiling(m_uvTiling * 100);
-	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld);
+	// �n�ʂ�����ԂȂ��E�J��Ԃ�����ŕ`�悷��B
+	KdShaderManager::Instance().ChangeSamplerState(KdSamplerState::Point_Wrap);
+
+	// �v���C���[���ӂ𖄂߂邽�߁A3�~3���̒n�ʂ�`�悷��B
+	for (int z = -1; z <= 1; ++z)
+	{
+		for (int x = -1; x <= 1; ++x)
+		{
+			Math::Vector3 drawPos = m_basePos;
+			drawPos.x += m_tileLength * x;
+			drawPos.z += m_tileLength * z;
+
+			Math::Matrix drawMat = Math::Matrix::CreateScale(m_groundScale) *
+								   Math::Matrix::CreateTranslation(drawPos);
+
+			// DrawModel���UV�ݒ肪�߂邽�߁A�`�悲�Ƃɐݒ肷��B
+			KdShaderManager::Instance().m_StandardShader.SetUVTiling(m_textureTiling);
+			KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, drawMat);
+		}
+	}
+
+	KdShaderManager::Instance().UndoSamplerState();
 }
 

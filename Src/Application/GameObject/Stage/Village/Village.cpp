@@ -1,20 +1,15 @@
-﻿#include "Village.h"
+#include "Village.h"
 
 void Village::Init()
 {
-	// 村モデルを読み込む。
+	// �����f���Ɠ����蔻�����������B
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/Stage/World/village.gltf");
 
-	// 村は原点・等倍で配置する。
-	m_mWorld = Math::Matrix::Identity;
+	m_mWorld = Math::Matrix::CreateTranslation(0.120777f, -0.878495f, 14.227562f);
 
-	// 安全地帯スフィアをデバッグ表示するためのワイヤを作成する。
 	m_pDebugWire = std::make_unique<KdDebugWireFrame>();
 
-	// 村の当たり判定を登録する。
-	// 今はTypeGroundに統一しているため、地面レイ判定も壁用スフィア判定も
-	// この1つのコライダーを見に行く。
 	m_pCollider = std::make_unique<KdCollider>();
 	m_pCollider->RegisterCollisionShape
 	(
@@ -26,10 +21,31 @@ void Village::Init()
 
 void Village::Update()
 {
-	// 村の安全地帯を青いスフィアで表示する。
-	// この中にプレイヤーがいる間、敵はプレイヤーを追わず初期位置へ戻る。
+	if (!IsInVisibleRange()) { return; }
+
+	// ���̈��S�n�т���X�t�B�A�ŕ\������B
 	if (m_pDebugWire)
 	{
 		m_pDebugWire->AddDebugSphere(m_safeAreaCenter, m_safeAreaRadius, kBlueColor);
 	}
 }
+
+void Village::DrawLit()
+{
+	if (!IsInVisibleRange()) { return; }
+
+	StageBase::DrawLit();
+}
+
+bool Village::IsInVisibleRange() const
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return true; }
+
+	Math::Vector3 toVillage = m_safeAreaCenter - spTarget->GetPos();
+	toVillage.y = 0.0f;
+
+	return toVillage.LengthSquared() <= m_visibleRadius * m_visibleRadius;
+}
+
+

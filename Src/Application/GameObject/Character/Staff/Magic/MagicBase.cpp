@@ -1,7 +1,57 @@
-ï»¿#include "MagicBase.h"
+#include "MagicBase.h"
 
 #include "../../../../Scene/SceneManager.h"
 #include "../../Bat/Bat.h"
+
+#include <algorithm>
+
+namespace
+{
+	// 2.5DOriginal‚Ìd‚Æ“¯‚¶l‚¦•ûB
+	// ’l‚ª‘å‚«‚¢‚Ù‚Ç‰r¥‚ª‘‚­I‚í‚éB
+	constexpr float MagicChantSpeed = 0.05f;
+
+	// ‰æ‘œØ‚è‘Ö‚¦‘¬“xB
+	// 1.0‚È‚ç–ˆƒtƒŒ[ƒ€Ø‚è‘Ö‚¦A0.2‚È‚ç5ƒtƒŒ[ƒ€‚É1‰ñ’ö“xØ‚è‘Ö‚í‚éB
+	constexpr float IceFrameSpeed = 0.12f;
+	constexpr float VoltFrameSpeed = 0.20f;
+	constexpr float FireFrameSpeed = 0.25f;
+
+	// Œ»İ‚ÌŒ©‚½–Ú‚É‡‚í‚¹‚½b’èƒTƒCƒYB
+	// Œã‚ÅÀ‹@Šm”F‚µ‚È‚ª‚ç–‚–@‚²‚Æ‚É’²®‚·‚éB
+	constexpr float FireScale = 4.0f;
+	constexpr float IceScale = 4.0f;
+	constexpr float VoltScale = 4.0f;
+
+	// –‚–@’e‚Ì“–‚½‚è”»’è”¼ŒaB
+	// KdSquarePolygon‚ÌSetScale‚ÍŒ©‚½–Ú‚Ì’Z•ÓƒTƒCƒY‚ğŒˆ‚ß‚é‚½‚ßA
+	// ”¼Œa‚ÍuŒ©‚½–ÚƒTƒCƒY‚Ì”¼•ªv‚ğŠî€‚É‚·‚éB
+	// Œ©‚½–ÚƒTƒCƒY‚ğ•Ï‚¦‚½‚ÉA“–‚½‚è”»’è‚àˆê‚É•Ï‚í‚é‚æ‚¤‚É‚µ‚Ä‚¢‚éB
+	constexpr float FireHitRadius = FireScale * 0.5f;
+	constexpr float IceHitRadius = IceScale * 0.5f;
+	constexpr float VoltHitRadius = VoltScale * 0.5f;
+
+	// •X‚Ì”h¶’e‚ğ¶‰E‚ÉL‚°‚éŠp“xB
+	constexpr float IceSplitSpreadAngle = DirectX::XMConvertToRadians(30.0f);
+
+	Math::Vector3 RotateDirY(const Math::Vector3& dir, float angle)
+	{
+		const float cosAngle = cosf(angle);
+		const float sinAngle = sinf(angle);
+
+		Math::Vector3 ret;
+		ret.x = dir.x * cosAngle + dir.z * sinAngle;
+		ret.y = dir.y;
+		ret.z = -dir.x * sinAngle + dir.z * cosAngle;
+
+		if (ret.LengthSquared() > 0.0001f)
+		{
+			ret.Normalize();
+		}
+
+		return ret;
+	}
+}
 
 void MagicBase::Init()
 {
@@ -10,84 +60,288 @@ void MagicBase::Init()
 	m_pos = {};
 	m_dir = {};
 	m_magicType = MagicType::None;
+	m_state = MagicState::Chant;
 	m_damage = 0.0f;
 	m_speed = 0.0f;
 	m_lifeTime = 0.0f;
 	m_radius = 0.0f;
+	m_chant = 1.0f;
+	m_chantSpeed = MagicChantSpeed;
+	m_framePathList.clear();
+	m_frame = 0.0f;
+	m_frameSpeed = 0.0f;
+	m_nowFrame = -1;
+	m_wpChantTarget.reset();
+	m_chantOffset = Math::Vector3::Zero;
+	m_wpFlyTarget.reset();
+	m_wpIgnoreTarget.reset();
+	m_voltChainCount = 0;
+	m_isChainShot = false;
+	m_fireExplosionRadius = 3.0f;
+	m_icePierceCount = 1;
+	m_iceSplitCount = 1;
+	m_isIceSplitShot = false;
+	m_hasCreatedIceSplit = false;
+	m_hitObjectList.clear();
 
 	m_spPoly = std::make_shared<KdSquarePolygon>();
 }
 
 void MagicBase::Update()
 {
-	m_pos += m_dir * m_speed;
-	m_lifeTime -= 1.0f;
-
-	if (m_lifeTime <= 0.0f)
+	switch (m_state)
 	{
-		m_isExpired = true;
+	case MagicState::Chant:
+		UpdateChant();
+		break;
+	case MagicState::Fly:
+		UpdateFly();
+		break;
+	case MagicState::Hit:
+		UpdateHit();
+		break;
+	default:
+		break;
 	}
 
 	if (m_pDebugWire)
 	{
-		//m_pDebugWire->AddDebugSphere(m_pos, m_radius);
+		// “–‚½‚è”»’è‚ÌŠm”F‚ª•K—v‚È‚¾‚¯ƒRƒƒ“ƒgƒAƒEƒg‚ğŠO‚·B
+		// m_pDebugWire->AddDebugSphere(m_pos, m_radius);
 	}
 
-	//ç§»å‹•è¡Œåˆ—
-	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
+	UpdateWorldMatrix();
+}
 
-	//å›è»¢è¡Œåˆ—
-	Math::Matrix m_rotx = Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
-	Math::Matrix m_roty = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
-	Math::Matrix m_rotY = Math::Matrix::CreateRotationY(atan2f(m_dir.x, m_dir.z));
+void MagicBase::UpdateChant()
+{
+	// ‰r¥’†‚¾‚¯AShot()‚Åó‚¯æ‚Á‚½‘ÎÛ‚ğ’Ç‚¢‚©‚¯‚éB
+	// ¡‚Íñ‚ğ‘ÎÛ‚É‚µ‚Ä‚¢‚é‚½‚ßAñ‚ªƒvƒŒƒCƒ„[‚Ìü‚è‚ğ‰ñ‚Á‚Ä‚à–‚–@‚Íñ‚Ìã‚Éc‚éB
+	// m_chantOffset‚É‚Íu”­¶‚µ‚½uŠÔ‚Ìñ‚©‚çŒ©‚½ˆÊ’u·v‚ğ•Û‘¶‚µ‚Ä‚¢‚é‚Ì‚ÅA
+	// ñ‚Ì­‚µã‚È‚ÇAŒ©‚½–Ú—p‚ÌˆÊ’u‚ğ•Û‚Á‚½‚Ü‚Ü’Ç]‚Å‚«‚éB
+	if (auto spChantTarget = m_wpChantTarget.lock())
+	{
+		m_pos = spChantTarget->GetPos() + m_chantOffset;
+	}
 
+	// ‰r¥’†‚Í2.5DOriginal‚Æ“¯‚¶‚­A’l‚ğ1.0‚©‚ç0.0‚ÖŒ¸‚ç‚µ‚Ä‚¢‚­B
+	// ‚±‚ÌŠÔ‚ÍˆÚ“®‚¹‚¸Añ‚ÌˆÊ’u‚©‚ç”­Ë‚³‚ê‚½–‚–@‚ª­‚µ—­‚Ü‚Á‚ÄŒ©‚¦‚éB
+	m_chant -= m_chantSpeed;
 
-	m_mWorld = m_rotx * m_roty * m_rotY * m_trans;
+	// •X‚Íu3–‡–Ú‚É‚È‚Á‚½‚ç”­Ëv‚·‚éd—lB
+	// Ice0 ¨ Ice1 ¨ Ice2 ‚Æi‚İAIce2‚ª•\¦‚³‚ê‚½‚ç”òsó‘Ô‚ÖˆÚ‚éB
+	if (m_magicType == MagicType::Ice)
+	{
+		UpdateFrameAnimation();
+
+		if (m_nowFrame >= 2)
+		{
+			StartFly();
+		}
+		return;
+	}
+
+	// ‰Š‚ÍƒXƒvƒ‰ƒCƒgƒV[ƒg‚ÌˆÚ“®—pæ“ªƒtƒŒ[ƒ€‚ğ‰r¥’†‚É‚à•\¦‚·‚éB
+	if (m_magicType == MagicType::Fire && m_spPoly)
+	{
+		m_spPoly->SetUVRect(m_fireFlyFrameStart);
+	}
+
+	// —‹‚Í‰r¥’†‚à¡‚ÌƒtƒŒ[ƒ€‚ğŒy‚­ƒAƒjƒ[ƒVƒ‡ƒ“‚³‚¹‚éB
+	if (m_magicType == MagicType::Volt)
+	{
+		UpdateFrameAnimation();
+	}
+
+	if (m_chant <= 0.0f)
+	{
+		StartFly();
+	}
+}
+
+void MagicBase::UpdateFly()
+{
+	// ”òs’†‚¾‚¯õ–½‚ğŒ¸‚ç‚µAis•ûŒü‚ÖˆÚ“®‚·‚éB
+	m_lifeTime -= 1.0f;
+	if (m_lifeTime <= 0.0f)
+	{
+		m_isExpired = true;
+		return;
+	}
+
+	m_pos += m_dir * m_speed;
+
+	// —‹‚Í”òs’†‚É‰æ‘œ‚ğ‡”Ô‚ÉØ‚è‘Ö‚¦‚éB
+	if (m_magicType == MagicType::Volt)
+	{
+		UpdateFrameAnimation();
+	}
+
+	// ‰Š‚ÍFire.png‚ÌˆÚ“®—pƒtƒŒ[ƒ€‚ğƒ‹[ƒv‚³‚¹‚éB
+	if (m_magicType == MagicType::Fire && m_spPoly)
+	{
+		m_frame += m_frameSpeed;
+		const int frameCount = m_fireFlyFrameEnd - m_fireFlyFrameStart + 1;
+		const int frameIndex = m_fireFlyFrameStart + (static_cast<int>(m_frame) % frameCount);
+
+		if (frameIndex != m_nowFrame)
+		{
+			m_nowFrame = frameIndex;
+			m_spPoly->SetUVRect(frameIndex);
+		}
+	}
+}
+
+void MagicBase::UpdateHit()
+{
+	// Œ»óA–½’†‰‰o‚ğ‚Á‚Ä‚¢‚é‚Ì‚ÍFire.png‚Ì‚İB
+	// Fire‚ÍÕ“Ë—pƒtƒŒ[ƒ€‚ğÅŒã‚Ü‚ÅÄ¶‚µ‚Ä‚©‚çÁ‚¦‚éB
+	if (m_magicType != MagicType::Fire || !m_spPoly)
+	{
+		m_isExpired = true;
+		return;
+	}
+
+	m_frame += m_frameSpeed;
+	const int frameIndex = m_fireHitFrameStart + static_cast<int>(m_frame);
+
+	if (frameIndex > m_fireHitFrameEnd)
+	{
+		m_isExpired = true;
+		return;
+	}
+
+	if (frameIndex != m_nowFrame)
+	{
+		m_nowFrame = frameIndex;
+		m_spPoly->SetUVRect(frameIndex);
+	}
+}
+
+void MagicBase::StartFly()
+{
+	// ‰r¥Š®—¹ŒãAÀÛ‚É–‚–@’e‚ª”ò‚Ñn‚ß‚éuŠÔ‚Ìˆ—B
+	// ”­Ë‰¹‚Íu–‚–@¶¬v‚Å‚Í‚È‚­u”ò‚Ñn‚ß‚½v‚É–Â‚ç‚·‚ÆA
+	// ‰r¥‰‰o‚Æƒ^ƒCƒ~ƒ“ƒO‚ğ‡‚í‚¹‚â‚·‚¢B
+	// ”ò‚Ñn‚ß‚½Œã‚Ü‚Åñ‚ğ’Ç‚¢‚©‚¯‚é‚Æ’e“¹‚ª‹È‚ª‚Á‚Ä‚µ‚Ü‚¤‚½‚ßA
+	// ‚±‚±‚Å’Ç]‘ÎÛ‚ğŠO‚µAˆÈ~‚Ím_dir•ûŒü‚Ö‚Ü‚Á‚·‚®i‚Ü‚¹‚éB
+	m_wpChantTarget.reset();
+
+	// ‰r¥’†‚É“G‚âñ‚ª“®‚¢‚½ê‡‚É”õ‚¦‚ÄA
+	// ”­Ë‚·‚éuŠÔ‚ÌuŒ»İ‚Ì–‚–@ˆÊ’uv‚©‚çuŒ»İ‚Ì“GˆÊ’uv‚ÖŒü‚«’¼‚·B
+	// ‚±‚±‚Å‚ÍY¬•ª‚àÁ‚³‚È‚¢‚½‚ßAã‰º•ûŒü‚É‚à”ò‚ÔB
+	if (auto spFlyTarget = m_wpFlyTarget.lock())
+	{
+		Math::Vector3 flyDir = spFlyTarget->GetPos() - m_pos;
+		if (flyDir.LengthSquared() > 0.0001f)
+		{
+			flyDir.Normalize();
+			m_dir = flyDir;
+		}
+	}
+
+	m_chant = 0.0f;
+	m_state = MagicState::Fly;
+
+	PlayShotSound();
+}
+
+void MagicBase::StartHit()
+{
+	// “G‚É“–‚½‚Á‚½uŠÔ‚Ì‹¤’Êˆ—B
+	// ƒqƒbƒg‰¹‚Í‚±‚±‚ÉW‚ß‚Ä‚¨‚­‚ÆAŒã‚Å–‚–@‚²‚Æ‚Ì‰¹·‚µ‘Ö‚¦‚ªŠÈ’P‚É‚È‚éB
+	PlayHitSound();
+
+	if (m_magicType == MagicType::Fire)
+	{
+		// Fire‚ÍFire.png‚ÌŒã”¼ƒtƒŒ[ƒ€‚ğg‚Á‚Ä–½’†‰‰o‚ğÄ¶‚µ‚Ä‚©‚çÁ‚¦‚éB
+		m_state = MagicState::Hit;
+		m_frame = 0.0f;
+		m_nowFrame = -1;
+		if (m_spPoly)
+		{
+			m_spPoly->SetUVRect(m_fireHitFrameStart);
+		}
+	}
+	else
+	{
+		// Ice / Volt‚Í‚Ü‚¾ê—pƒqƒbƒg‰‰o‚ª‚È‚¢‚½‚ßA–½’†‚µ‚½‚ç‚·‚®Á‚·B
+		// ‰æ‘œ‘fŞ‚ğ’Ç‰Á‚µ‚½‚çA‚±‚±‚ğHitó‘Ô‚ÖˆÚ‚·Œ`‚É•ÏX‚Å‚«‚éB
+		m_isExpired = true;
+	}
 }
 
 void MagicBase::PostUpdate()
 {
-	// ã™ã§ã«å¯¿å‘½åˆ‡ã‚Œãªã©ã§æ¶ˆãˆã‚‹äºˆå®šã®é­”æ³•ã¯ã€å½“ãŸã‚Šåˆ¤å®šã‚’è¡Œã‚ãªã„ã€‚
-	if (m_isExpired)
+	// ‰r¥’†‚Æ–½’†‰‰o’†‚ÍA‚Ü‚¾“G‚Ö“–‚Ä‚È‚¢B
+	if (m_isExpired || m_state != MagicState::Fly)
 	{
 		return;
 	}
 
-	// é­”æ³•ã®å½“ãŸã‚Šåˆ¤å®šç”¨ã‚¹ãƒ•ã‚£ã‚¢ã‚’ä½œæˆã™ã‚‹ã€‚
-	// TypeDamageã‚’è¦‹ã‚‹ã“ã¨ã§ã€æ•µãŒæŒã£ã¦ã„ã‚‹ãƒ€ãƒ¡ãƒ¼ã‚¸åˆ¤å®šã«å½“ãŸã£ãŸã‹ã‚’ç¢ºèªã™ã‚‹ã€‚
+	// –‚–@‚Ì“–‚½‚è”»’è—pƒXƒtƒBƒA‚ğì¬‚·‚éB
+	// TypeDamage‚ğŒ©‚é‚±‚Æ‚ÅA“G‚ª‚Á‚Ä‚¢‚éƒ_ƒ[ƒW”»’è‚É“–‚½‚Á‚½‚©‚ğŠm”F‚·‚éB
 	DirectX::BoundingSphere magicSphere;
 	magicSphere.Center = GetPos();
 	magicSphere.Radius = m_radius;
 
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
 
-	// ã‚·ãƒ¼ãƒ³å†…ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’èª¿ã¹ã€Batã«å½“ãŸã£ãŸã‚‰ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹ã€‚
+	// ƒV[ƒ““à‚ÌƒIƒuƒWƒFƒNƒg‚ğ’²‚×ABat‚É“–‚½‚Á‚½‚çƒ_ƒ[ƒW‚ğ—^‚¦‚éB
 	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
 	{
-		if (!spObj)
-		{
-			continue;
-		}
+		if (!spObj) { continue; }
 
-		// ä»Šã¯æ•µãŒBatã ã‘ãªã®ã§ã€Batã«å¤‰æ›ã§ããŸã‚‚ã®ã ã‘ã‚’æ”»æ’ƒå¯¾è±¡ã«ã™ã‚‹ã€‚
-		// å¾Œã§EnemyBaseã‚’ä½œã£ãŸã‚‰ã€ã“ã“ã‚’EnemyBaseåˆ¤å®šã«å¤‰æ›´ã™ã‚‹ã€‚
+		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
+		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
 		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
-		if (!spBat)
-		{
-			continue;
-		}
-		if (spBat->IsExpired())
-		{
-			continue;
-		}
+		if (!spBat) { continue; }
+		if (spBat->IsExpired()) { continue; }
+		if (spBat == m_wpIgnoreTarget.lock()) { continue; }
+		if (HasHitObject(spBat)) { continue; }
 
 		std::list<KdCollider::CollisionResult> retList;
 		if (spBat->Intersects(sphereInfo, &retList))
 		{
-			// æ•µã«é­”æ³•ã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡ã‚’æ¸¡ã—ã€é­”æ³•è‡ªèº«ã¯æ¶ˆã™ã€‚
-			// m_damageã«ã¯Fire/Ice/Voltãªã©æ–ã”ã¨ã®æ”»æ’ƒåŠ›ãŒå…¥ã£ã¦ã„ã‚‹ã€‚
+			AddHitObject(spBat);
+
+			// “G‚É–‚–@‚Ìƒ_ƒ[ƒW—Ê‚ğ“n‚·B
+			// –½’†‚Ì‰¹‚â‰‰oŠJn‚ÍStartHit()‘¤‚É‚Ü‚Æ‚ß‚Ä‚¢‚éB
 			spBat->OnHit(m_damage);
-			m_isExpired = true;
+
+			// ‰Š‚Í–½’†‚µ‚½“G‚ÌüˆÍ‚É‚àƒ_ƒ[ƒW‚ğ—^‚¦‚éB
+			if (m_magicType == MagicType::Fire)
+			{
+				ApplyFireExplosion(spBat);
+			}
+
+			// —‹‚ÍŠî–{«”\‚Æ‚µ‚Ä˜A½‚·‚éB
+			// “–‚½‚Á‚½“G‚Ì‹ß‚­‚É•Ê‚Ì“G‚ª‚¢‚ê‚ÎA“¯‚¶Volt‰æ‘œ‚Ì’e‚ğ’Ç‰Á‚Å”ò‚Î‚·B
+			if (m_magicType == MagicType::Volt)
+			{
+				CreateVoltChain(spBat);
+			}
+
+			if (m_magicType == MagicType::Ice)
+			{
+				// ’Êí‚Ì•X’e‚ÍAÅ‰‚É“G‚ÖG‚ê‚½‚¾‚¯”h¶’e‚ğo‚·B
+				// ”h¶’e‚Ím_isIceSplitShot‚ªtrue‚È‚Ì‚ÅA‚±‚±‚©‚ç‚³‚ç‚É‘‚¦‚é‚±‚Æ‚Í‚È‚¢B
+				if (!m_isIceSplitShot && !m_hasCreatedIceSplit)
+				{
+					CreateIceSplit(spBat);
+					m_hasCreatedIceSplit = true;
+				}
+
+				// •X‚ÍŠÑ’Ê–‚–@B
+				// c‚èŠÑ’Ê”‚ª‚ ‚éŠÔ‚ÍÁ‚¦‚¸AŸ‚Ì“G‚Ö“–‚½‚ê‚é‚æ‚¤‚É”ò‚Ñ‘±‚¯‚éB
+				m_icePierceCount--;
+				if (m_icePierceCount > 0)
+				{
+					continue;
+				}
+			}
+
+			StartHit();
 			break;
 		}
 	}
@@ -96,43 +350,448 @@ void MagicBase::PostUpdate()
 void MagicBase::DrawLit()
 {
 	if (!m_spPoly) { return; }
+
+	// ‰r¥’†‚Í2.5DOriginal‚Æ“¯‚¶‚­ƒfƒBƒ]ƒ‹ƒu’l‚ğg‚Á‚ÄoŒ»‚³‚¹‚éB
+	float range = 0.05f;
+	Math::Vector3 color = { 0.8f, 0.9f, 1.0f };
+	if (m_state == MagicState::Chant)
+	{
+		KdShaderManager::Instance().m_StandardShader.SetDissolve(m_chant, &range, &color);
+	}
+
 	KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld);
+	KdShaderManager::Instance().m_StandardShader.SetDissolve(0.0f);
 }
 
-void MagicBase::Shot(const Math::Vector3& startPos, const Math::Vector3& dir, MagicType type, float damage, float speed)
+void MagicBase::Shot(
+	const Math::Vector3& startPos,
+	const Math::Vector3& dir,
+	MagicType type,
+	float damage,
+	float speed,
+	const std::shared_ptr<KdGameObject>& chantTarget,
+	const std::shared_ptr<KdGameObject>& flyTarget,
+	int voltChainCount,
+	const std::shared_ptr<KdGameObject>& ignoreTarget,
+	bool isChainShot,
+	float fireExplosionRadius,
+	int icePierceCount,
+	int iceSplitCount,
+	bool isIceSplitShot)
 {
 	m_pos = startPos;
 	m_dir = dir;
 	m_magicType = type;
 	m_damage = damage;
 	m_speed = speed;
+	m_state = MagicState::Chant;
+	m_chant = 1.0f;
+	m_frame = 0.0f;
+	m_nowFrame = -1;
+	m_wpChantTarget = chantTarget;
+	m_wpFlyTarget = flyTarget;
+	m_wpIgnoreTarget = ignoreTarget;
+	m_voltChainCount = voltChainCount;
+	m_isChainShot = isChainShot;
+	m_fireExplosionRadius = fireExplosionRadius;
+	m_icePierceCount = icePierceCount;
+	m_iceSplitCount = iceSplitCount;
+	m_isIceSplitShot = isIceSplitShot;
+	m_hasCreatedIceSplit = false;
+	m_hitObjectList.clear();
 
+	// ‰r¥ŠJn“_‚Ìu’Ç]‘ÎÛ‚©‚çŒ©‚½–‚–@‚ÌˆÊ’u·v‚ğ•Û‘¶‚·‚éB
+	// UpdateChant()‚Å‚ÍA‚±‚Ì·•ª‚ğg‚Á‚Äñ‚ÌˆÚ“®•ª‚¾‚¯–‚–@‚ğ“®‚©‚·B
+	if (chantTarget)
+	{
+		m_chantOffset = startPos - chantTarget->GetPos();
+	}
+	else
+	{
+		m_chantOffset = Math::Vector3::Zero;
+	}
 
-	m_dir.Normalize();
+	if (m_dir.LengthSquared() > 0.0001f)
+	{
+		m_dir.Normalize();
+	}
+
+	SetupMagic();
+
+	// ˜A½‚Åì‚ç‚ê‚½—‹‚ÆA–½’†Œã‚Éo‚é•X‚Ì”h¶’e‚ÍA
+	// ‰r¥‚ğ‹²‚Ü‚¸‚É‚·‚®”ò‚Î‚·B
+	// ‚±‚ê‚É‚æ‚èu“–‚½‚Á‚½êŠ‚©‚çŸ‚Ì’e‚ªo‚évŒ©‚½–Ú‚É‚È‚éB
+	if (isChainShot || isIceSplitShot)
+	{
+		m_chant = 0.0f;
+		m_state = MagicState::Fly;
+		m_wpChantTarget.reset();
+		PlayShotSound();
+	}
+
+	UpdateWorldMatrix();
+}
+
+void MagicBase::SetupMagic()
+{
+	if (!m_spPoly)
+	{
+		m_spPoly = std::make_shared<KdSquarePolygon>();
+	}
+
+	m_framePathList.clear();
 
 	switch (m_magicType)
 	{
 	case MagicType::Fire:
-		m_lifeTime = 90;
-		m_radius = 0.5f;
+		m_lifeTime = 90.0f;
+		m_radius = FireHitRadius;
+		m_frameSpeed = FireFrameSpeed;
 		m_spPoly->SetMaterial("Asset/Textures/Magic/Fire/Fire.png");
-		m_spPoly->SetScale(10.0f);
+		m_spPoly->SetSplit(11, 1);
+		m_spPoly->SetUVRect(m_fireFlyFrameStart);
+		m_spPoly->SetScale(FireScale);
+		m_nowFrame = m_fireFlyFrameStart;
 		break;
 	case MagicType::Ice:
-		m_lifeTime = 120;
-		m_radius = 0.3f;
-		m_spPoly->SetMaterial("Asset/Textures/Magic/Ice/Ice1.png");
-		m_spPoly->SetScale(10.0f);
+		m_lifeTime = 120.0f;
+		m_radius = IceHitRadius;
+		m_frameSpeed = IceFrameSpeed;
+		m_framePathList =
+		{
+			"Asset/Textures/Magic/Ice/Ice0.png",
+			"Asset/Textures/Magic/Ice/Ice1.png",
+			"Asset/Textures/Magic/Ice/Ice2.png"
+		};
+		SetFrameTexture(0);
+		m_spPoly->SetScale(IceScale);
 		break;
 	case MagicType::Volt:
-		m_lifeTime = 60;
-		m_radius = 0.2f;
-		m_spPoly->SetMaterial("Asset/Textures/Magic/Volt/Volt1.png");
-		m_spPoly->SetScale(10.0f);
+		m_lifeTime = 60.0f;
+		m_radius = VoltHitRadius;
+		m_frameSpeed = VoltFrameSpeed;
+		if (m_isChainShot)
+		{
+			// ˜A½‚ÍA“G‚©‚ç“G‚Ö‘–‚éü‚Ì‚æ‚¤‚ÈVolt‰æ‘œ‚ğg‚¤B
+			m_framePathList =
+			{
+				"Asset/Textures/Magic/Volt/Volt0.png",
+				"Asset/Textures/Magic/Volt/Volt1.png",
+				"Asset/Textures/Magic/Volt/Volt2.png",
+				"Asset/Textures/Magic/Volt/Volt3.png"
+			};
+		}
+		else
+		{
+			// ’Êí”­Ë‚ÍAV‚µ‚­’Ç‰Á‚µ‚½Lightning‰æ‘œ‚ğƒAƒjƒ[ƒVƒ‡ƒ“‚³‚¹‚È‚ª‚ç”ò‚Î‚·B
+			m_framePathList =
+			{
+				"Asset/Textures/Magic/Volt/Lightning0.png",
+				"Asset/Textures/Magic/Volt/Lightning1.png",
+				"Asset/Textures/Magic/Volt/Lightning2.png",
+				"Asset/Textures/Magic/Volt/Lightning3.png",
+				"Asset/Textures/Magic/Volt/Lightning4.png",
+				"Asset/Textures/Magic/Volt/Lightning5.png",
+				"Asset/Textures/Magic/Volt/Lightning6.png",
+				"Asset/Textures/Magic/Volt/Lightning7.png"
+			};
+		}
+		SetFrameTexture(0);
+		m_spPoly->SetScale(VoltScale);
 		break;
 	default:
+		m_isExpired = true;
 		break;
 	}
 }
+
+void MagicBase::UpdateFrameAnimation()
+{
+	if (m_framePathList.empty()) { return; }
+
+	m_frame += m_frameSpeed;
+	const int frameIndex = static_cast<int>(m_frame) % static_cast<int>(m_framePathList.size());
+	SetFrameTexture(frameIndex);
+}
+
+void MagicBase::UpdateWorldMatrix()
+{
+	// ˆÚ“®s—ñB
+	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
+
+	// ‰æ‘œ‘fŞ‚ÌŒü‚«‚É‡‚í‚¹‚é‚½‚ß‚Ì•â³‰ñ“]B
+	// m_rotDir‚Í–‚–@‚Ìis•ûŒü‚É‡‚í‚¹‚ÄY²‰ñ“]‚·‚éB
+	Math::Matrix m_rotX = Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
+	Math::Matrix m_rotYBase = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
+	float angle = atan2f(m_dir.x, m_dir.z);
+
+	// Fire.png‚Í‰æ‘œ‚Ìæ’[Œü‚«‚ªIce/Volt‚Æ‹t‚É‚È‚Á‚Ä‚¢‚é‚½‚ßA‰Š‚¾‚¯180“x•â³‚·‚éB
+	// ÀÛ‚ÌˆÚ“®•ûŒüm_dir‚Í•Ï‚¦‚¸AŒ©‚½–Ú‚ÌŒü‚«‚¾‚¯‚ğ”½“]‚³‚¹‚éB
+	if (m_magicType == MagicType::Fire)
+	{
+		angle += DirectX::XM_PI;
+	}
+
+	Math::Matrix m_rotDir = Math::Matrix::CreateRotationY(angle);
+
+	m_mWorld = m_rotX * m_rotYBase * m_rotDir * m_trans;
+}
+
+void MagicBase::SetFrameTexture(int frameIndex)
+{
+	if (!m_spPoly) { return; }
+	if (m_framePathList.empty()) { return; }
+
+	frameIndex = std::clamp(frameIndex, 0, static_cast<int>(m_framePathList.size()) - 1);
+	if (frameIndex == m_nowFrame) { return; }
+
+	m_nowFrame = frameIndex;
+	m_spPoly->SetMaterial(m_framePathList[frameIndex]);
+}
+
+void MagicBase::PlayShotSound()
+{
+	const char* soundPath = GetShotSoundPath();
+	if (!soundPath || soundPath[0] == '\0') { return; }
+
+	// ‰¹‘fŞ‚ğ’Ç‰Á‚µ‚½‚çGetShotSoundPath()‚ÉƒpƒX‚ğ“ü‚ê‚é‚¾‚¯‚Å‚±‚±‚©‚çÄ¶‚³‚ê‚éB
+	auto sound = KdAudioManager::Instance().Play(soundPath);
+	if (sound)
+	{
+		sound->SetVolume(0.45f);
+	}
+}
+
+void MagicBase::PlayHitSound()
+{
+	const char* soundPath = GetHitSoundPath();
+	if (!soundPath || soundPath[0] == '\0') { return; }
+
+	// –½’†‰¹‚Í”­Ë‰¹‚æ‚è­‚µ‘å‚«‚ß‚É‚·‚é‚ÆA“–‚½‚Á‚½è‰‚¦‚ª•ª‚©‚è‚â‚·‚¢B
+	auto sound = KdAudioManager::Instance().Play(soundPath);
+	if (sound)
+	{
+		sound->SetVolume(0.55f);
+	}
+}
+
+const char* MagicBase::GetShotSoundPath() const
+{
+	switch (m_magicType)
+	{
+	case MagicType::Fire:
+		// —áF"Asset/Audio/Magic/FireShot.wav"
+		return "";
+	case MagicType::Ice:
+		// —áF"Asset/Audio/Magic/IceShot.wav"
+		return "";
+	case MagicType::Volt:
+		// —áF"Asset/Audio/Magic/VoltShot.wav"
+		return "";
+	default:
+		return "";
+	}
+}
+
+const char* MagicBase::GetHitSoundPath() const
+{
+	switch (m_magicType)
+	{
+	case MagicType::Fire:
+		// —áF"Asset/Audio/Magic/FireHit.wav"
+		return "";
+	case MagicType::Ice:
+		// —áF"Asset/Audio/Magic/IceHit.wav"
+		return "";
+	case MagicType::Volt:
+		// —áF"Asset/Audio/Magic/VoltHit.wav"
+		return "";
+	default:
+		return "";
+	}
+}
+
+void MagicBase::CreateVoltChain(const std::shared_ptr<Bat>& hitBat)
+{
+	if (m_magicType != MagicType::Volt) { return; }
+	if (m_voltChainCount <= 0) { return; }
+	if (!hitBat) { return; }
+
+	std::shared_ptr<Bat> spNextTarget = SearchVoltChainTarget(hitBat);
+	if (!spNextTarget) { return; }
+
+	Math::Vector3 startPos = hitBat->GetPos();
+	Math::Vector3 dir = spNextTarget->GetPos() - startPos;
+	if (dir.LengthSquared() <= 0.0001f) { return; }
+	dir.Normalize();
+
+	// ˜A½Œ³‚ÌƒRƒEƒ‚ƒŠ‚É‘¦Äƒqƒbƒg‚µ‚È‚¢‚æ‚¤‚ÉA­‚µ‚¾‚¯Ÿ‚Ì“G•ûŒü‚Ö‚¸‚ç‚µ‚Ä¶¬‚·‚éB
+	startPos += dir * (m_radius + 0.2f);
+
+	std::shared_ptr<MagicBase> spChainMagic = std::make_shared<MagicBase>();
+	spChainMagic->Shot
+	(
+		startPos,
+		dir,
+		MagicType::Volt,
+		m_damage,
+		m_speed,
+		nullptr,
+		spNextTarget,
+		m_voltChainCount - 1,
+		hitBat,
+		true,
+		m_fireExplosionRadius,
+		m_icePierceCount,
+		m_iceSplitCount,
+		false
+	);
+
+	SceneManager::Instance().AddObject(spChainMagic);
+}
+
+void MagicBase::CreateIceSplit(const std::shared_ptr<Bat>& hitBat)
+{
+	if (m_magicType != MagicType::Ice) { return; }
+	if (m_isIceSplitShot) { return; }
+	if (m_iceSplitCount <= 0) { return; }
+	if (!hitBat) { return; }
+	if (m_dir.LengthSquared() <= 0.0001f) { return; }
+
+	// ”h¶’e‚ÍA“–‚½‚Á‚½“G‚ÌˆÊ’u‚©‚çŒ»İ‚Ìis•ûŒü‚Öo‚·B
+	// ŠJnˆÊ’u‚ğ­‚µ‘O‚É‚¸‚ç‚µA–½’†‚µ‚½“G‚Ö‘¦Äƒqƒbƒg‚µ‚È‚¢‚æ‚¤‚É‚·‚éB
+	const float centerOffset = static_cast<float>(m_iceSplitCount - 1) * 0.5f;
+
+	for (int i = 0; i < m_iceSplitCount; ++i)
+	{
+		const float angle = (static_cast<float>(i) - centerOffset) * IceSplitSpreadAngle;
+		const Math::Vector3 splitDir = RotateDirY(m_dir, angle);
+		Math::Vector3 startPos = hitBat->GetPos() + splitDir * (m_radius + 0.2f);
+
+		std::shared_ptr<MagicBase> spSplitMagic = std::make_shared<MagicBase>();
+		spSplitMagic->Shot
+		(
+			startPos,
+			splitDir,
+			MagicType::Ice,
+			m_damage * 0.5f,
+			m_speed,
+			nullptr,
+			nullptr,
+			0,
+			hitBat,
+			false,
+			m_fireExplosionRadius,
+			1,
+			0,
+			true
+		);
+
+		SceneManager::Instance().AddObject(spSplitMagic);
+	}
+}
+
+std::shared_ptr<Bat> MagicBase::SearchVoltChainTarget(const std::shared_ptr<Bat>& hitBat)
+{
+	if (!hitBat) { return nullptr; }
+
+	std::shared_ptr<Bat> spTarget = nullptr;
+	const Math::Vector3 hitPos = hitBat->GetPos();
+	float minDistanceSqr = m_voltChainRadius * m_voltChainRadius;
+
+	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
+	{
+		if (!spObj) { continue; }
+
+		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
+		if (!spBat) { continue; }
+		if (spBat == hitBat) { continue; }
+		if (spBat == m_wpIgnoreTarget.lock()) { continue; }
+		if (spBat->IsExpired()) { continue; }
+
+		const Math::Vector3 toBat = spBat->GetPos() - hitPos;
+		const float distanceSqr = toBat.LengthSquared();
+		if (distanceSqr < minDistanceSqr)
+		{
+			minDistanceSqr = distanceSqr;
+			spTarget = spBat;
+		}
+	}
+
+	return spTarget;
+}
+
+void MagicBase::ApplyFireExplosion(const std::shared_ptr<Bat>& hitBat)
+{
+	if (m_magicType != MagicType::Fire) { return; }
+	if (!hitBat) { return; }
+	if (m_fireExplosionRadius <= 0.0f) { return; }
+
+	const Math::Vector3 explosionCenter = hitBat->GetPos();
+	const float explosionRadiusSqr = m_fireExplosionRadius * m_fireExplosionRadius;
+
+	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
+	{
+		if (!spObj) { continue; }
+
+		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
+		if (!spBat) { continue; }
+		if (spBat == hitBat) { continue; }
+		if (spBat->IsExpired()) { continue; }
+
+		const Math::Vector3 toBat = spBat->GetPos() - explosionCenter;
+		if (toBat.LengthSquared() <= explosionRadiusSqr)
+		{
+			spBat->OnHit(m_damage);
+			AddHitObject(spBat);
+		}
+	}
+}
+
+bool MagicBase::HasHitObject(const std::shared_ptr<KdGameObject>& obj) const
+{
+	if (!obj) { return false; }
+
+	for (const std::weak_ptr<KdGameObject>& wpHitObj : m_hitObjectList)
+	{
+		if (wpHitObj.lock() == obj)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void MagicBase::AddHitObject(const std::shared_ptr<KdGameObject>& obj)
+{
+	if (!obj) { return; }
+	if (HasHitObject(obj)) { return; }
+
+	m_hitObjectList.push_back(obj);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

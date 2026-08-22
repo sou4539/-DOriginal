@@ -1,25 +1,25 @@
-ï»¿#include "BaseScene.h"
+#include "BaseScene.h"
 
 void BaseScene::PreUpdate()
 {
-	// Updateã®å‰ã®æ›´æ–°å‡¦ç†
-	// ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒªã‚¹ãƒˆã®æ•´ç† ãƒ»ãƒ»ãƒ» ç„¡åŠ¹ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’å‰Šé™¤
+	// Update‚Ì‘O‚ÌXVˆ—
+	// ƒIƒuƒWƒFƒNƒgƒŠƒXƒg‚Ì®— EEE –³Œø‚ÈƒIƒuƒWƒFƒNƒg‚ğíœ
 	auto it = m_objList.begin();
 
 	while (it != m_objList.end())
 	{
-		if ((*it)->IsExpired())	// IsExpired() ãƒ»ãƒ»ãƒ» ç„¡åŠ¹ãªã‚‰true
+		if ((*it)->IsExpired())	// IsExpired() EEE –³Œø‚È‚çtrue
 		{
-			// ç„¡åŠ¹ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒªã‚¹ãƒˆã‹ã‚‰å‰Šé™¤
+			// –³Œø‚ÈƒIƒuƒWƒFƒNƒg‚ğƒŠƒXƒg‚©‚çíœ
 			it = m_objList.erase(it);
 		}
 		else
 		{
-			++it;	// æ¬¡ã®è¦ç´ ã¸ã‚¤ãƒ†ãƒ¬ãƒ¼ã‚¿ã‚’é€²ã‚ã‚‹
+			++it;	// Ÿ‚Ì—v‘f‚ÖƒCƒeƒŒ[ƒ^‚ği‚ß‚é
 		}
 	}
 
-	// â†‘ã®å¾Œã«ã¯æœ‰åŠ¹ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã ã‘ã®ãƒªã‚¹ãƒˆã«ãªã£ã¦ã„ã‚‹
+	// ª‚ÌŒã‚É‚Í—LŒø‚ÈƒIƒuƒWƒFƒNƒg‚¾‚¯‚ÌƒŠƒXƒg‚É‚È‚Á‚Ä‚¢‚é
 
 	for (auto& obj : m_objList)
 	{
@@ -29,18 +29,22 @@ void BaseScene::PreUpdate()
 
 void BaseScene::Update()
 {
-	// ã‚·ãƒ¼ãƒ³æ¯ã®ã‚¤ãƒ™ãƒ³ãƒˆå‡¦ç†
+	// ƒV[ƒ“–ˆ‚ÌƒCƒxƒ“ƒgˆ—
 	Event();
 
-	// KdGameObjectã‚’ç¶™æ‰¿ã—ãŸå…¨ã¦ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æ›´æ–° (ãƒãƒªãƒ¢ãƒ¼ãƒ•ã‚£ã‚ºãƒ )
+	// KdGameObject‚ğŒp³‚µ‚½‘S‚Ä‚ÌƒIƒuƒWƒFƒNƒg‚ÌXV (ƒ|ƒŠƒ‚[ƒtƒBƒYƒ€)
 	for (auto& obj : m_objList)
 	{
+		if (IsUpdatePaused() && !CanUpdateWhenPaused(obj)) { continue; }
+
 		obj->Update();
 	}
 }
 
 void BaseScene::PostUpdate()
 {
+	if (IsUpdatePaused()) { return; }
+
 	for (auto& obj : m_objList)
 	{
 		obj->PostUpdate();
@@ -58,7 +62,7 @@ void BaseScene::PreDraw()
 void BaseScene::Draw()
 {
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// å…‰ã‚’é®ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(å½±ã‚’ç”Ÿã¿å‡ºã™è¦å› ã¨ãªã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ)ã‚’Beginã¨Endã®é–“ã«ã¾ã¨ã‚ã¦Drawã™ã‚‹
+	// Œõ‚ğÕ‚éƒIƒuƒWƒFƒNƒg(‰e‚ğ¶‚İo‚·—vˆö‚Æ‚È‚éƒIƒuƒWƒFƒNƒg)‚ğBegin‚ÆEnd‚ÌŠÔ‚É‚Ü‚Æ‚ß‚ÄDraw‚·‚é
 	KdShaderManager::Instance().m_StandardShader.BeginGenerateDepthMapFromLight();
 	{
 		for (auto& obj : m_objList)
@@ -69,7 +73,7 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndGenerateDepthMapFromLight();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// é™°å½±ã®ãªã„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(èƒŒæ™¯ãªã©)ã¯Beginã¨Endã®é–“ã«ã¾ã¨ã‚ã¦Drawã™ã‚‹
+	// ‰A‰e‚Ì‚È‚¢ƒIƒuƒWƒFƒNƒg(”wŒi‚È‚Ç)‚ÍBegin‚ÆEnd‚ÌŠÔ‚É‚Ü‚Æ‚ß‚ÄDraw‚·‚é
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();
 	{
 		for (auto& obj : m_objList)
@@ -80,7 +84,7 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndUnLit();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// é™°å½±ã®ã‚ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(å…‰æºã®å½±éŸ¿ã‚’å—ã‘ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ)ã¯Beginã¨Endã®é–“ã«ã¾ã¨ã‚ã¦Drawã™ã‚‹
+	// ‰A‰e‚Ì‚ ‚éƒIƒuƒWƒFƒNƒg(ŒõŒ¹‚Ì‰e‹¿‚ğó‚¯‚éƒIƒuƒWƒFƒNƒg)‚ÍBegin‚ÆEnd‚ÌŠÔ‚É‚Ü‚Æ‚ß‚ÄDraw‚·‚é
 	KdShaderManager::Instance().m_StandardShader.BeginLit();
 	{
 		for (auto& obj : m_objList)
@@ -91,7 +95,7 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndLit();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// é™°å½±ã®ãªã„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(ã‚¨ãƒ•ã‚§ã‚¯ãƒˆãªã©)ã¯Beginã¨Endã®é–“ã«ã¾ã¨ã‚ã¦Drawã™ã‚‹
+	// ‰A‰e‚Ì‚È‚¢ƒIƒuƒWƒFƒNƒg(ƒGƒtƒFƒNƒg‚È‚Ç)‚ÍBegin‚ÆEnd‚ÌŠÔ‚É‚Ü‚Æ‚ß‚ÄDraw‚·‚é
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();
 	{
 		for (auto& obj : m_objList)
@@ -102,7 +106,7 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndUnLit();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// å…‰æºã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆ(è‡ªã‚‰å…‰ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚„ã‚¨ãƒ•ã‚§ã‚¯ãƒˆ)ã¯Beginã¨Endã®é–“ã«ã¾ã¨ã‚ã¦Drawã™ã‚‹
+	// ŒõŒ¹ƒIƒuƒWƒFƒNƒg(©‚çŒõ‚éƒIƒuƒWƒFƒNƒg‚âƒGƒtƒFƒNƒg)‚ÍBegin‚ÆEnd‚ÌŠÔ‚É‚Ü‚Æ‚ß‚ÄDraw‚·‚é
 	KdShaderManager::Instance().m_postProcessShader.BeginBright();
 	{
 		for (auto& obj : m_objList)
@@ -116,7 +120,7 @@ void BaseScene::Draw()
 void BaseScene::DrawSprite()
 {
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 2Dã®æç”»ã¯ã“ã®é–“ã§è¡Œã†
+	// 2D‚Ì•`‰æ‚Í‚±‚ÌŠÔ‚Ås‚¤
 	KdShaderManager::Instance().m_spriteShader.Begin();
 	{
 		for (auto& obj : m_objList)
@@ -129,8 +133,30 @@ void BaseScene::DrawSprite()
 
 void BaseScene::DrawDebug()
 {
+	// ZƒL[‚ğ‰Ÿ‚µ‚½uŠÔ‚¾‚¯A‘SƒfƒoƒbƒOƒƒCƒ„[‚Ì•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦‚éB
+	// “–‚½‚è”»’è‚ğŠm”F‚µ‚½‚¢‚ÍONA•’Ê‚ÉŒ©‚½–Ú‚ğŠm”F‚µ‚½‚¢‚ÍOFF‚É‚Å‚«‚éB
+	const bool isDebugWireKey = (GetAsyncKeyState('Z') & 0x8000);
+	if (isDebugWireKey && !m_prevDebugWireKey)
+	{
+		m_isDebugWireVisible = !m_isDebugWireVisible;
+		KdDebugWireFrame::SetEnable(m_isDebugWireVisible);
+	}
+	m_prevDebugWireKey = isDebugWireKey;
+	KdDebugWireFrame::SetEnable(m_isDebugWireVisible);
+
+	// ”ñ•\¦’†‚àŠeƒIƒuƒWƒFƒNƒg‚ÍUpdate“à‚ÅƒƒCƒ„[î•ñ‚ğ’Ç‰Á‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚éB
+	// ‚»‚Ì‚Ü‚ÜDrawDebug©‘Ì‚ğ”ò‚Î‚·‚Æ“à•”‚Éü‚ª—­‚Ü‚é‚½‚ßA•\¦‚¹‚¸‚ÉƒNƒŠƒA‚¾‚¯s‚¤B
+	if (!m_isDebugWireVisible)
+	{
+		for (auto& obj : m_objList)
+		{
+			obj->ClearDebugWire();
+		}
+		return;
+	}
+
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// ãƒ‡ãƒãƒƒã‚°æƒ…å ±ã®æç”»ã¯ã“ã®é–“ã§è¡Œã†
+	// ƒfƒoƒbƒOî•ñ‚Ì•`‰æ‚Í‚±‚ÌŠÔ‚Ås‚¤
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();
 	{
 		for (auto& obj : m_objList)
@@ -143,10 +169,14 @@ void BaseScene::DrawDebug()
 
 void BaseScene::Event()
 {
-	// å„ã‚·ãƒ¼ãƒ³ã§å¿…è¦ãªå†…å®¹ã‚’å®Ÿè£…(ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰)ã™ã‚‹
+	// ŠeƒV[ƒ“‚Å•K—v‚È“à—e‚ğÀ‘•(ƒI[ƒo[ƒ‰ƒCƒh)‚·‚é
 }
 
 void BaseScene::Init()
 {
-	// å„ã‚·ãƒ¼ãƒ³ã§å¿…è¦ãªå†…å®¹ã‚’å®Ÿè£…(ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰)ã™ã‚‹
+	// ŠeƒV[ƒ“‚Å•K—v‚È“à—e‚ğÀ‘•(ƒI[ƒo[ƒ‰ƒCƒh)‚·‚é
 }
+
+
+
+

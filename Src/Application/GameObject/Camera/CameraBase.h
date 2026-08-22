@@ -11,6 +11,9 @@ public:
 
 	void SetTarget(const std::shared_ptr<KdGameObject>& target);
 
+	// カメラの横回転角度を外から指定する。
+	void SetYawDeg(float yawDeg) { m_DegAng.y = yawDeg; }
+
 	// 「絶対変更しません！見るだけ！」な書き方
 	const std::shared_ptr<KdCamera>& GetCamera() const
 	{

@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 #include "../StageBase.h"
 
@@ -9,20 +9,41 @@ public:
 	~Village() override {}
 
 	void Update() override;
+	void DrawLit() override;
 
-	// æ‘ã®COLã¯å£ãƒ»æŸµã¨ã—ã¦ã‚‚ä½¿ã†ãŸã‚ã€ã‚¹ãƒ•ã‚£ã‚¢åˆ¤å®šå¯¾è±¡ã«ã™ã‚‹ã€‚
+	// ‘º‚Í•Ç”»’è‚É‚àg‚¤B
 	bool EnableSphereCollision() const override { return true; }
 
-	// æ‘ã‚’è¦†ã†å®‰å…¨åœ°å¸¯ã‚¹ãƒ•ã‚£ã‚¢ã®ä¸­å¿ƒåº§æ¨™ã‚’è¿”ã™ã€‚
+	// ˆÀ‘S’n‘Ñ‚Ì’†SÀ•WB
 	const Math::Vector3& GetSafeAreaCenter() const { return m_safeAreaCenter; }
 
-	// æ‘ã‚’è¦†ã†å®‰å…¨åœ°å¸¯ã‚¹ãƒ•ã‚£ã‚¢ã®åŠå¾„ã‚’è¿”ã™ã€‚
+	// ˆÀ‘S’n‘Ñ‚Ì”¼ŒaB
 	float GetSafeAreaRadius() const { return m_safeAreaRadius; }
+
+	// ‘º‚Ì•\¦”»’è‚Ég‚¤‘ÎÛ‚ğİ’è‚·‚éB
+	void SetTarget(const std::shared_ptr<KdGameObject>& target)
+	{
+		m_wpTarget = target;
+	}
+
+	// ‘º‚ğ•\¦‚·‚é‹——£‚ğİ’è‚·‚éB
+	void SetVisibleRadius(float radius) { m_visibleRadius = radius; }
 
 private:
 	void Init() override;
 
-	// village.gltfã®min/maxã‹ã‚‰ã€æ‘å…¨ä½“ã‚’è¦†ã†ã‚ˆã†ã«è¨­å®šã—ãŸå®‰å…¨åœ°å¸¯ã€‚
-	Math::Vector3 m_safeAreaCenter = { -0.12f, 0.0f, -14.23f };
+	// ‘º‚ª•\¦”ÍˆÍ“à‚©Šm”F‚·‚éB
+	bool IsInVisibleRange() const;
+
+	// ‘º‘S‘Ì‚ğ•¢‚¤ˆÀ‘S’n‘ÑB
+	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 46.0f;
+
+	// •\¦‹——£‚ğŠm”F‚·‚é‘ÎÛB
+	std::weak_ptr<KdGameObject> m_wpTarget;
+
+	// ‘º‚ğ•\¦‚·‚é”¼ŒaB
+	float m_visibleRadius = 85.0f;
 };
+
+

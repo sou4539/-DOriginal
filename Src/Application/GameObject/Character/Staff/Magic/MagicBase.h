@@ -1,6 +1,11 @@
-ï»¿#pragma once
+#pragma once
 
 #include "../../CharaBase.h"
+
+#include <string>
+#include <vector>
+
+class Bat;
 
 enum class MagicType
 {
@@ -10,29 +15,170 @@ enum class MagicType
 	None
 };
 
-class MagicBase:public CharaBase
+enum class MagicState
+{
+	Chant,	// ‰r¥’†F‚»‚Ìê‚Å‰‰o‚¾‚¯s‚¢A‚Ü‚¾”ò‚Î‚È‚¢B
+	Fly,	// ”òs’†F“G‚ÖŒü‚©‚Á‚ÄˆÚ“®‚µA“–‚½‚è”»’è‚ğs‚¤B
+	Hit		// –½’†’†F–½’†‰‰o‚ğs‚¢AI‚í‚Á‚½‚çÁ‚¦‚éB
+};
+
+class MagicBase : public CharaBase
 {
 public:
-
-	MagicBase() { Init(); };
-	~MagicBase() {};
+	MagicBase() { Init(); }
+	~MagicBase() {}
 
 	void Init();
 	void Update();
 	void PostUpdate();
 	void DrawLit();
 
-	//é­”æ³•ã‚’ç™ºå°„ã™ã‚‹é–¢æ•°
-	void Shot(const Math::Vector3& startPos, const Math::Vector3& dir, MagicType type, float damage, float speed);
-	
+	// –‚–@‚ğ”­Ë‚·‚é‚½‚ß‚Ì‰Šúİ’èB
+	// StaffBase‚©‚çAŠJnˆÊ’uE•ûŒüE–‚–@í—ŞEƒ_ƒ[ƒWE‘¬“x‚ğó‚¯æ‚éB
+	void Shot(
+		const Math::Vector3& startPos,
+		const Math::Vector3& dir,
+		MagicType type,
+		float damage,
+		float speed,
+		const std::shared_ptr<KdGameObject>& chantTarget,
+		const std::shared_ptr<KdGameObject>& flyTarget,
+		int voltChainCount,
+		const std::shared_ptr<KdGameObject>& ignoreTarget,
+		bool isChainShot,
+		float fireExplosionRadius,
+		int icePierceCount,
+		int iceSplitCount,
+		bool isIceSplitShot);
 
 private:
+	// –‚–@‚Ìí—Ş‚É‰‚¶‚ÄAõ–½E“–‚½‚è”»’èE‰æ‘œEƒAƒjƒ[ƒVƒ‡ƒ“‚ğİ’è‚·‚éB
+	void SetupMagic();
 
-	MagicType m_magicType;
+	// ó‘Ô‚²‚Æ‚ÌXVˆ—B
+	void UpdateChant();
+	void UpdateFly();
+	void UpdateHit();
 
-	float m_damage;
-	float m_speed;
-	float m_lifeTime;
-	float m_radius;
+	// –‚–@‚Ìó‘Ô‚ğØ‚è‘Ö‚¦‚éˆ—B
+	// ”­Ë‰¹‚âƒqƒbƒg‰¹‚È‚ÇAó‘Ô‚ª•Ï‚í‚Á‚½uŠÔ‚¾‚¯s‚¢‚½‚¢ˆ—‚Í‚±‚±‚ÉW‚ß‚éB
+	void StartFly();
+	void StartHit();
 
+	// •¡”‰æ‘œ‚ğg‚¤–‚–@‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ği‚ß‚éB
+	void UpdateFrameAnimation();
+
+	// Œ»İˆÊ’uEŒü‚«‚©‚ç•`‰æ—pƒ[ƒ‹ƒhs—ñ‚ğì‚éB
+	void UpdateWorldMatrix();
+
+	// ‰æ‘œƒpƒX”z—ñ‚Ìw’è”Ô†‚ğm_spPoly‚Ö”½‰f‚·‚éB
+	void SetFrameTexture(int frameIndex);
+
+	// –‚–@‚²‚Æ‚Ì‰¹Ä¶ˆ—B
+	// ‰¹‘fŞ‚ğ’Ç‰Á‚µ‚½‚çAGetShotSoundPath / GetHitSoundPath ‚Ì–ß‚è’l‚ÉƒpƒX‚ğ“ü‚ê‚éB
+	void PlayShotSound();
+	void PlayHitSound();
+	const char* GetShotSoundPath() const;
+	const char* GetHitSoundPath() const;
+
+	// —‹–‚–@‚Ì˜A½ˆ—B
+	// “–‚½‚Á‚½ƒRƒEƒ‚ƒŠ‚Ì‹ß‚­‚É•Ê‚ÌƒRƒEƒ‚ƒŠ‚ª‚¢‚ê‚ÎA“¯‚¶Volt‰æ‘œ‚Ì–‚–@’e‚ğ’Ç‰Á‚Å”ò‚Î‚·B
+	void CreateVoltChain(const std::shared_ptr<Bat>& hitBat);
+	std::shared_ptr<Bat> SearchVoltChainTarget(const std::shared_ptr<Bat>& hitBat);
+
+	// •X–‚–@‚Ì”h¶’e¶¬ˆ—B
+	// ’Êí‚Ì•X’e‚ª“G‚É“–‚½‚Á‚½‚¾‚¯A”¼•ªƒ_ƒ[ƒW‚Ì•X’e‚ğ1¢‘ã‚¾‚¯’Ç‰Á‚Åo‚·B
+	void CreateIceSplit(const std::shared_ptr<Bat>& hitBat);
+
+	// ‰Š–‚–@‚Ì”š”­ˆ—B
+	// –½’†‚µ‚½“G‚ÌüˆÍ‚É‚¢‚éƒRƒEƒ‚ƒŠ‚É‚à“¯‚¶ƒ_ƒ[ƒW‚ğ—^‚¦‚éB
+	void ApplyFireExplosion(const std::shared_ptr<Bat>& hitBat);
+
+	// •X‚ÌŠÑ’Êˆ—‚ÅA“¯‚¶“G‚É–ˆƒtƒŒ[ƒ€“–‚½‚è‘±‚¯‚È‚¢‚æ‚¤‚ÉŠm”F‚·‚éB
+	bool HasHitObject(const std::shared_ptr<KdGameObject>& obj) const;
+	void AddHitObject(const std::shared_ptr<KdGameObject>& obj);
+
+	MagicType m_magicType = MagicType::None;
+	MagicState m_state = MagicState::Chant;
+
+	// ‰r¥’†‚¾‚¯’Ç]‚·‚é‘ÎÛB
+	// Œ»İ‚Íñ‚ğ“n‚µAñ‚Ìã‚Å‰r¥‚µ‘±‚¯‚é‚æ‚¤‚É‚·‚éB
+	std::weak_ptr<KdGameObject> m_wpChantTarget;
+	Math::Vector3 m_chantOffset = Math::Vector3::Zero;
+
+	// ”­Ë‚ÉŒü‚«’¼‚·‘ÎÛB
+	// ‰r¥’†‚É“G‚âñ‚ª“®‚¢‚Ä‚àA”­Ë‚·‚éuŠÔ‚ÌˆÊ’u‚©‚ç“G‚Ö”ò‚Î‚¹‚é‚æ‚¤‚É‚·‚éB
+	std::weak_ptr<KdGameObject> m_wpFlyTarget;
+
+	// ˜A½–‚–@‚ÅA’¼‘O‚É“–‚½‚Á‚½“G‚ğ‚à‚¤ˆê“x‘_‚í‚È‚¢‚½‚ß‚ÌœŠO‘ÎÛB
+	std::weak_ptr<KdGameObject> m_wpIgnoreTarget;
+
+	// —‹‚Ìc‚è˜A½‰ñ”B
+	// ‰Šúó‘Ô‚Å‚à1‰ñ‚Í˜A½‚·‚é‚½‚ßAVoltStaff‚©‚ç1‚ğ“n‚·B
+	int m_voltChainCount = 0;
+	float m_voltChainRadius = 8.0f;
+
+	// true‚È‚ç—‹‚Ì˜A½—p‚É¶¬‚³‚ê‚½–‚–@B
+	// ’Êí‚Ì—‹’e‚ÍLightning‰æ‘œA˜A½‚Íü‚Ì‚æ‚¤‚ÈVolt‰æ‘œ‚ğg‚¢•ª‚¯‚éB
+	bool m_isChainShot = false;
+
+	// ‰Š‚Ì”š”­”ÍˆÍB
+	// ƒŒƒxƒ‹ƒAƒbƒv‚Å‰Š‚ğ‘I‚Ô‚½‚Ñ‚ÉStatus‘¤‚Ì’l‚ªL‚Ñ‚éB
+	float m_fireExplosionRadius = 3.0f;
+
+	// •X‚Ìc‚èŠÑ’Ê”B
+	// “G‚É“–‚½‚é‚½‚Ñ‚ÉŒ¸‚èA0‚É‚È‚Á‚½‚çÁ‚¦‚éB
+	int m_icePierceCount = 1;
+
+	// •X‚Ì”h¶’e”B
+	// ’Êí‚Ì•X’e‚ª‰‚ß‚Ä“G‚É“–‚½‚Á‚½A‚±‚Ì”‚¾‚¯”¼•ªƒ_ƒ[ƒW‚Ì’e‚ğo‚·B
+	int m_iceSplitCount = 1;
+
+	// true‚È‚ç•X‚Ì”h¶’e‚Æ‚µ‚Ä¶¬‚³‚ê‚½–‚–@B
+	// ”h¶’e‚©‚ç‚³‚ç‚É”h¶’e‚ğo‚³‚È‚¢‚½‚ß‚Ég‚¤B
+	bool m_isIceSplitShot = false;
+
+	// ’Êí‚Ì•X’e‚ªA‚·‚Å‚É”h¶’e‚ğo‚µ‚½‚©‚Ç‚¤‚©B
+	// ŠÑ’Ê’†‚É•¡”‚Ì“G‚Ö“–‚½‚Á‚Ä‚àA”h¶‚Í1‰ñ‚¾‚¯‚É‚·‚éB
+	bool m_hasCreatedIceSplit = false;
+
+	// ‚·‚Å‚É“–‚½‚Á‚½“G‚Ì‹L˜^B
+	// “Á‚É•X‚ÌŠÑ’Ê’e‚ªA“¯‚¶“G‚Ö‰½“x‚à˜A‘±ƒqƒbƒg‚·‚é‚Ì‚ğ–h‚®B
+	std::vector<std::weak_ptr<KdGameObject>> m_hitObjectList;
+
+	float m_damage = 0.0f;
+	float m_speed = 0.0f;
+	float m_lifeTime = 0.0f;
+	float m_radius = 0.0f;
+
+	// 2.5DOriginal‚Æ“¯‚¶‚­A1.0‚©‚ç0.0‚ÖŒ¸‚ç‚µ‚Ä‰r¥Š®—¹‚ğ•\‚·B
+	float m_chant = 1.0f;
+	float m_chantSpeed = 0.05f;
+
+	// •¡”‰æ‘œ‚ÌƒAƒjƒ[ƒVƒ‡ƒ“—pB
+	std::vector<std::string> m_framePathList;
+	float m_frame = 0.0f;
+	float m_frameSpeed = 0.15f;
+	int m_nowFrame = -1;
+
+	// Fire.png‚Í‰¡ˆê—ñ‚ÌƒXƒvƒ‰ƒCƒgƒV[ƒg‚È‚Ì‚ÅAUV”Ô†‚Å•\¦•”•ª‚ğØ‚è‘Ö‚¦‚éB
+	int m_fireFlyFrameStart = 0;
+	int m_fireFlyFrameEnd = 4;
+	int m_fireHitFrameStart = 5;
+	int m_fireHitFrameEnd = 10;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

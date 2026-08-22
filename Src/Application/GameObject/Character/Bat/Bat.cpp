@@ -3,6 +3,14 @@
 #include "../Player/Player.h"
 #include "../Status/Status.h"
 
+namespace
+{
+	// 遠くのコウモリまで毎フレーム骨アニメーションを進めると、
+	// コウモリ数が増えた時に実行時の重さへ直結する。
+	// 近い敵と追跡中の敵だけ通常通り更新し、遠くの敵は見た目より軽さを優先する。
+	constexpr float BatAnimActiveRadius = 45.0f;
+}
+
 void Bat::Init()
 {
 
@@ -48,24 +56,35 @@ void Bat::Init()
 
 void Bat::Update()
 {
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	float distanceSqr = 0.0f;
+	bool hasTargetDistance = false;
+
+	if (spTarget)
+	{
+		Math::Vector3 toTarget = spTarget->GetPos() - m_pos;
+		distanceSqr = toTarget.LengthSquared();
+		hasTargetDistance = true;
+	}
 
 	//アニメーションを1フレーム進める。
 	//WorkNodes()でモデル内部のノード行列を編集できる状態にする。
 	//AdvanceTime()が現在のアニメーション時間に合わせて、羽などのノードを動かす。
 
-	if (m_spModel)
+	const float animActiveRadiusSqr = BatAnimActiveRadius * BatAnimActiveRadius;
+	if (m_spModel && (!hasTargetDistance || m_isChasing || distanceSqr <= animActiveRadiusSqr))
 	{
 		m_animator.AdvanceTime(m_spModel->WorkNodes(), 1.0f);
 	}
 
-	// コウモリの感知範囲をデバッグワイヤで表示する。
-	// この球の中にプレイヤーが入ったら追いかける。
+	// コウモリの索敵範囲をデバッグワイヤで表示する。
+	// 見つかる前は発見範囲、見つかった後は追跡継続範囲を表示する。
 	if (m_pDebugWire)
 	{
-		m_pDebugWire->AddDebugSphere(m_pos, m_searchRadius, kRedColor);
+		float debugRadius = m_isChasing ? m_chaseRadius : m_searchRadius;
+		m_pDebugWire->AddDebugSphere(m_pos, debugRadius, kRedColor);
 	}
 
-	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (spTarget)
 	{
 		// プレイヤーが村の安全地帯にいるか確認する。
@@ -79,10 +98,31 @@ void Bat::Update()
 
 		// プレイヤーまでの方向と距離を調べる。
 		Math::Vector3 toTarget = spTarget->GetPos() - m_pos;
-		float distanceSqr = toTarget.LengthSquared();
+		distanceSqr = toTarget.LengthSquared();
 
-		// 感知スフィアの中にプレイヤーがいるかを確認する。
-		if (!isTargetInSafeArea && distanceSqr <= m_searchRadius * m_searchRadius)
+		// 村の安全地帯に入ったら、追跡状態を解除する。
+		// これにより、安全地帯から出た後はもう一度発見範囲に入るまで追いかけない。
+		if (isTargetInSafeArea)
+		{
+			m_isChasing = false;
+		}
+		else
+		{
+			// 見つかる前は小さい発見範囲で判定する。
+			// 一度見つけた後はm_isChasingをtrueにして、広い追跡範囲で判定する。
+			if (!m_isChasing && distanceSqr <= m_searchRadius * m_searchRadius)
+			{
+				m_isChasing = true;
+			}
+			else if (m_isChasing && distanceSqr > m_chaseRadius * m_chaseRadius)
+			{
+				m_isChasing = false;
+			}
+		}
+
+		// 追跡状態ならプレイヤーへ移動する。
+		// 一度見つかった後はm_chaseRadiusを抜けるまで追跡が続く。
+		if (m_isChasing)
 		{
 			// 距離が0に近いと正規化できないため、少し離れている時だけ動く。
 			if (distanceSqr > 0.0001f)
@@ -135,6 +175,19 @@ void Bat::Update()
 	m_mWorld = scaleMat * rotMat * transMat;
 }
 
+void Bat::DrawLit()
+{
+	if (!m_spModel) { return; }
+
+	const Math::Color drawColor = (m_hitFlashFrame > 0) ? kRedColor : kWhiteColor;
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld, drawColor);
+
+	if (m_hitFlashFrame > 0)
+	{
+		--m_hitFlashFrame;
+	}
+}
+
 void Bat::OnHit()
 {
 	// 引数なしで呼ばれた場合は、仮の基本ダメージを使う。
@@ -153,6 +206,7 @@ void Bat::OnHit(float damage)
 
 	// 魔法が当たったので、受け取ったダメージ量だけHPを減らす。
 	m_hp -= damage;
+	m_hitFlashFrame = 1;
 
 	// HPが0以下になったら、BaseScene::PreUpdateで削除されるようにする。
 	if (m_hp <= 0.0f)
@@ -168,6 +222,10 @@ void Bat::OnHit(float damage)
 		}
 	}
 }
+
+
+
+
 
 
 

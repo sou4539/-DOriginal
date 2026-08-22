@@ -1,7 +1,9 @@
-ï»¿#pragma once
+#pragma once
 
 #include "../CharaBase.h"
 #include "Magic/MagicBase.h"
+
+class Status;
 
 class StaffBase :public CharaBase
 {
@@ -22,10 +24,15 @@ public:
 		m_angle = angle;
 	}
 
+	void SetStatus(const std::shared_ptr<Status>& status)
+	{
+		m_wpStatus = status;
+	}
+
 protected:
 
-	// æ–ã”ã¨ã®é­”æ³•æ€§èƒ½ã‚’è¨­å®šã™ã‚‹ã€‚
-	// å„æ–ã®Initã§å‘¼ã¶ã“ã¨ã§ã€æ”»æ’ƒå‡¦ç†ã¯StaffBaseå´ã§å…±é€šåŒ–ã§ãã‚‹ã€‚
+	// ñ‚²‚Æ‚Ì–‚–@«”\‚ğİ’è‚·‚éB
+	// Šeñ‚ÌInit‚ÅŒÄ‚Ô‚±‚Æ‚ÅAUŒ‚ˆ—‚ÍStaffBase‘¤‚Å‹¤’Ê‰»‚Å‚«‚éB
 	void SetMagicParam(MagicType type, float damage, float speed, float coolTime)
 	{
 		m_magicType = type;
@@ -36,16 +43,17 @@ protected:
 	}
 
 	std::weak_ptr<KdGameObject> m_wpTarget;
+	std::weak_ptr<Status> m_wpStatus;
 
 private:
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®å‘¨ã‚Šã‚’å›ã‚‹å‡¦ç†ã€‚
+	// ƒvƒŒƒCƒ„[‚Ìü‚è‚ğ‰ñ‚éˆ—B
 	void UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget);
 
-	// ç´¢æ•µã—ã¦é­”æ³•ã‚’æ’ƒã¤å‡¦ç†ã€‚
+	// õ“G‚µ‚Ä–‚–@‚ğŒ‚‚Âˆ—B
 	void UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer);
 
-	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®è¿‘ãã«ã„ã‚‹ä¸€ç•ªè¿‘ã„æ•µã‚’æ¢ã™ã€‚
+	// ƒvƒŒƒCƒ„[‚Ì‹ß‚­‚É‚¢‚éˆê”Ô‹ß‚¢“G‚ğ’T‚·B
 	std::shared_ptr<KdGameObject> SearchEnemy(const std::shared_ptr<KdGameObject>& spPlayer);
 
 	float m_angle = 0.0f;
@@ -61,3 +69,5 @@ private:
 	float m_searchRadius = 8.0f;
 
 };
+
+

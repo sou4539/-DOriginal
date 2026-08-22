@@ -12,6 +12,7 @@ public:
 
 	void Init() override;
 	void Update() override;
+	void DrawLit() override;
 
 	// 魔法などが当たった時に呼ぶ。
 	// HPが0以下になったら、シーンから削除されるようにする。
@@ -35,8 +36,17 @@ public:
 	{
 		m_pos = pos;
 		m_startPos = pos;
+		m_isChasing = false;
 		SetPos(pos);
 	}
+
+	// 召喚直後の見た目の向きを設定する。
+	// 移動を始めた後はUpdate()内で移動方向に合わせて上書きされる。
+	void SetAngle(float angle) { m_angle = angle; }
+
+	// BatGroup側から、出現範囲外に出たコウモリを消す時に使う。
+	// HPを減らして倒した時とは違い、経験値は入れずにシーンから削除する。
+	void Expire() { m_isExpired = true; }
 
 private:
 	/*
@@ -51,12 +61,35 @@ private:
 	Math::Vector3 m_startPos = Math::Vector3::Zero;
 
 	float m_angle = 0.0f;
+
+	// プレイヤーをまだ見つけていない時の発見範囲。
+	// ここに入った瞬間、追跡状態へ切り替える。
 	float m_searchRadius = 8.0f;
+
+	// 一度プレイヤーを見つけた後の追跡継続範囲。
+	// 発見前より広くして、少し離れただけでは追跡をやめないようにする。
+	float m_chaseRadius = 16.0f;
+
+	// trueなら、現在プレイヤーを追跡中。
+	// falseなら、発見範囲に入るまでは初期位置へ戻る。
+	bool m_isChasing = false;
+
 	float m_damageRadius = 0.7f;
 	float m_moveSpeed = 0.08f;
 	float m_hp = 30.0f;
 	float m_exp = 20.0f;
+
+	// 被弾した瞬間だけ赤く表示するための残りフレーム。
+	int m_hitFlashFrame = 0;
 };
+
+
+
+
+
+
+
+
 
 
 

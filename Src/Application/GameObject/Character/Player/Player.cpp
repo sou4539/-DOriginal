@@ -1,4 +1,4 @@
-﻿#include "Player.h"
+#include "Player.h"
 
 #include "../../Camera/CameraBase.h"
 #include "../Status/Status.h"
@@ -16,71 +16,74 @@ namespace
 	const Math::Vector3 DefaultRespawnPos = { -30.0f, 0.0f, 0.0f };
 }
 
-// Playerの初期化処理。
-// 使い方：
-//   Player生成時にコンストラクタから自動で呼ばれる。
-//   基本的に外から直接呼び直さない。
-// 処理内容：
-//   モデルを読み込み、初期位置と復活地点を設定する。
+// Player�̏����������B
+// �g�����F
+//   Player�������ɃR���X�g���N�^���玩���ŌĂ΂��B
+//   ��{�I�ɊO���璼�ڌĂђ����Ȃ��B
+// �������e�F
+//   ���f����ǂݍ��݁A�����ʒu�ƕ����n�_��ݒ肷��B
 void Player::Init()
 {
-	// プレイヤーモデルを読み込む。
-	// すでに読み込み済みの場合は、同じモデルを二重に読み込まない。
+	// �v���C���[���f����ǂݍ��ށB
+	// ���łɓǂݍ��ݍς݂̏ꍇ�́A�������f�����d�ɓǂݍ��܂Ȃ��B
 	if (!m_spModel)
 	{
 		m_spModel = std::make_shared<KdModelWork>();
 		m_spModel->SetModelData("Asset/Models/Objects/Character/Witch/Witch.gltf");
 	}
 
-	// プレイヤーの初期位置。
-	// m_posは移動計算で使うPlayer側の座標。
+	// �v���C���[�̏����ʒu�B
+	// m_pos�͈ړ��v�Z�Ŏg��Player���̍��W�B
 	m_respawnPos = DefaultRespawnPos;
 	m_pos = m_respawnPos;
 
-	// KdGameObject側のワールド行列にも初期位置を反映する。
+	// KdGameObject���̃��[���h�s��ɂ������ʒu�𔽉f����B
 	SetPos(m_pos);
 }
 
-// Playerの毎フレーム更新。
-// 使い方：
-//   シーンのUpdate処理から毎フレーム自動で呼ばれる。
-// 処理内容：
-//   無敵時間、移動入力、描画用ワールド行列を更新する。
+// Player�̖��t���[���X�V�B
+// �g�����F
+//   �V�[����Update�������疈�t���[�������ŌĂ΂��B
+// �������e�F
+//   ���G���ԁA�ړ����́A�`��p���[���h�s����X�V����B
 void Player::Update()
 {
-	// CharaBase側の基本更新を呼ぶ。
-	// 今は処理が少なくても、基底クラス側の処理を残すために呼んでおく。
+	// CharaBase���̊�{�X�V���ĂԁB
+	// ���͏��������Ȃ��Ă��A���N���X���̏������c�����߂ɌĂ�ł����B
 	CharaBase::Update();
 
 	UpdateInvincible();
-	UpdateMove();
+	if (m_isControlEnable)
+	{
+		UpdateMove();
+	}
 	UpdateWorldMatrix();
 }
 
-// 無敵時間の更新処理。
-// 使い方：
-//   Update()の中から毎フレーム呼ぶ。
-// 処理内容：
-//   ダメージ後や復活後に設定した無敵時間を1フレームずつ減らす。
+// ���G���Ԃ̍X�V�����B
+// �g�����F
+//   Update()�̒����疈�t���[���ĂԁB
+// �������e�F
+//   �_���[�W��╜����ɐݒ肵�����G���Ԃ�1�t���[�������炷�B
 void Player::UpdateInvincible()
 {
 	if (m_damageCoolTime <= 0.0f) { return; }
 
-	// 無敵時間を1フレームずつ減らす。
-	// 60FPS想定なら、60フレームで約1秒になる。
+	// ���G���Ԃ�1�t���[�������炷�B
+	// 60FPS�z��Ȃ�A60�t���[���Ŗ�1�b�ɂȂ�B
 	m_damageCoolTime -= 1.0f;
 }
 
-// プレイヤーの移動処理。
-// 使い方：
-//   Update()の中から毎フレーム呼ぶ。
-// 処理内容：
-//   WASD入力を確認し、カメラの向きに合わせて移動方向を作る。
-//   斜め移動が速くならないようにNormalizeで正規化する。
+// �v���C���[�̈ړ������B
+// �g�����F
+//   Update()�̒����疈�t���[���ĂԁB
+// �������e�F
+//   WASD���͂��m�F���A�J�����̌����ɍ��킹�Ĉړ����������B
+//   �΂߈ړ��������Ȃ�Ȃ��悤��Normalize�Ő��K������B
 void Player::UpdateMove()
 {
-	// WASD入力から移動したい方向を作る。
-	// この時点ではまだカメラの向きは考慮していない。
+	// WASD���͂���ړ����������������B
+	// ���̎��_�ł͂܂��J�����̌����͍l�����Ă��Ȃ��B
 	Math::Vector3 moveDir = Math::Vector3::Zero;
 
 	if (GetAsyncKeyState('W') & 0x8000)
@@ -102,178 +105,180 @@ void Player::UpdateMove()
 
 	if (moveDir.LengthSquared() > 0.0f)
 	{
-		// 斜め移動時に速度が速くならないよう、方向ベクトルを正規化する。
+		// �΂߈ړ����ɑ��x�������Ȃ�Ȃ��悤�A�����x�N�g���𐳋K������B
 		moveDir.Normalize();
 
-		// カメラがない場合は、入力方向をそのまま移動方向として使う。
+		// �J�������Ȃ��ꍇ�́A���͕��������̂܂܈ړ������Ƃ��Ďg���B
 		m_dir = moveDir;
 
 		std::shared_ptr<CameraBase> spCamera = m_wpCamera.lock();
 		if (spCamera)
 		{
-			// カメラのY回転だけを使い、入力方向をカメラ基準の方向へ変換する。
-			// 上下回転を使わないため、プレイヤーは地面に沿って移動できる。
+			// �J������Y��]�������g���A���͕������J������̕����֕ϊ�����B
+			// �㉺��]���g��Ȃ����߁A�v���C���[�͒n�ʂɉ����Ĉړ��ł���B
 			m_dir = Math::Vector3::TransformNormal(moveDir, spCamera->GetRotationYMatrix());
 			m_dir.Normalize();
 		}
 
-		// 実際にプレイヤー座標を移動させる。
+		// ���ۂɃv���C���[���W���ړ�������B
 		m_pos += m_dir * PlayerMoveSpeed;
 
-		// 移動方向からY軸回転角度を作る。
-		// これにより、プレイヤーモデルが進行方向を向く。
+		// �ړ���������Y����]�p�x�����B
+		// ����ɂ��A�v���C���[���f�����i�s�����������B
 		m_angle = atan2(m_dir.x, m_dir.z);
 	}
 }
 
-// プレイヤーのワールド行列を作る処理。
-// 使い方：
-//   m_posやm_angleを変更した後に呼ぶ。
-// 処理内容：
-//   拡大、回転、移動を合成して、モデルの表示位置と向きを決める。
+// �v���C���[�̃��[���h�s�����鏈���B
+// �g�����F
+//   m_pos��m_angle��ύX������ɌĂԁB
+// �������e�F
+//   �g��A��]�A�ړ����������āA���f���̕\���ʒu�ƌ��������߂�B
 void Player::UpdateWorldMatrix()
 {
-	// プレイヤーのワールド行列を作る。
-	// 拡大、回転、移動の順に合成して、モデルの表示位置と向きを決める。
+	// �v���C���[�̃��[���h�s������B
+	// �g��A��]�A�ړ��̏��ɍ������āA���f���̕\���ʒu�ƌ��������߂�B
 	Math::Matrix m_scale = Math::Matrix::CreateScale(1);
 	Math::Matrix m_rot = Math::Matrix::CreateRotationY(m_angle);
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = m_scale * m_rot * m_trans;
 }
 
-// Update後の補正・判定処理。
-// 使い方：
-//   シーンのPostUpdate処理から毎フレーム自動で呼ばれる。
-// 処理内容：
-//   地形との当たり判定で位置を補正し、その後に敵接触ダメージと復活判定を行う。
+// Update��̕␳�E���菈���B
+// �g�����F
+//   �V�[����PostUpdate�������疈�t���[�������ŌĂ΂��B
+// �������e�F
+//   �n�`�Ƃ̓����蔻��ňʒu��␳���A���̌�ɓG�ڐG�_���[�W�ƕ���������s���B
 void Player::PostUpdate()
 {
-	// CharaBase側で地面や壁との当たり判定を行う。
-	// めり込みがあった場合は、SetPosで座標が補正される。
+	// CharaBase���Œn�ʂ�ǂƂ̓����蔻����s���B
+	// �߂荞�݂��������ꍇ�́ASetPos�ō��W���␳�����B
 	CharaBase::PostUpdate();
 
-	// CharaBaseの当たり判定で補正された座標を、Player側のm_posにも反映する。
-	// これをしないと、次のUpdateで補正前の座標に戻ってしまう。
+	// CharaBase�̓����蔻��ŕ␳���ꂽ���W���APlayer����m_pos�ɂ����f����B
+	// ��������Ȃ��ƁA����Update�ŕ␳�O�̍��W�ɖ߂��Ă��܂��B
 	m_pos = GetPos();
 
-	// 現在位置が村の安全地帯内かどうかを更新する。
+	// ���݈ʒu�����̈��S�n�ѓ����ǂ������X�V����B
 	UpdateSafeAreaFlag();
 
-	// 移動と地形補正が終わった後の正しい座標で、
-	// コウモリなどとのダメージ判定を確認する。
+	// �ړ��ƒn�`�␳���I�������̐��������W�ŁA
+	// �R�E�����ȂǂƂ̃_���[�W������m�F����B
 	UpdateDamageCollision();
 
-	// ダメージ判定の結果HPが0になった場合は、タイトルへ戻らず村の中で復活する。
+	// �_���[�W����̌���HP��0�ɂȂ����ꍇ�́A�^�C�g���֖߂炸���̒��ŕ�������B
 	RespawnIfDead();
 }
 
-// 敵との接触ダメージ判定。
-// 使い方：
-//   PostUpdate()で、地形との位置補正が終わった後に呼ぶ。
-// 処理内容：
-//   プレイヤーの体をスフィアとして扱い、TypeDamageのコライダーと重なっているか調べる。
-//   重なっていた場合はStatusへダメージ処理を依頼し、連続ヒット防止用の無敵時間を設定する。
+// �G�Ƃ̐ڐG�_���[�W����B
+// �g�����F
+//   PostUpdate()�ŁA�n�`�Ƃ̈ʒu�␳���I�������ɌĂԁB
+// �������e�F
+//   �v���C���[�̑̂��X�t�B�A�Ƃ��Ĉ����ATypeDamage�̃R���C�_�[�Əd�Ȃ��Ă��邩���ׂ�B
+//   �d�Ȃ��Ă����ꍇ��Status�փ_���[�W�������˗����A�A���q�b�g�h�~�p�̖��G���Ԃ�ݒ肷��B
 void Player::UpdateDamageCollision()
 {
-	// 安全地帯内では敵との接触ダメージを受けない。
+	// ���S�n�ѓ��ł͓G�Ƃ̐ڐG�_���[�W���󂯂Ȃ��B
 	if (m_isInSafeArea) { return; }
 
-	// 無敵時間中はダメージを受けない。
-	// 連続ヒットでHPが一瞬で0になるのを防ぐため。
+	// ���G���Ԓ��̓_���[�W���󂯂Ȃ��B
+	// �A���q�b�g��HP����u��0�ɂȂ�̂�h�����߁B
 	if (m_damageCoolTime > 0.0f) { return; }
 
-	// HPはStatusが持っているため、まずStatusを取得する。
-	// 取得できない場合はHPを減らせないので、ここで終了する。
+	// HP��Status�������Ă��邽�߁A�܂�Status���擾����B
+	// �擾�ł��Ȃ��ꍇ��HP�����点�Ȃ��̂ŁA�����ŏI������B
 	std::shared_ptr<Status> spStatus = m_status.lock();
 	if (!spStatus) { return; }
 
-	// プレイヤーの体を球として扱う。
-	// コウモリは少し高い位置を飛ぶため、球の中心を足元より上へずらしている。
+	// �v���C���[�̑̂����Ƃ��Ĉ����B
+	// �R�E�����͏��������ʒu���Ԃ��߁A���̒��S�𑫌�����ւ��炵�Ă���B
 	DirectX::BoundingSphere playerSphere;
 	playerSphere.Center = GetPos() + Math::Vector3(0.0f, PlayerDamageSphereHeight, 0.0f);
 	playerSphere.Radius = PlayerDamageRadius;
 
-	// TypeDamageだけを見るSphereInfoを作る。
-	// これにより、地面や壁ではなく、敵のダメージ判定だけを対象にできる。
+	// TypeDamage����������SphereInfo�����B
+	// ����ɂ��A�n�ʂ�ǂł͂Ȃ��A�G�̃_���[�W���肾����Ώۂɂł���B
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, playerSphere);
 
-	// 現在のシーンに存在する全オブジェクトを調べる。
-	// BatGroupで追加したBatも、このリストの中に入っている。
+	// ���݂̃V�[���ɑ��݂���S�I�u�W�F�N�g�𒲂ׂ�B
+	// BatGroup�Œǉ�����Bat���A���̃��X�g�̒��ɓ����Ă���B
 	const std::list<std::shared_ptr<KdGameObject>>& objList = SceneManager::Instance().GetObjList();
 	for (const std::shared_ptr<KdGameObject>& spObj : objList)
 	{
-		// 空のポインタは無視する。
+		// ��̃|�C���^�͖�������B
 		if (!spObj) { continue; }
 
-		// 自分自身とは判定しない。
+		// �������g�Ƃ͔��肵�Ȃ��B
 		if (spObj.get() == this) { continue; }
 
-		// 対象オブジェクトがTypeDamageのコライダーを持っていて、
-		// playerSphereと重なっていればtrueになる。
+		// �ΏۃI�u�W�F�N�g��TypeDamage�̃R���C�_�[�������Ă��āA
+		// playerSphere�Əd�Ȃ��Ă����true�ɂȂ�B
 		std::list<KdCollider::CollisionResult> retList;
 		if (spObj->Intersects(sphereInfo, &retList))
 		{
-			// ダメージ判定に触れたので、プレイヤーHPを5減らす。
+			// �_���[�W����ɐG�ꂽ�̂ŁA�v���C���[HP��5���炷�B
 			spStatus->DamagePlayer(BatContactDamage);
 
-			// 次のダメージまで約1秒待つ。
-			// 60FPS想定なので60フレームにしている。
+			// ���̃_���[�W�܂Ŗ�1�b�҂B
+			// 60FPS�z��Ȃ̂�60�t���[���ɂ��Ă���B
 			m_damageCoolTime = DamageCoolTimeFrame;
 
-			// 1体でも当たっていれば、今回のダメージ処理は終わり。
+			// 1�̂ł��������Ă���΁A����̃_���[�W�����͏I���B
 			break;
 		}
 	}
 }
 
-// HPが0になった時の復活処理。
-// 使い方：
-//   ダメージ判定後に呼び、HPが0なら村の復活地点へ戻す。
-// 処理内容：
-//   プレイヤー座標をm_respawnPosへ戻し、HPを最大まで回復し、復活直後の無敵時間を付ける。
+// HP��0�ɂȂ������̕��������B
+// �g�����F
+//   �_���[�W�����ɌĂсAHP��0�Ȃ瑺�̕����n�_�֖߂��B
+// �������e�F
+//   �v���C���[���W��m_respawnPos�֖߂��AHP���ő�܂ŉ񕜂��A��������̖��G���Ԃ�t����B
 void Player::RespawnIfDead()
 {
-	// HPはStatus側で管理しているため、まずStatusを取得する。
-	// 取得できない場合は復活判定ができないので何もしない。
+	// HP��Status���ŊǗ����Ă��邽�߁A�܂�Status���擾����B
+	// �擾�ł��Ȃ��ꍇ�͕������肪�ł��Ȃ��̂ŉ������Ȃ��B
 	std::shared_ptr<Status> spStatus = m_status.lock();
 	if (!spStatus) { return; }
 
-	// HPがまだ残っているなら復活処理は不要。
+	// HP���܂��c���Ă���Ȃ畜�������͕s�v�B
 	if (!spStatus->IsPlayerDead()) { return; }
 
-	// プレイヤーを村の復活地点へ戻す。
-	// m_posとKdGameObject側の座標を両方更新しないと、
-	// 次のUpdateで古いm_posからワールド行列が作られて位置が戻ってしまう。
+	// �v���C���[�𑺂̕����n�_�֖߂��B
+	// m_pos��KdGameObject���̍��W�𗼕��X�V���Ȃ��ƁA
+	// ����Update�ŌÂ�m_pos���烏�[���h�s�񂪍���Ĉʒu���߂��Ă��܂��B
 	m_pos = m_respawnPos;
 	SetPos(m_respawnPos);
 
-	// 復活直後のワールド行列もすぐ正しい位置にしておく。
-	// これで復活したフレームから表示位置が村の中になる。
+	// ��������̃��[���h�s��������������ʒu�ɂ��Ă����B
+	// ����ŕ��������t���[������\���ʒu�����̒��ɂȂ�B
 	UpdateWorldMatrix();
 
-	// HPを最大まで回復する。
+	// HP���ő�܂ŉ񕜂���B
 	spStatus->ResetPlayerHp();
 
-	// 復活直後にコウモリへ触れていても、すぐ再ダメージを受けないようにする。
-	// 60FPS想定で約2秒の無敵時間。
+	// ��������ɃR�E�����֐G��Ă��Ă��A�����ă_���[�W���󂯂Ȃ��悤�ɂ���B
+	// 60FPS�z��Ŗ�2�b�̖��G���ԁB
 	m_damageCoolTime = RespawnInvincibleFrame;
 }
 
 void Player::UpdateSafeAreaFlag()
 {
-	// 半径が0以下なら、安全地帯が未設定なのでfalseにする。
+	// ���a��0�ȉ��Ȃ�A���S�n�т����ݒ�Ȃ̂�false�ɂ���B
 	if (m_safeAreaRadius <= 0.0f)
 	{
 		m_isInSafeArea = false;
 		return;
 	}
 
-	// XZ平面上で、プレイヤーが村の安全地帯スフィア内にいるか確認する。
-	// 高さの差で判定がぶれないよう、Yは見ない。
+	// XZ���ʏ�ŁA�v���C���[�����̈��S�n�уX�t�B�A���ɂ��邩�m�F����B
+	// �����̍��Ŕ��肪�Ԃ�Ȃ��悤�AY�͌��Ȃ��B
 	Math::Vector3 toPlayer = GetPos() - m_safeAreaCenter;
 	toPlayer.y = 0.0f;
 
 	float distanceSqr = toPlayer.LengthSquared();
 	m_isInSafeArea = distanceSqr <= m_safeAreaRadius * m_safeAreaRadius;
 }
+
+
 

@@ -1,10 +1,13 @@
-﻿#pragma once
+#pragma once
 
 class KdDebugWireFrame
 {
 public:
 	KdDebugWireFrame() {}
 	~KdDebugWireFrame() { Release(); }
+
+	static void SetEnable(bool enable) { s_enable = enable; }
+	static bool IsEnable() { return s_enable; }
 
 	void AddDebugLine(const Math::Vector3& start, const Math::Vector3& end, const Math::Color& col = kWhiteColor);
 	void AddDebugLine(const Math::Vector3& start, const Math::Vector3& dir = Math::Vector3(0,0,1), float length = 1.0f, const Math::Color& col = kWhiteColor);
@@ -13,9 +16,16 @@ public:
 	void AddDebugBox(const Math::Matrix& matrix, const Math::Vector3& size, const Math::Vector3& offset = { 0, 0, 0 }, const bool isOriented = false, const Math::Color& col = kWhiteColor);
 
 	void Draw();
+	void Clear();
 
 private:
 	void Release();
 
+	static bool s_enable;
+
 	std::vector<KdPolygon::Vertex>	m_debugVertices;
 };
+
+
+
+

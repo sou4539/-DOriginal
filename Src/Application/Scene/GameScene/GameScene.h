@@ -2,6 +2,8 @@
 
 #include"../BaseScene/BaseScene.h"
 
+class Status;
+
 class GameScene : public BaseScene
 {
 public :
@@ -22,4 +24,9 @@ private:
 	// GameSceneの初期化処理。
 	// カメラ、プレイヤー、敵、UI、ステージを作成して参照関係をつなぐ。
 	void Init()  override;
+
+	bool IsUpdatePaused() const override;
+	bool CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj) const override;
+
+	std::weak_ptr<Status> m_status;
 };

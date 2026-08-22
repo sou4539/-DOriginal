@@ -1,7 +1,15 @@
-ï»¿#include "StaffBase.h"
+#include "StaffBase.h"
 
 #include "../../../Scene/SceneManager.h"
 #include "../Bat/Bat.h"
+#include "../Status/Status.h"
+
+namespace
+{
+	// –‚–@‚ğñ‚Ì’†S‚Å‚Í‚È‚­A­‚µã‚Éo‚·‚½‚ß‚Ì‚‚³B
+	// ‰r¥’†‚Í‚±‚Ì‚‚³‚ğ•Û‚Á‚½‚Ü‚Üñ‚É’Ç]‚·‚éB
+	constexpr float MagicChantHeight = 1.5f;
+}
 
 void StaffBase::Init()
 {
@@ -34,16 +42,16 @@ void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget
 
 void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 {
-	// é­”æ³•ã‚¿ã‚¤ãƒ—ãŒæœªè¨­å®šã®æ–ã¯æ”»æ’ƒã—ãªã„ã€‚
+	// –‚–@ƒ^ƒCƒv‚ª–¢İ’è‚Ìñ‚ÍUŒ‚‚µ‚È‚¢B
 	if (m_magicType == MagicType::None)
 	{
 		return;
 	}
 
-	// é­”æ³•ã®ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã‚’æ¸›ã‚‰ã™ã€‚
+	// –‚–@‚ÌƒN[ƒ‹ƒ^ƒCƒ€‚ğŒ¸‚ç‚·B
 	m_magicCoolTime--;
 
-	// ã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ãŒæ®‹ã£ã¦ã„ã‚‹ãªã‚‰ã€ã¾ã æ’ƒãŸãªã„ã€‚
+	// ƒN[ƒ‹ƒ^ƒCƒ€‚ªc‚Á‚Ä‚¢‚é‚È‚çA‚Ü‚¾Œ‚‚½‚È‚¢B
 	if (m_magicCoolTime > 0.0f)
 	{
 		return;
@@ -51,13 +59,13 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 
 	std::shared_ptr<KdGameObject> spTargetEnemy = SearchEnemy(spPlayer);
 
-	// ç¯„å›²å†…ã«æ•µãŒã„ãªã‘ã‚Œã°æ’ƒãŸãªã„ã€‚
+	// ”ÍˆÍ“à‚É“G‚ª‚¢‚È‚¯‚ê‚ÎŒ‚‚½‚È‚¢B
 	if (!spTargetEnemy)
 	{
 		return;
 	}
 
-	// æ–ã‹ã‚‰æ•µã¸å‘ã‹ã†æ–¹å‘ã‚’ä½œã‚‹ã€‚
+	// ñ‚©‚ç“G‚ÖŒü‚©‚¤•ûŒü‚ğì‚éB
 	Math::Vector3 shotDir = spTargetEnemy->GetPos() - GetPos();
 	if (shotDir.LengthSquared() <= 0.0001f)
 	{
@@ -65,12 +73,42 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 	}
 	shotDir.Normalize();
 
-	// é­”æ³•ã‚’ä½œã£ã¦ã€æ•µã®æ–¹å‘ã¸é£›ã°ã™ã€‚
+	// –‚–@‚ğì‚Á‚ÄA“G‚Ì•ûŒü‚Ö”ò‚Î‚·B
+	// ‰r¥’†‚Íñ‚Ìã‚É•\¦‚µ‚½‚¢‚Ì‚ÅAŠJnˆÊ’u‚Íñ‚Ì­‚µã‚É‚·‚éB
+	// shared_from_this()‚Åñ©g‚ğ“n‚·‚±‚Æ‚ÅA–‚–@‘¤‚Í‰r¥’†‚¾‚¯ñ‚É’Ç]‚Å‚«‚éB
+	// “G‚à“n‚µ‚Ä‚¨‚«A”­Ë‚·‚éuŠÔ‚ÉŒ»İ‚Ì“GˆÊ’u‚ÖY•ûŒü‚İ‚ÅŒü‚«’¼‚·B
+	Math::Vector3 chantPos = GetPos() + Math::Vector3(0.0f, MagicChantHeight, 0.0f);
+	std::shared_ptr<KdGameObject> spStaff = shared_from_this();
+
+	std::shared_ptr<Status> spStatus = m_wpStatus.lock();
+	const float fireExplosionRadius = spStatus ? spStatus->GetFireExplosionRadius() : 3.0f;
+	const int iceSplitCount = (m_magicType == MagicType::Ice && spStatus) ? spStatus->GetIceSplitCount() : 1;
+	const int icePierceCount = (m_magicType == MagicType::Ice && spStatus) ? spStatus->GetIcePierceCount() : 1;
+	const int voltChainCount = (m_magicType == MagicType::Volt && spStatus) ? spStatus->GetVoltChainCount() : ((m_magicType == MagicType::Volt) ? 1 : 0);
+
+	// ‚±‚±‚Å¶¬‚·‚é–‚–@‚Íí‚É1”­‚¾‚¯‚É‚·‚éB
+	// •X‚Ì‹­‰»‚Íu‰’e‚ğ‘‚â‚·v‚Ì‚Å‚Í‚È‚­A–½’†Œã‚Ì”h¶’e‚Æ‚µ‚ÄMagicBase‘¤‚Åˆ—‚·‚éB
 	std::shared_ptr<MagicBase> magic = std::make_shared<MagicBase>();
-	magic->Shot(GetPos(), shotDir, m_magicType, m_magicDamage, m_magicSpeed);
+	magic->Shot
+	(
+		chantPos,
+		shotDir,
+		m_magicType,
+		m_magicDamage,
+		m_magicSpeed,
+		spStaff,
+		spTargetEnemy,
+		voltChainCount,
+		nullptr,
+		false,
+		fireExplosionRadius,
+		icePierceCount,
+		iceSplitCount,
+		false
+	);
 	SceneManager::Instance().AddObject(magic);
 
-	// æ–ã”ã¨ã«è¨­å®šã•ã‚ŒãŸã‚¯ãƒ¼ãƒ«ã‚¿ã‚¤ãƒ ã¸æˆ»ã™ã€‚
+	// ñ‚²‚Æ‚Éİ’è‚³‚ê‚½ƒN[ƒ‹ƒ^ƒCƒ€‚Ö–ß‚·B
 	m_magicCoolTime = m_magicCoolTimeMax;
 }
 
@@ -81,8 +119,8 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 
 	for (auto& spObj : SceneManager::Instance().GetObjList())
 	{
-		// ä»Šã¯æ•µãŒBatã ã‘ãªã®ã§ã€Batã«å¤‰æ›ã§ããŸã‚‚ã®ã ã‘ã‚’æ”»æ’ƒå¯¾è±¡ã«ã™ã‚‹ã€‚
-		// å¾Œã§EnemyBaseã‚’ä½œã£ãŸã‚‰ã€ã“ã“ã‚’EnemyBaseåˆ¤å®šã«å¤‰æ›´ã™ã‚‹ã€‚
+		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
+		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
 		auto spBat = std::dynamic_pointer_cast<Bat>(spObj);
 		if (!spBat)
 		{
@@ -105,5 +143,17 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 
 	return spTargetEnemy;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 

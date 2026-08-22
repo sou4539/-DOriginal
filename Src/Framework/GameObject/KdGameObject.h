@@ -34,6 +34,7 @@ public:
 	virtual void DrawBright() {}
 	virtual void DrawSprite() {}
 	virtual void DrawDebug();
+	void ClearDebugWire();
 
 	virtual void SetAsset(const std::string&) {}
 
