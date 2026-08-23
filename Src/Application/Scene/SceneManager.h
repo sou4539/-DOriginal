@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 class BaseScene;
 
@@ -6,7 +6,7 @@ class SceneManager
 {
 public :
 
-	// ã‚·ãƒ¼ãƒ³æƒ…å ±
+	// ƒV[ƒ“î•ñ
 	enum class SceneType
 	{
 		Title,
@@ -22,38 +22,37 @@ public :
 	void DrawSprite();
 	void DrawDebug();
 
-	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚’ã‚»ãƒƒãƒˆ (æ¬¡ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‹ã‚‰åˆ‡ã‚Šæ›¿ã‚ã‚‹)
+	// Ÿ‚ÌƒV[ƒ“‚ğƒZƒbƒg (Ÿ‚ÌƒtƒŒ[ƒ€‚©‚çØ‚è‘Ö‚í‚é)
 	void SetNextScene(SceneType _nextScene)
 	{
 		m_nextSceneType = _nextScene;
 	}
 
-	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆãƒªã‚¹ãƒˆã‚’å–å¾—
+	// Œ»İ‚ÌƒV[ƒ“‚ÌƒIƒuƒWƒFƒNƒgƒŠƒXƒg‚ğæ“¾
 	const std::list<std::shared_ptr<KdGameObject>>& GetObjList();
 
-	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã«ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’è¿½åŠ 
+	// Œ»İ‚ÌƒV[ƒ“‚ÉƒIƒuƒWƒFƒNƒg‚ğ’Ç‰Á
 	void AddObject(const std::shared_ptr<KdGameObject>& _obj);
 
 private :
 
-	// ãƒãƒãƒ¼ã‚¸ãƒ£ãƒ¼ã®åˆæœŸåŒ–
-	// ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ç”Ÿæˆ(ã‚¢ãƒ—ãƒªèµ·å‹•)æ™‚ã«ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§è‡ªå‹•å®Ÿè¡Œ
+	// ƒ}ƒl[ƒWƒƒ[‚Ì‰Šú‰»
 	void Init()
 	{
-		// é–‹å§‹ã‚·ãƒ¼ãƒ³ã«åˆ‡ã‚Šæ›¿ãˆ
+		// ŠJnƒV[ƒ“‚ÉØ‚è‘Ö‚¦
 		ChangeScene(m_currentSceneType);
 	}
 
-	// ã‚·ãƒ¼ãƒ³åˆ‡ã‚Šæ›¿ãˆé–¢æ•°
+	// ƒV[ƒ“Ø‚è‘Ö‚¦ŠÖ”
 	void ChangeScene(SceneType _sceneType);
 
-	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã®ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ä¿æŒã—ã¦ã„ã‚‹ãƒã‚¤ãƒ³ã‚¿
+	// Œ»İ‚ÌƒV[ƒ“‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğ•Û‚µ‚Ä‚¢‚éƒ|ƒCƒ“ƒ^
 	std::shared_ptr<BaseScene> m_currentScene = nullptr;
 
-	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã®ç¨®é¡ã‚’ä¿æŒã—ã¦ã„ã‚‹å¤‰æ•°
+	// Œ»İ‚ÌƒV[ƒ“‚Ìí—Ş‚ğ•Û‚µ‚Ä‚¢‚é•Ï”
 	SceneType m_currentSceneType = SceneType::Title;
 	
-	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã®ç¨®é¡ã‚’ä¿æŒã—ã¦ã„ã‚‹å¤‰æ•°
+	// Ÿ‚ÌƒV[ƒ“‚Ìí—Ş‚ğ•Û‚µ‚Ä‚¢‚é•Ï”
 	SceneType m_nextSceneType = m_currentSceneType;
 
 private:
@@ -63,10 +62,7 @@ private:
 
 public:
 
-	// ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ãƒ‘ã‚¿ãƒ¼ãƒ³
-	// å¸¸ã«å­˜åœ¨ã™ã‚‹ && å¿…ãš1ã¤ã—ã‹å­˜åœ¨ã—ãªã„(1ã¤ã—ã‹å­˜åœ¨å‡ºæ¥ãªã„)
-	// ã©ã“ã‹ã‚‰ã§ã‚‚ã‚¢ã‚¯ã‚»ã‚¹ãŒå¯èƒ½ã§ä¾¿åˆ©ã ãŒ
-	// ä½•ã§ã‚‚ã‹ã‚“ã§ã‚‚ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³ã¨ã„ã†æ€è€ƒã¯NG
+	// ƒVƒ“ƒOƒ‹ƒgƒ“ƒpƒ^[ƒ“
 	static SceneManager& Instance()
 	{
 		static SceneManager instance;

@@ -12,21 +12,21 @@ public :
 	GameScene()  { Init(); }
 
 	// GameScene破棄時の処理。
-	// m_objList内のshared_ptrが各オブジェクトを解放するため、ここでは追加処理を持たせていない。
-	~GameScene() {}
+	~GameScene();
 
 private:
 
 	// GameScene中の入力イベント処理。
-	// 今はTキーでタイトルへ戻るデバッグ用処理を行う。
 	void Event() override;
 
 	// GameSceneの初期化処理。
-	// カメラ、プレイヤー、敵、UI、ステージを作成して参照関係をつなぐ。
 	void Init()  override;
+	void SetCursorVisible(bool isVisible);
 
 	bool IsUpdatePaused() const override;
 	bool CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj) const override;
 
 	std::weak_ptr<Status> m_status;
+	bool m_isCursorVisible = true;
+	bool m_prevBackTitleKey = false;
 };

@@ -2,9 +2,8 @@
 #include "../SceneManager.h"
 
 #include "../../GameObject/Camera/TPSCamera/TPSCamera.h"
-#include "../../GameObject/Character/Bat/BatGroup.h"
+#include "../../GameObject/Character/Enemy/EnemySpawner/EnemySpawner.h"
 #include "../../GameObject/Character/Player/Player.h"
-//#include "../../GameObject/Character/Enemy/Enemy.h"
 #include "../../GameObject/Character/Status/Status.h"
 #include "../../GameObject/Stage/Ground/Ground.h"
 #include "../../GameObject/Stage/Village/Village.h"
@@ -12,16 +11,41 @@
 #include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
 #include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
 
-// Tキーでタイトルへ戻る。
+GameScene::~GameScene()
+{
+	SetCursorVisible(false);
+}
+
+void GameScene::SetCursorVisible(bool isVisible)
+{
+	if (m_isCursorVisible == isVisible) { return; }
+
+	m_isCursorVisible = isVisible;
+
+	if (isVisible)
+	{
+		while (ShowCursor(TRUE) < 0) {}
+	}
+	else
+	{
+		while (ShowCursor(FALSE) >= 0) {}
+	}
+}
+
+// Tキーを押した瞬間にタイトルへ戻る。
 void GameScene::Event()
 {
-	if (GetAsyncKeyState('T') & 0x8000)
+	SetCursorVisible(false);
+
+	const bool isBackTitleKey = (GetAsyncKeyState('T') & 0x8000);
+	if (isBackTitleKey && !m_prevBackTitleKey)
 	{
 		SceneManager::Instance().SetNextScene
 		(
 			SceneManager::SceneType::Title
 		);
 	}
+	m_prevBackTitleKey = isBackTitleKey;
 }
 
 // ゲームシーンで使うオブジェクトを作成し、参照関係をつなぐ。
@@ -49,18 +73,18 @@ void GameScene::Init()
 	m_status = status;
 	m_objList.push_back(status);
 
-	// コウモリの生成管理を作成する。
-	std::shared_ptr<BatGroup> batGroup;
-	batGroup = std::make_shared<BatGroup>();
-	m_objList.push_back(batGroup);
-	batGroup->AddHabitat({ -70.0f, 3.0f,   0.0f }, 16.0f, 15);
-	batGroup->AddHabitat({ -30.0f, 3.0f,  55.0f }, 14.0f, 14);
-	batGroup->AddHabitat({ -30.0f, 3.0f, -75.0f }, 14.0f, 14);
-	batGroup->AddHabitat({  55.0f, 3.0f, -45.0f }, 14.0f, 14);
-	batGroup->AddHabitat({ -85.0f, 3.0f,  45.0f }, 14.0f, 14);
-	batGroup->AddHabitat({ -85.0f, 3.0f, -45.0f }, 14.0f, 14);
-	batGroup->AddHabitat({ -120.0f, 3.0f,  0.0f }, 16.0f, 15);
-	batGroup->SetStatus(status);
+	// 敵の生成管理を作成する。
+	std::shared_ptr<EnemySpawner> enemySpawner;
+	enemySpawner = std::make_shared<EnemySpawner>();
+	m_objList.push_back(enemySpawner);
+	enemySpawner->AddSpawnArea({ -70.0f, 3.0f,   0.0f }, 16.0f, 15);
+	enemySpawner->AddSpawnArea({ -30.0f, 3.0f,  55.0f }, 14.0f, 14);
+	enemySpawner->AddSpawnArea({ -30.0f, 3.0f, -75.0f }, 14.0f, 14);
+	enemySpawner->AddSpawnArea({  55.0f, 3.0f, -45.0f }, 14.0f, 14);
+	enemySpawner->AddSpawnArea({ -85.0f, 3.0f,  45.0f }, 14.0f, 14);
+	enemySpawner->AddSpawnArea({ -85.0f, 3.0f, -45.0f }, 14.0f, 14);
+	enemySpawner->AddSpawnArea({ -120.0f, 3.0f,  0.0f }, 16.0f, 15);
+	enemySpawner->SetStatus(status);
 
 	// 地面を作成する。
 	std::shared_ptr<Ground> ground;
@@ -87,6 +111,8 @@ void GameScene::Init()
 
 	// 各オブジェクト同士の参照をつなぐ。
 	camera->SetTarget(player);
+	// 初回の魔法選択でゲーム更新が止まっても、カメラだけは正しい初期位置にしておく。
+	camera->PostUpdate();
 	player->SetStatus(status);
 	player->SetCamera(camera);
 	player->SetRespawnPos(playerRespawnPos);
@@ -94,24 +120,24 @@ void GameScene::Init()
 	ground->SetTarget(player);
 	village->SetTarget(player);
 	village->SetVisibleRadius(85.0f);
-	batGroup->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
-	batGroup->AddBatsToScene(m_objList, player);
+	enemySpawner->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
+	enemySpawner->AddEnemiesToScene(m_objList, player);
+	status->SetVillageGuideRadius(village->GetVisibleRadius());
+	status->SetCamera(camera);
 	fireStaff->SetTarget(player);
 	iceStaff->SetTarget(player);
 	voltStaff->SetTarget(player);
 	fireStaff->SetStatus(status);
 	iceStaff->SetStatus(status);
 	voltStaff->SetStatus(status);
-	
-	fireStaff->SetAngle(0.0f);
-	iceStaff->SetAngle(DirectX::XMConvertToRadians(120.0f));
-	voltStaff->SetAngle(DirectX::XMConvertToRadians(240.0f));
 
 	// プレイヤーの地形判定対象を登録する。
 	player->RegistHitObject(ground);
 	player->RegistHitObject(village);
 
 	status->SetPlayer(player);
+
+	SetCursorVisible(false);
 }
 
 bool GameScene::IsUpdatePaused() const
@@ -126,22 +152,3 @@ bool GameScene::CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj) co
 {
 	return std::dynamic_pointer_cast<Status>(obj) != nullptr;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

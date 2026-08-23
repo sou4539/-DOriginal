@@ -1,37 +1,32 @@
-#include "MagicBase.h"
+ï»¿#include "MagicBase.h"
 
 #include "../../../../Scene/SceneManager.h"
-#include "../../Bat/Bat.h"
+#include "../../Enemy/EnemyBase.h"
 
 #include <algorithm>
 
 namespace
 {
-	// 2.5DOriginal‚Ìd‚Æ“¯‚¶l‚¦•ûB
-	// ’l‚ª‘å‚«‚¢‚Ù‚Ç‰r¥‚ª‘‚­I‚í‚éB
+	// 2.5DOriginalã®dã¨åŒã˜è€ƒãˆæ–¹ã€‚
 	constexpr float MagicChantSpeed = 0.05f;
 
-	// ‰æ‘œØ‚è‘Ö‚¦‘¬“xB
-	// 1.0‚È‚ç–ˆƒtƒŒ[ƒ€Ø‚è‘Ö‚¦A0.2‚È‚ç5ƒtƒŒ[ƒ€‚É1‰ñ’ö“xØ‚è‘Ö‚í‚éB
+	// ç”»åƒåˆ‡ã‚Šæ›¿ãˆé€Ÿåº¦ã€‚
 	constexpr float IceFrameSpeed = 0.12f;
 	constexpr float VoltFrameSpeed = 0.20f;
 	constexpr float FireFrameSpeed = 0.25f;
 
-	// Œ»İ‚ÌŒ©‚½–Ú‚É‡‚í‚¹‚½b’èƒTƒCƒYB
-	// Œã‚ÅÀ‹@Šm”F‚µ‚È‚ª‚ç–‚–@‚²‚Æ‚É’²®‚·‚éB
+	// ç¾åœ¨ã®è¦‹ãŸç›®ã«åˆã‚ã›ãŸæš«å®šã‚µã‚¤ã‚ºã€‚
 	constexpr float FireScale = 4.0f;
 	constexpr float IceScale = 4.0f;
 	constexpr float VoltScale = 4.0f;
+	constexpr float FireBaseExplosionRadius = 3.0f;
 
-	// –‚–@’e‚Ì“–‚½‚è”»’è”¼ŒaB
-	// KdSquarePolygon‚ÌSetScale‚ÍŒ©‚½–Ú‚Ì’Z•ÓƒTƒCƒY‚ğŒˆ‚ß‚é‚½‚ßA
-	// ”¼Œa‚ÍuŒ©‚½–ÚƒTƒCƒY‚Ì”¼•ªv‚ğŠî€‚É‚·‚éB
-	// Œ©‚½–ÚƒTƒCƒY‚ğ•Ï‚¦‚½‚ÉA“–‚½‚è”»’è‚àˆê‚É•Ï‚í‚é‚æ‚¤‚É‚µ‚Ä‚¢‚éB
+	// é­”æ³•å¼¾ã®å½“ãŸã‚Šåˆ¤å®šåŠå¾„ã€‚
 	constexpr float FireHitRadius = FireScale * 0.5f;
 	constexpr float IceHitRadius = IceScale * 0.5f;
 	constexpr float VoltHitRadius = VoltScale * 0.5f;
 
-	// •X‚Ì”h¶’e‚ğ¶‰E‚ÉL‚°‚éŠp“xB
+	// æ°·ã®æ´¾ç”Ÿå¼¾ã‚’å·¦å³ã«åºƒã’ã‚‹è§’åº¦ã€‚
 	constexpr float IceSplitSpreadAngle = DirectX::XMConvertToRadians(30.0f);
 
 	Math::Vector3 RotateDirY(const Math::Vector3& dir, float angle)
@@ -106,8 +101,7 @@ void MagicBase::Update()
 
 	if (m_pDebugWire)
 	{
-		// “–‚½‚è”»’è‚ÌŠm”F‚ª•K—v‚È‚¾‚¯ƒRƒƒ“ƒgƒAƒEƒg‚ğŠO‚·B
-		// m_pDebugWire->AddDebugSphere(m_pos, m_radius);
+		// å½“ãŸã‚Šåˆ¤å®šã®ç¢ºèªãŒå¿…è¦ãªæ™‚ã ã‘ã‚³ãƒ¡ãƒ³ãƒˆã‚¢ã‚¦ãƒˆã‚’å¤–ã™ã€‚
 	}
 
 	UpdateWorldMatrix();
@@ -115,21 +109,16 @@ void MagicBase::Update()
 
 void MagicBase::UpdateChant()
 {
-	// ‰r¥’†‚¾‚¯AShot()‚Åó‚¯æ‚Á‚½‘ÎÛ‚ğ’Ç‚¢‚©‚¯‚éB
-	// ¡‚Íñ‚ğ‘ÎÛ‚É‚µ‚Ä‚¢‚é‚½‚ßAñ‚ªƒvƒŒƒCƒ„[‚Ìü‚è‚ğ‰ñ‚Á‚Ä‚à–‚–@‚Íñ‚Ìã‚Éc‚éB
-	// m_chantOffset‚É‚Íu”­¶‚µ‚½uŠÔ‚Ìñ‚©‚çŒ©‚½ˆÊ’u·v‚ğ•Û‘¶‚µ‚Ä‚¢‚é‚Ì‚ÅA
-	// ñ‚Ì­‚µã‚È‚ÇAŒ©‚½–Ú—p‚ÌˆÊ’u‚ğ•Û‚Á‚½‚Ü‚Ü’Ç]‚Å‚«‚éB
+	// è© å”±ä¸­ã ã‘ã€Shot()ã§å—ã‘å–ã£ãŸå¯¾è±¡ã‚’è¿½ã„ã‹ã‘ã‚‹ã€‚
 	if (auto spChantTarget = m_wpChantTarget.lock())
 	{
 		m_pos = spChantTarget->GetPos() + m_chantOffset;
 	}
 
-	// ‰r¥’†‚Í2.5DOriginal‚Æ“¯‚¶‚­A’l‚ğ1.0‚©‚ç0.0‚ÖŒ¸‚ç‚µ‚Ä‚¢‚­B
-	// ‚±‚ÌŠÔ‚ÍˆÚ“®‚¹‚¸Añ‚ÌˆÊ’u‚©‚ç”­Ë‚³‚ê‚½–‚–@‚ª­‚µ—­‚Ü‚Á‚ÄŒ©‚¦‚éB
+	// è© å”±ä¸­ã¯2.5DOriginalã¨åŒã˜ãã€å€¤ã‚’1.0ã‹ã‚‰0.0ã¸æ¸›ã‚‰ã—ã¦ã„ãã€‚
 	m_chant -= m_chantSpeed;
 
-	// •X‚Íu3–‡–Ú‚É‚È‚Á‚½‚ç”­Ëv‚·‚éd—lB
-	// Ice0 ¨ Ice1 ¨ Ice2 ‚Æi‚İAIce2‚ª•\¦‚³‚ê‚½‚ç”òsó‘Ô‚ÖˆÚ‚éB
+	// æ°·ã¯ã€Œ3æšç›®ã«ãªã£ãŸã‚‰ç™ºå°„ã€ã™ã‚‹ä»•æ§˜ã€‚
 	if (m_magicType == MagicType::Ice)
 	{
 		UpdateFrameAnimation();
@@ -141,13 +130,13 @@ void MagicBase::UpdateChant()
 		return;
 	}
 
-	// ‰Š‚ÍƒXƒvƒ‰ƒCƒgƒV[ƒg‚ÌˆÚ“®—pæ“ªƒtƒŒ[ƒ€‚ğ‰r¥’†‚É‚à•\¦‚·‚éB
+	// ç‚ã¯ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚·ãƒ¼ãƒˆã®ç§»å‹•ç”¨å…ˆé ­ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è© å”±ä¸­ã«ã‚‚è¡¨ç¤ºã™ã‚‹ã€‚
 	if (m_magicType == MagicType::Fire && m_spPoly)
 	{
 		m_spPoly->SetUVRect(m_fireFlyFrameStart);
 	}
 
-	// —‹‚Í‰r¥’†‚à¡‚ÌƒtƒŒ[ƒ€‚ğŒy‚­ƒAƒjƒ[ƒVƒ‡ƒ“‚³‚¹‚éB
+	// é›·ã¯è© å”±ä¸­ã‚‚ä»Šã®ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’è»½ãã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã•ã›ã‚‹ã€‚
 	if (m_magicType == MagicType::Volt)
 	{
 		UpdateFrameAnimation();
@@ -161,7 +150,7 @@ void MagicBase::UpdateChant()
 
 void MagicBase::UpdateFly()
 {
-	// ”òs’†‚¾‚¯õ–½‚ğŒ¸‚ç‚µAis•ûŒü‚ÖˆÚ“®‚·‚éB
+	// é£›è¡Œä¸­ã ã‘å¯¿å‘½ã‚’æ¸›ã‚‰ã—ã€é€²è¡Œæ–¹å‘ã¸ç§»å‹•ã™ã‚‹ã€‚
 	m_lifeTime -= 1.0f;
 	if (m_lifeTime <= 0.0f)
 	{
@@ -171,13 +160,13 @@ void MagicBase::UpdateFly()
 
 	m_pos += m_dir * m_speed;
 
-	// —‹‚Í”òs’†‚É‰æ‘œ‚ğ‡”Ô‚ÉØ‚è‘Ö‚¦‚éB
+	// é›·ã¯é£›è¡Œä¸­ã«ç”»åƒã‚’é †ç•ªã«åˆ‡ã‚Šæ›¿ãˆã‚‹ã€‚
 	if (m_magicType == MagicType::Volt)
 	{
 		UpdateFrameAnimation();
 	}
 
-	// ‰Š‚ÍFire.png‚ÌˆÚ“®—pƒtƒŒ[ƒ€‚ğƒ‹[ƒv‚³‚¹‚éB
+	// ç‚ã¯Fire.pngã®ç§»å‹•ç”¨ãƒ•ãƒ¬ãƒ¼ãƒ ã‚’ãƒ«ãƒ¼ãƒ—ã•ã›ã‚‹ã€‚
 	if (m_magicType == MagicType::Fire && m_spPoly)
 	{
 		m_frame += m_frameSpeed;
@@ -194,8 +183,7 @@ void MagicBase::UpdateFly()
 
 void MagicBase::UpdateHit()
 {
-	// Œ»óA–½’†‰‰o‚ğ‚Á‚Ä‚¢‚é‚Ì‚ÍFire.png‚Ì‚İB
-	// Fire‚ÍÕ“Ë—pƒtƒŒ[ƒ€‚ğÅŒã‚Ü‚ÅÄ¶‚µ‚Ä‚©‚çÁ‚¦‚éB
+	// ç¾çŠ¶ã€å‘½ä¸­æ¼”å‡ºã‚’æŒã£ã¦ã„ã‚‹ã®ã¯Fire.pngã®ã¿ã€‚
 	if (m_magicType != MagicType::Fire || !m_spPoly)
 	{
 		m_isExpired = true;
@@ -220,16 +208,10 @@ void MagicBase::UpdateHit()
 
 void MagicBase::StartFly()
 {
-	// ‰r¥Š®—¹ŒãAÀÛ‚É–‚–@’e‚ª”ò‚Ñn‚ß‚éuŠÔ‚Ìˆ—B
-	// ”­Ë‰¹‚Íu–‚–@¶¬v‚Å‚Í‚È‚­u”ò‚Ñn‚ß‚½v‚É–Â‚ç‚·‚ÆA
-	// ‰r¥‰‰o‚Æƒ^ƒCƒ~ƒ“ƒO‚ğ‡‚í‚¹‚â‚·‚¢B
-	// ”ò‚Ñn‚ß‚½Œã‚Ü‚Åñ‚ğ’Ç‚¢‚©‚¯‚é‚Æ’e“¹‚ª‹È‚ª‚Á‚Ä‚µ‚Ü‚¤‚½‚ßA
-	// ‚±‚±‚Å’Ç]‘ÎÛ‚ğŠO‚µAˆÈ~‚Ím_dir•ûŒü‚Ö‚Ü‚Á‚·‚®i‚Ü‚¹‚éB
+	// è© å”±å®Œäº†å¾Œã€å®Ÿéš›ã«é­”æ³•å¼¾ãŒé£›ã³å§‹ã‚ã‚‹ç¬é–“ã®å‡¦ç†ã€‚
 	m_wpChantTarget.reset();
 
-	// ‰r¥’†‚É“G‚âñ‚ª“®‚¢‚½ê‡‚É”õ‚¦‚ÄA
-	// ”­Ë‚·‚éuŠÔ‚ÌuŒ»İ‚Ì–‚–@ˆÊ’uv‚©‚çuŒ»İ‚Ì“GˆÊ’uv‚ÖŒü‚«’¼‚·B
-	// ‚±‚±‚Å‚ÍY¬•ª‚àÁ‚³‚È‚¢‚½‚ßAã‰º•ûŒü‚É‚à”ò‚ÔB
+	// è© å”±ä¸­ã«æ•µã‚„æ–ãŒå‹•ã„ãŸå ´åˆã«å‚™ãˆã¦ã€
 	if (auto spFlyTarget = m_wpFlyTarget.lock())
 	{
 		Math::Vector3 flyDir = spFlyTarget->GetPos() - m_pos;
@@ -248,92 +230,86 @@ void MagicBase::StartFly()
 
 void MagicBase::StartHit()
 {
-	// “G‚É“–‚½‚Á‚½uŠÔ‚Ì‹¤’Êˆ—B
-	// ƒqƒbƒg‰¹‚Í‚±‚±‚ÉW‚ß‚Ä‚¨‚­‚ÆAŒã‚Å–‚–@‚²‚Æ‚Ì‰¹·‚µ‘Ö‚¦‚ªŠÈ’P‚É‚È‚éB
+	// æ•µã«å½“ãŸã£ãŸç¬é–“ã®å…±é€šå‡¦ç†ã€‚
 	PlayHitSound();
 
 	if (m_magicType == MagicType::Fire)
 	{
-		// Fire‚ÍFire.png‚ÌŒã”¼ƒtƒŒ[ƒ€‚ğg‚Á‚Ä–½’†‰‰o‚ğÄ¶‚µ‚Ä‚©‚çÁ‚¦‚éB
+		// Fireã¯Fire.pngã®å¾ŒåŠãƒ•ãƒ¬ãƒ¼ãƒ ã‚’ä½¿ã£ã¦å‘½ä¸­æ¼”å‡ºã‚’å†ç”Ÿã—ã¦ã‹ã‚‰æ¶ˆãˆã‚‹ã€‚
 		m_state = MagicState::Hit;
 		m_frame = 0.0f;
 		m_nowFrame = -1;
 		if (m_spPoly)
 		{
+			// ç‚ã®å¼·åŒ–ã§åºƒãŒã£ãŸçˆ†ç™ºç¯„å›²ã«åˆã‚ã›ã¦ã€å‘½ä¸­æ¼”å‡ºã ã‘å¤§ããã™ã‚‹ã€‚
+			const float addScale = std::max(m_fireExplosionRadius - FireBaseExplosionRadius, 0.0f);
+			m_spPoly->SetScale(FireScale + addScale);
 			m_spPoly->SetUVRect(m_fireHitFrameStart);
 		}
 	}
 	else
 	{
-		// Ice / Volt‚Í‚Ü‚¾ê—pƒqƒbƒg‰‰o‚ª‚È‚¢‚½‚ßA–½’†‚µ‚½‚ç‚·‚®Á‚·B
-		// ‰æ‘œ‘fŞ‚ğ’Ç‰Á‚µ‚½‚çA‚±‚±‚ğHitó‘Ô‚ÖˆÚ‚·Œ`‚É•ÏX‚Å‚«‚éB
+		// Ice / Voltã¯ã¾ã å°‚ç”¨ãƒ’ãƒƒãƒˆæ¼”å‡ºãŒãªã„ãŸã‚ã€å‘½ä¸­ã—ãŸã‚‰ã™ãæ¶ˆã™ã€‚
 		m_isExpired = true;
 	}
 }
 
 void MagicBase::PostUpdate()
 {
-	// ‰r¥’†‚Æ–½’†‰‰o’†‚ÍA‚Ü‚¾“G‚Ö“–‚Ä‚È‚¢B
+	// è© å”±ä¸­ã¨å‘½ä¸­æ¼”å‡ºä¸­ã¯ã€ã¾ã æ•µã¸å½“ã¦ãªã„ã€‚
 	if (m_isExpired || m_state != MagicState::Fly)
 	{
 		return;
 	}
 
-	// –‚–@‚Ì“–‚½‚è”»’è—pƒXƒtƒBƒA‚ğì¬‚·‚éB
-	// TypeDamage‚ğŒ©‚é‚±‚Æ‚ÅA“G‚ª‚Á‚Ä‚¢‚éƒ_ƒ[ƒW”»’è‚É“–‚½‚Á‚½‚©‚ğŠm”F‚·‚éB
+	// é­”æ³•ã®å½“ãŸã‚Šåˆ¤å®šç”¨ã‚¹ãƒ•ã‚£ã‚¢ã‚’ä½œæˆã™ã‚‹ã€‚
 	DirectX::BoundingSphere magicSphere;
 	magicSphere.Center = GetPos();
 	magicSphere.Radius = m_radius;
 
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
 
-	// ƒV[ƒ““à‚ÌƒIƒuƒWƒFƒNƒg‚ğ’²‚×ABat‚É“–‚½‚Á‚½‚çƒ_ƒ[ƒW‚ğ—^‚¦‚éB
+	// ã‚·ãƒ¼ãƒ³å†…ã®æ•µã‚’èª¿ã¹ã€é­”æ³•ãŒå½“ãŸã£ãŸç›¸æ‰‹ã«ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹ã€‚
 	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
 	{
 		if (!spObj) { continue; }
 
-		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅABat‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚¾‚¯‚ğUŒ‚‘ÎÛ‚É‚·‚éB
-		// Œã‚ÅEnemyBase‚ğì‚Á‚½‚çA‚±‚±‚ğEnemyBase”»’è‚É•ÏX‚·‚éB
-		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
-		if (!spBat) { continue; }
-		if (spBat->IsExpired()) { continue; }
-		if (spBat == m_wpIgnoreTarget.lock()) { continue; }
-		if (HasHitObject(spBat)) { continue; }
+		std::shared_ptr<EnemyBase> spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		if (!spEnemy) { continue; }
+		if (spEnemy->IsExpired()) { continue; }
+		if (spEnemy == m_wpIgnoreTarget.lock()) { continue; }
+		if (HasHitObject(spEnemy)) { continue; }
 
 		std::list<KdCollider::CollisionResult> retList;
-		if (spBat->Intersects(sphereInfo, &retList))
+		if (spEnemy->Intersects(sphereInfo, &retList))
 		{
-			AddHitObject(spBat);
+			AddHitObject(spEnemy);
 
-			// “G‚É–‚–@‚Ìƒ_ƒ[ƒW—Ê‚ğ“n‚·B
-			// –½’†‚Ì‰¹‚â‰‰oŠJn‚ÍStartHit()‘¤‚É‚Ü‚Æ‚ß‚Ä‚¢‚éB
-			spBat->OnHit(m_damage);
+			// æ•µã«é­”æ³•ã®ãƒ€ãƒ¡ãƒ¼ã‚¸é‡ã‚’æ¸¡ã™ã€‚
+			spEnemy->OnHit(m_damage);
 
-			// ‰Š‚Í–½’†‚µ‚½“G‚ÌüˆÍ‚É‚àƒ_ƒ[ƒW‚ğ—^‚¦‚éB
+			// ç‚ã¯å‘½ä¸­ã—ãŸæ•µã®å‘¨å›²ã«ã‚‚ãƒ€ãƒ¡ãƒ¼ã‚¸ã‚’ä¸ãˆã‚‹ã€‚
 			if (m_magicType == MagicType::Fire)
 			{
-				ApplyFireExplosion(spBat);
+				ApplyFireExplosion(spEnemy);
 			}
 
-			// —‹‚ÍŠî–{«”\‚Æ‚µ‚Ä˜A½‚·‚éB
-			// “–‚½‚Á‚½“G‚Ì‹ß‚­‚É•Ê‚Ì“G‚ª‚¢‚ê‚ÎA“¯‚¶Volt‰æ‘œ‚Ì’e‚ğ’Ç‰Á‚Å”ò‚Î‚·B
+			// é›·ã¯åŸºæœ¬æ€§èƒ½ã¨ã—ã¦é€£é–ã™ã‚‹ã€‚
 			if (m_magicType == MagicType::Volt)
 			{
-				CreateVoltChain(spBat);
+				CreateVoltChain(spEnemy);
 			}
 
 			if (m_magicType == MagicType::Ice)
 			{
-				// ’Êí‚Ì•X’e‚ÍAÅ‰‚É“G‚ÖG‚ê‚½‚¾‚¯”h¶’e‚ğo‚·B
-				// ”h¶’e‚Ím_isIceSplitShot‚ªtrue‚È‚Ì‚ÅA‚±‚±‚©‚ç‚³‚ç‚É‘‚¦‚é‚±‚Æ‚Í‚È‚¢B
+				// é€šå¸¸ã®æ°·å¼¾ã¯ã€æœ€åˆã«æ•µã¸è§¦ã‚ŒãŸæ™‚ã ã‘æ´¾ç”Ÿå¼¾ã‚’å‡ºã™ã€‚
 				if (!m_isIceSplitShot && !m_hasCreatedIceSplit)
 				{
-					CreateIceSplit(spBat);
+					CreateIceSplit(spEnemy);
 					m_hasCreatedIceSplit = true;
 				}
 
-				// •X‚ÍŠÑ’Ê–‚–@B
-				// c‚èŠÑ’Ê”‚ª‚ ‚éŠÔ‚ÍÁ‚¦‚¸AŸ‚Ì“G‚Ö“–‚½‚ê‚é‚æ‚¤‚É”ò‚Ñ‘±‚¯‚éB
+				// æ°·ã¯è²«é€šé­”æ³•ã€‚
 				m_icePierceCount--;
 				if (m_icePierceCount > 0)
 				{
@@ -351,7 +327,7 @@ void MagicBase::DrawLit()
 {
 	if (!m_spPoly) { return; }
 
-	// ‰r¥’†‚Í2.5DOriginal‚Æ“¯‚¶‚­ƒfƒBƒ]ƒ‹ƒu’l‚ğg‚Á‚ÄoŒ»‚³‚¹‚éB
+	// è© å”±ä¸­ã¯2.5DOriginalã¨åŒã˜ããƒ‡ã‚£ã‚¾ãƒ«ãƒ–å€¤ã‚’ä½¿ã£ã¦å‡ºç¾ã•ã›ã‚‹ã€‚
 	float range = 0.05f;
 	Math::Vector3 color = { 0.8f, 0.9f, 1.0f };
 	if (m_state == MagicState::Chant)
@@ -400,8 +376,7 @@ void MagicBase::Shot(
 	m_hasCreatedIceSplit = false;
 	m_hitObjectList.clear();
 
-	// ‰r¥ŠJn“_‚Ìu’Ç]‘ÎÛ‚©‚çŒ©‚½–‚–@‚ÌˆÊ’u·v‚ğ•Û‘¶‚·‚éB
-	// UpdateChant()‚Å‚ÍA‚±‚Ì·•ª‚ğg‚Á‚Äñ‚ÌˆÚ“®•ª‚¾‚¯–‚–@‚ğ“®‚©‚·B
+	// è© å”±é–‹å§‹æ™‚ç‚¹ã®ã€Œè¿½å¾“å¯¾è±¡ã‹ã‚‰è¦‹ãŸé­”æ³•ã®ä½ç½®å·®ã€ã‚’ä¿å­˜ã™ã‚‹ã€‚
 	if (chantTarget)
 	{
 		m_chantOffset = startPos - chantTarget->GetPos();
@@ -418,9 +393,7 @@ void MagicBase::Shot(
 
 	SetupMagic();
 
-	// ˜A½‚Åì‚ç‚ê‚½—‹‚ÆA–½’†Œã‚Éo‚é•X‚Ì”h¶’e‚ÍA
-	// ‰r¥‚ğ‹²‚Ü‚¸‚É‚·‚®”ò‚Î‚·B
-	// ‚±‚ê‚É‚æ‚èu“–‚½‚Á‚½êŠ‚©‚çŸ‚Ì’e‚ªo‚évŒ©‚½–Ú‚É‚È‚éB
+	// é€£é–ã§ä½œã‚‰ã‚ŒãŸé›·ã¨ã€å‘½ä¸­å¾Œã«å‡ºã‚‹æ°·ã®æ´¾ç”Ÿå¼¾ã¯ã€
 	if (isChainShot || isIceSplitShot)
 	{
 		m_chant = 0.0f;
@@ -472,7 +445,7 @@ void MagicBase::SetupMagic()
 		m_frameSpeed = VoltFrameSpeed;
 		if (m_isChainShot)
 		{
-			// ˜A½‚ÍA“G‚©‚ç“G‚Ö‘–‚éü‚Ì‚æ‚¤‚ÈVolt‰æ‘œ‚ğg‚¤B
+			// é€£é–æ™‚ã¯ã€æ•µã‹ã‚‰æ•µã¸èµ°ã‚‹ç·šã®ã‚ˆã†ãªVoltç”»åƒã‚’ä½¿ã†ã€‚
 			m_framePathList =
 			{
 				"Asset/Textures/Magic/Volt/Volt0.png",
@@ -483,7 +456,7 @@ void MagicBase::SetupMagic()
 		}
 		else
 		{
-			// ’Êí”­Ë‚ÍAV‚µ‚­’Ç‰Á‚µ‚½Lightning‰æ‘œ‚ğƒAƒjƒ[ƒVƒ‡ƒ“‚³‚¹‚È‚ª‚ç”ò‚Î‚·B
+			// é€šå¸¸ç™ºå°„æ™‚ã¯ã€æ–°ã—ãè¿½åŠ ã—ãŸLightningç”»åƒã‚’ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã•ã›ãªãŒã‚‰é£›ã°ã™ã€‚
 			m_framePathList =
 			{
 				"Asset/Textures/Magic/Volt/Lightning0.png",
@@ -516,17 +489,15 @@ void MagicBase::UpdateFrameAnimation()
 
 void MagicBase::UpdateWorldMatrix()
 {
-	// ˆÚ“®s—ñB
+	// ç§»å‹•è¡Œåˆ—ã€‚
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
 
-	// ‰æ‘œ‘fŞ‚ÌŒü‚«‚É‡‚í‚¹‚é‚½‚ß‚Ì•â³‰ñ“]B
-	// m_rotDir‚Í–‚–@‚Ìis•ûŒü‚É‡‚í‚¹‚ÄY²‰ñ“]‚·‚éB
+	// ç”»åƒç´ æã®å‘ãã«åˆã‚ã›ã‚‹ãŸã‚ã®è£œæ­£å›è»¢ã€‚
 	Math::Matrix m_rotX = Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
 	Math::Matrix m_rotYBase = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
 	float angle = atan2f(m_dir.x, m_dir.z);
 
-	// Fire.png‚Í‰æ‘œ‚Ìæ’[Œü‚«‚ªIce/Volt‚Æ‹t‚É‚È‚Á‚Ä‚¢‚é‚½‚ßA‰Š‚¾‚¯180“x•â³‚·‚éB
-	// ÀÛ‚ÌˆÚ“®•ûŒüm_dir‚Í•Ï‚¦‚¸AŒ©‚½–Ú‚ÌŒü‚«‚¾‚¯‚ğ”½“]‚³‚¹‚éB
+	// Fire.pngã¯ç”»åƒã®å…ˆç«¯å‘ããŒIce/Voltã¨é€†ã«ãªã£ã¦ã„ã‚‹ãŸã‚ã€ç‚ã ã‘180åº¦è£œæ­£ã™ã‚‹ã€‚
 	if (m_magicType == MagicType::Fire)
 	{
 		angle += DirectX::XM_PI;
@@ -554,7 +525,7 @@ void MagicBase::PlayShotSound()
 	const char* soundPath = GetShotSoundPath();
 	if (!soundPath || soundPath[0] == '\0') { return; }
 
-	// ‰¹‘fŞ‚ğ’Ç‰Á‚µ‚½‚çGetShotSoundPath()‚ÉƒpƒX‚ğ“ü‚ê‚é‚¾‚¯‚Å‚±‚±‚©‚çÄ¶‚³‚ê‚éB
+	// éŸ³ç´ æã‚’è¿½åŠ ã—ãŸã‚‰GetShotSoundPath()ã«ãƒ‘ã‚¹ã‚’å…¥ã‚Œã‚‹ã ã‘ã§ã“ã“ã‹ã‚‰å†ç”Ÿã•ã‚Œã‚‹ã€‚
 	auto sound = KdAudioManager::Instance().Play(soundPath);
 	if (sound)
 	{
@@ -567,7 +538,7 @@ void MagicBase::PlayHitSound()
 	const char* soundPath = GetHitSoundPath();
 	if (!soundPath || soundPath[0] == '\0') { return; }
 
-	// –½’†‰¹‚Í”­Ë‰¹‚æ‚è­‚µ‘å‚«‚ß‚É‚·‚é‚ÆA“–‚½‚Á‚½è‰‚¦‚ª•ª‚©‚è‚â‚·‚¢B
+	// å‘½ä¸­éŸ³ã¯ç™ºå°„éŸ³ã‚ˆã‚Šå°‘ã—å¤§ãã‚ã«ã™ã‚‹ã¨ã€å½“ãŸã£ãŸæ‰‹å¿œãˆãŒåˆ†ã‹ã‚Šã‚„ã™ã„ã€‚
 	auto sound = KdAudioManager::Instance().Play(soundPath);
 	if (sound)
 	{
@@ -580,13 +551,12 @@ const char* MagicBase::GetShotSoundPath() const
 	switch (m_magicType)
 	{
 	case MagicType::Fire:
-		// —áF"Asset/Audio/Magic/FireShot.wav"
-		return "";
+		return "Asset/Sounds/Magic/shot.wav";
 	case MagicType::Ice:
-		// —áF"Asset/Audio/Magic/IceShot.wav"
+		// ä¾‹ï¼š"Asset/Audio/Magic/IceShot.wav"
 		return "";
 	case MagicType::Volt:
-		// —áF"Asset/Audio/Magic/VoltShot.wav"
+		// ä¾‹ï¼š"Asset/Audio/Magic/VoltShot.wav"
 		return "";
 	default:
 		return "";
@@ -598,34 +568,33 @@ const char* MagicBase::GetHitSoundPath() const
 	switch (m_magicType)
 	{
 	case MagicType::Fire:
-		// —áF"Asset/Audio/Magic/FireHit.wav"
-		return "";
+		return "Asset/Sounds/Magic/explosion.wav";
 	case MagicType::Ice:
-		// —áF"Asset/Audio/Magic/IceHit.wav"
+		// ä¾‹ï¼š"Asset/Audio/Magic/IceHit.wav"
 		return "";
 	case MagicType::Volt:
-		// —áF"Asset/Audio/Magic/VoltHit.wav"
+		// ä¾‹ï¼š"Asset/Audio/Magic/VoltHit.wav"
 		return "";
 	default:
 		return "";
 	}
 }
 
-void MagicBase::CreateVoltChain(const std::shared_ptr<Bat>& hitBat)
+void MagicBase::CreateVoltChain(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
 	if (m_magicType != MagicType::Volt) { return; }
 	if (m_voltChainCount <= 0) { return; }
-	if (!hitBat) { return; }
+	if (!hitEnemy) { return; }
 
-	std::shared_ptr<Bat> spNextTarget = SearchVoltChainTarget(hitBat);
+	std::shared_ptr<EnemyBase> spNextTarget = SearchVoltChainTarget(hitEnemy);
 	if (!spNextTarget) { return; }
 
-	Math::Vector3 startPos = hitBat->GetPos();
+	Math::Vector3 startPos = hitEnemy->GetPos();
 	Math::Vector3 dir = spNextTarget->GetPos() - startPos;
 	if (dir.LengthSquared() <= 0.0001f) { return; }
 	dir.Normalize();
 
-	// ˜A½Œ³‚ÌƒRƒEƒ‚ƒŠ‚É‘¦Äƒqƒbƒg‚µ‚È‚¢‚æ‚¤‚ÉA­‚µ‚¾‚¯Ÿ‚Ì“G•ûŒü‚Ö‚¸‚ç‚µ‚Ä¶¬‚·‚éB
+	// é€£é–å…ƒã®æ•µã«å³å†ãƒ’ãƒƒãƒˆã—ãªã„ã‚ˆã†ã«ã€å°‘ã—ã ã‘æ¬¡ã®æ•µæ–¹å‘ã¸ãšã‚‰ã—ã¦ç”Ÿæˆã™ã‚‹ã€‚
 	startPos += dir * (m_radius + 0.2f);
 
 	std::shared_ptr<MagicBase> spChainMagic = std::make_shared<MagicBase>();
@@ -639,7 +608,7 @@ void MagicBase::CreateVoltChain(const std::shared_ptr<Bat>& hitBat)
 		nullptr,
 		spNextTarget,
 		m_voltChainCount - 1,
-		hitBat,
+		hitEnemy,
 		true,
 		m_fireExplosionRadius,
 		m_icePierceCount,
@@ -650,23 +619,22 @@ void MagicBase::CreateVoltChain(const std::shared_ptr<Bat>& hitBat)
 	SceneManager::Instance().AddObject(spChainMagic);
 }
 
-void MagicBase::CreateIceSplit(const std::shared_ptr<Bat>& hitBat)
+void MagicBase::CreateIceSplit(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
 	if (m_magicType != MagicType::Ice) { return; }
 	if (m_isIceSplitShot) { return; }
 	if (m_iceSplitCount <= 0) { return; }
-	if (!hitBat) { return; }
+	if (!hitEnemy) { return; }
 	if (m_dir.LengthSquared() <= 0.0001f) { return; }
 
-	// ”h¶’e‚ÍA“–‚½‚Á‚½“G‚ÌˆÊ’u‚©‚çŒ»İ‚Ìis•ûŒü‚Öo‚·B
-	// ŠJnˆÊ’u‚ğ­‚µ‘O‚É‚¸‚ç‚µA–½’†‚µ‚½“G‚Ö‘¦Äƒqƒbƒg‚µ‚È‚¢‚æ‚¤‚É‚·‚éB
+	// æ´¾ç”Ÿå¼¾ã¯ã€å½“ãŸã£ãŸæ•µã®ä½ç½®ã‹ã‚‰ç¾åœ¨ã®é€²è¡Œæ–¹å‘ã¸å‡ºã™ã€‚
 	const float centerOffset = static_cast<float>(m_iceSplitCount - 1) * 0.5f;
 
 	for (int i = 0; i < m_iceSplitCount; ++i)
 	{
 		const float angle = (static_cast<float>(i) - centerOffset) * IceSplitSpreadAngle;
 		const Math::Vector3 splitDir = RotateDirY(m_dir, angle);
-		Math::Vector3 startPos = hitBat->GetPos() + splitDir * (m_radius + 0.2f);
+		Math::Vector3 startPos = hitEnemy->GetPos() + splitDir * (m_radius + 0.2f);
 
 		std::shared_ptr<MagicBase> spSplitMagic = std::make_shared<MagicBase>();
 		spSplitMagic->Shot
@@ -679,7 +647,7 @@ void MagicBase::CreateIceSplit(const std::shared_ptr<Bat>& hitBat)
 			nullptr,
 			nullptr,
 			0,
-			hitBat,
+			hitEnemy,
 			false,
 			m_fireExplosionRadius,
 			1,
@@ -691,59 +659,59 @@ void MagicBase::CreateIceSplit(const std::shared_ptr<Bat>& hitBat)
 	}
 }
 
-std::shared_ptr<Bat> MagicBase::SearchVoltChainTarget(const std::shared_ptr<Bat>& hitBat)
+std::shared_ptr<EnemyBase> MagicBase::SearchVoltChainTarget(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
-	if (!hitBat) { return nullptr; }
+	if (!hitEnemy) { return nullptr; }
 
-	std::shared_ptr<Bat> spTarget = nullptr;
-	const Math::Vector3 hitPos = hitBat->GetPos();
+	std::shared_ptr<EnemyBase> spTarget = nullptr;
+	const Math::Vector3 hitPos = hitEnemy->GetPos();
 	float minDistanceSqr = m_voltChainRadius * m_voltChainRadius;
 
 	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
 	{
 		if (!spObj) { continue; }
 
-		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
-		if (!spBat) { continue; }
-		if (spBat == hitBat) { continue; }
-		if (spBat == m_wpIgnoreTarget.lock()) { continue; }
-		if (spBat->IsExpired()) { continue; }
+		std::shared_ptr<EnemyBase> spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		if (!spEnemy) { continue; }
+		if (spEnemy == hitEnemy) { continue; }
+		if (spEnemy == m_wpIgnoreTarget.lock()) { continue; }
+		if (spEnemy->IsExpired()) { continue; }
 
-		const Math::Vector3 toBat = spBat->GetPos() - hitPos;
-		const float distanceSqr = toBat.LengthSquared();
+		const Math::Vector3 toEnemy = spEnemy->GetPos() - hitPos;
+		const float distanceSqr = toEnemy.LengthSquared();
 		if (distanceSqr < minDistanceSqr)
 		{
 			minDistanceSqr = distanceSqr;
-			spTarget = spBat;
+			spTarget = spEnemy;
 		}
 	}
 
 	return spTarget;
 }
 
-void MagicBase::ApplyFireExplosion(const std::shared_ptr<Bat>& hitBat)
+void MagicBase::ApplyFireExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
 	if (m_magicType != MagicType::Fire) { return; }
-	if (!hitBat) { return; }
+	if (!hitEnemy) { return; }
 	if (m_fireExplosionRadius <= 0.0f) { return; }
 
-	const Math::Vector3 explosionCenter = hitBat->GetPos();
+	const Math::Vector3 explosionCenter = hitEnemy->GetPos();
 	const float explosionRadiusSqr = m_fireExplosionRadius * m_fireExplosionRadius;
 
 	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
 	{
 		if (!spObj) { continue; }
 
-		std::shared_ptr<Bat> spBat = std::dynamic_pointer_cast<Bat>(spObj);
-		if (!spBat) { continue; }
-		if (spBat == hitBat) { continue; }
-		if (spBat->IsExpired()) { continue; }
+		std::shared_ptr<EnemyBase> spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		if (!spEnemy) { continue; }
+		if (spEnemy == hitEnemy) { continue; }
+		if (spEnemy->IsExpired()) { continue; }
 
-		const Math::Vector3 toBat = spBat->GetPos() - explosionCenter;
-		if (toBat.LengthSquared() <= explosionRadiusSqr)
+		const Math::Vector3 toEnemy = spEnemy->GetPos() - explosionCenter;
+		if (toEnemy.LengthSquared() <= explosionRadiusSqr)
 		{
-			spBat->OnHit(m_damage);
-			AddHitObject(spBat);
+			spEnemy->OnHit(m_damage);
+			AddHitObject(spEnemy);
 		}
 	}
 }

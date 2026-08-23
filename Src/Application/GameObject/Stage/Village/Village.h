@@ -20,6 +20,9 @@ public:
 	// 安全地帯の半径。
 	float GetSafeAreaRadius() const { return m_safeAreaRadius; }
 
+	// 村モデルが表示されている間は矢印を消すために使う。
+	float GetVisibleRadius() const { return m_visibleRadius; }
+
 	// 村の表示判定に使う対象を設定する。
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{

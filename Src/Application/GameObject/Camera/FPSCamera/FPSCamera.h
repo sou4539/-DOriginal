@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../CameraBase.h"
 
 class FPSCamera : public CameraBase

@@ -1,12 +1,12 @@
-﻿#include "CharaBase.h"
+#include "CharaBase.h"
 
 #include "../Stage/StageBase.h"
 
-// 初期化
+// ������
 void CharaBase::Init()
 {}
 
-// 更新
+// �X�V
 void CharaBase::Update()
 {
 	
@@ -14,19 +14,14 @@ void CharaBase::Update()
 
 void CharaBase::PostUpdate()
 {
-	// Updateで移動した後の座標を使って衝突判定を行う。
-	// 地面や壁にめり込んでいた場合は、ここで正しい位置へ補正する。
+	// Update�ňړ�������̍��W���g���ďՓ˔�����s���B
 	UpdateCollision();
 }
 
-// 描画
+// �`��
 void CharaBase::DrawLit()
 {
 	//if (m_spPoly)
-	//{
-	//	KdShaderManager::Instance().
-	//		m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld);
-	//}
 
 	if (m_spModel)
 	{
@@ -37,64 +32,50 @@ void CharaBase::DrawLit()
 
 void CharaBase::UpdateCollision()
 {
-	// 当たり判定対象がないキャラは、レイやスフィアを作る必要がない。
-	// 例：今のBatは表示確認用なので、ここで早期終了できる。
+	// �����蔻��Ώۂ��Ȃ��L�����́A���C��X�t�B�A�����K�v���Ȃ��B
 	if (m_wpHitObjectList.empty()) { return; }
 
 	// ============================================================
-	// 地面との当たり判定
-	//
-	// キャラクターの少し上から真下へレイ（線）を飛ばし、
-	// 地面に当たった位置へキャラクターを移動させる。
-	// これにより、落下後に地面へ着地したり、低い段差へ乗ったりできる。
-	// ============================================================
-	// ----- ----- ----- ----- -----
 
-	// ① レイ判定に必要な情報を作る。
+	// �@ ���C����ɕK�v�ȏ������B
 	KdCollider::RayInfo rayInfo;
 
-	// 現在のキャラクター位置をレイの開始位置にする。
+	// ���݂̃L�����N�^�[�ʒu�����C�̊J�n�ʒu�ɂ���B
 	rayInfo.m_pos = GetPos();
 
-	// キャラクター位置より少し高い場所からレイを飛ばす。
-	// この高さまでの段差なら、地面として検出して上へ乗ることができる。
+	// �L�����N�^�[�ʒu��菭�������ꏊ���烌�C���΂��B
 	static float enableStepHigh = 0.2f;
 	rayInfo.m_pos.y += enableStepHigh;
 
-	// レイを真下へ飛ばす。
+	// ���C��^���֔�΂��B
 	rayInfo.m_dir = Math::Vector3::Down;
 
-	// 落下量と段差許容高さを合わせた長さだけレイを伸ばす。
-	// m_Gravityが大きいほど、1フレームで下へ移動する量も大きくなる想定。
+	// �����ʂƒi�����e���������킹�������������C��L�΂��B
 	rayInfo.m_range = m_Gravity + enableStepHigh;
 
-	// Ground属性を持つコライダーだけを地面判定の対象にする。
+	// Ground���������R���C�_�[������n�ʔ���̑Ώۂɂ���B
 	rayInfo.m_type = KdCollider::TypeGround;
 
-	// 今フレームで乗っているオブジェクトを調べ直すため、一度解除する。
+	// ���t���[���ŏ���Ă���I�u�W�F�N�g�𒲂ג������߁A��x��������B
 	m_wpRiddenObject.reset();
 
-	// ② 登録されている当たり判定対象を1つずつ調べる。
-	// weak_ptrで保持しているため、対象が削除済みならlockに失敗して無視する。
+	// �A �o�^����Ă��铖���蔻��Ώۂ�1�����ׂ�B
 	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
 		if (spGameObj)
 		{
-			// 1つのオブジェクト内で複数箇所に当たる可能性があるため、
-			// 判定結果をリストですべて受け取る。
+			// 1�̃I�u�W�F�N�g���ŕ����ӏ��ɓ�����\�������邽�߁A
 			std::list<KdCollider::CollisionResult> retRayList;
 			spGameObj->Intersects(rayInfo, &retRayList);
 
-			// ③ レイの判定結果から、座標補正に使う地面を選ぶ。
-			// overlapDistanceが最も大きい結果を採用することで、
-			// レイ開始位置に最も近い、上側の地面へ補正する。
+			// �B ���C�̔��茋�ʂ���A���W�␳�Ɏg���n�ʂ�I�ԁB
 			float maxOverLap = 0;
 			Math::Vector3 hitPos = {};
 			bool hit = false;
 			for (auto& ret : retRayList)
 			{
-				// 現在までで最も補正量が大きい結果を保存する。
+				// ���݂܂łōł��␳�ʂ��傫�����ʂ�ۑ�����B
 				if (maxOverLap < ret.m_overlapDistance)
 				{
 					maxOverLap = ret.m_overlapDistance;
@@ -104,18 +85,16 @@ void CharaBase::UpdateCollision()
 			}
 			if (hit)
 			{
-				// 地面との交点へキャラクターを移動して、めり込みを解消する。
+				// �n�ʂƂ̌�_�փL�����N�^�[���ړ����āA�߂荞�݂���������B
 				SetPos(hitPos);
 
-				// 着地したので落下量を0へ戻す。
+				// ���n�����̂ŗ����ʂ�0�֖߂��B
 				m_Gravity = 0;
 
-				// 動く床など、乗ることができるオブジェクトだった場合の処理。
+				// �������ȂǁA��邱�Ƃ��ł���I�u�W�F�N�g�������ꍇ�̏����B
 				if (spGameObj->IsRideable())
 				{
-					// キャラクターのワールド行列を乗り物のローカル空間へ変換する。
-					// この相対位置を記録しておくと、乗り物が動いた時にも
-					// キャラクターを同じ位置関係のまま追従させられる。
+					// �L�����N�^�[�̃��[���h�s�����蕨�̃��[�J����Ԃ֕ϊ�����B
 					Math::Matrix _mInvertRideObject;
 					spGameObj->GetMatrix().Invert(_mInvertRideObject);
 
@@ -127,50 +106,35 @@ void CharaBase::UpdateCollision()
 	}
 
 	// ============================================================
-	// 壁・障害物との当たり判定
-	//
-	// キャラクターの体を球として扱い、登録されたステージのCOLに重なっていたら、
-	// 重なっている方向と距離を使って外側へ押し戻す。
-	//
-	// 現在は村のコライダーをTypeGroundに統一しているため、
-	// スフィア判定でもTypeGroundを見るようにしている。
-	// ============================================================
-	// ----- ----- ----- ----- -----
 
-	// ① 球判定に必要な情報を作る。
+	// �@ ������ɕK�v�ȏ������B
 	DirectX::BoundingSphere sphere;
 
-	// GetPosは足元の座標なので、球の中心を1.0だけ上へずらす。
-	// 柵など少し高い位置にある障害物にも当たりやすくする。
+	// GetPos�͑����̍��W�Ȃ̂ŁA���̒��S��1.0������ւ��炷�B
 	sphere.Center = GetPos() + Math::Vector3(0, 1.0f, 0);
 	sphere.Radius = 0.5f;
 
-	// Ground属性を持つコライダーを壁・障害物としても判定する。
-	// ※将来的に地面と壁を分けたくなったら、ここをTypeBumpに戻し、
-	//   ステージ側にもTypeBumpのコライダーを登録する。
+	// Ground���������R���C�_�[��ǁE��Q���Ƃ��Ă����肷��B
 	KdCollider::SphereInfo spherInfo(KdCollider::TypeGround, sphere);
 
-	// ② 登録されている当たり判定対象を1つずつ調べる。
+	// �A �o�^����Ă��铖���蔻��Ώۂ�1�����ׂ�B
 	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
 		if (spGameObj)
 		{
-			// StageBaseを継承しているオブジェクトは、
-			// スフィア判定が必要かどうかをステージ側で決める。
-			// Groundのような広い地面モデルに球判定をすると重くなりやすいので、
-			// EnableSphereCollision() が false のものはここでスキップする。
+			// StageBase���p�����Ă���I�u�W�F�N�g�́A
 			std::shared_ptr<StageBase> spStage = std::dynamic_pointer_cast<StageBase>(spGameObj);
 			if (spStage && !spStage->EnableSphereCollision())
 			{
 				continue;
 			}
 
-			// 球と対象オブジェクトのすべての衝突結果を受け取る。
+			// ���ƑΏۃI�u�W�F�N�g�̂��ׂĂ̏Փˌ��ʂ��󂯎��B
 			std::list<KdCollider::CollisionResult> retBumpList;
 			spGameObj->Intersects(spherInfo, &retBumpList);
 
-			// ③ 複数当たった場合は、一番深くめり込んでいる結果を使う。
+			// �B �������������ꍇ�́A��Ԑ[���߂荞��ł��錋�ʂ��g���B
 			float maxOverLap = 0.0f;
 			Math::Vector3 hitDir = Math::Vector3::Zero;
 			bool hit = false;
@@ -187,8 +151,7 @@ void CharaBase::UpdateCollision()
 
 			if (hit)
 			{
-				// m_hitDirは押し戻す方向、m_overlapDistanceは重なった距離。
-				// 方向 × 距離を現在位置へ足して、めり込みを解消する。
+				// m_hitDir�͉����߂������Am_overlapDistance�͏d�Ȃ��������B
 				Math::Vector3 newPos = GetPos() + (hitDir * maxOverLap);
 				SetPos(newPos);
 			}
@@ -196,7 +159,7 @@ void CharaBase::UpdateCollision()
 	}
 }
 
-// 解放
+// ���
 void CharaBase::Release()
 {
 	m_spPoly = nullptr;

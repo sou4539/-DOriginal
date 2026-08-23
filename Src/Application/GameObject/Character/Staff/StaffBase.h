@@ -13,15 +13,11 @@ public:
 
 	virtual void Init() override ;
 	virtual void Update() override ;
+	void DrawLit() override;
 
 	void SetTarget(const std::weak_ptr<KdGameObject>& target)
 	{ 
 		m_wpTarget = target; 
-	}
-
-	void SetAngle(float angle)
-	{
-		m_angle = angle;
 	}
 
 	void SetStatus(const std::shared_ptr<Status>& status)
@@ -32,7 +28,6 @@ public:
 protected:
 
 	// 杖ごとの魔法性能を設定する。
-	// 各杖のInitで呼ぶことで、攻撃処理はStaffBase側で共通化できる。
 	void SetMagicParam(MagicType type, float damage, float speed, float coolTime)
 	{
 		m_magicType = type;
@@ -46,6 +41,12 @@ protected:
 	std::weak_ptr<Status> m_wpStatus;
 
 private:
+	// 表示中の杖だけで、自分が何番目に並ぶかを持つ。
+	struct StaffLayoutInfo
+	{
+		int count = 0;
+		int index = -1;
+	};
 
 	// プレイヤーの周りを回る処理。
 	void UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget);
@@ -55,6 +56,11 @@ private:
 
 	// プレイヤーの近くにいる一番近い敵を探す。
 	std::shared_ptr<KdGameObject> SearchEnemy(const std::shared_ptr<KdGameObject>& spPlayer);
+
+	bool IsMagicUnlocked() const;
+	StaffLayoutInfo GetLayoutInfo() const;
+	float GetLayoutOffset(int index, int count) const;
+	int GetMagicOrder() const;
 
 	float m_angle = 0.0f;
 	float m_radius = 1.5f;

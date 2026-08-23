@@ -1,4 +1,4 @@
-ï»¿#include "Framework/KdFramework.h"
+#include "Framework/KdFramework.h"
 
 #include "KdSpriteShader.h"
 
@@ -7,26 +7,26 @@ bool KdSpriteShader::Init()
 	Release();
 
 	//-------------------------------------
-	// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€
+	// ’¸“_ƒVƒF[ƒ_
 	//-------------------------------------
 	{
-		// ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ¸ˆã¿ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒ˜ãƒƒãƒ€ãƒ¼ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
+		// ƒRƒ“ƒpƒCƒ‹Ï‚İ‚ÌƒVƒF[ƒ_[ƒwƒbƒ_[ƒtƒ@ƒCƒ‹‚ğƒCƒ“ƒNƒ‹[ƒh
 		#include "KdSpriteShader_VS.shaderInc"
 
-		// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ä½œæˆ
+		// ’¸“_ƒVƒF[ƒ_[ì¬
 		if (FAILED(KdDirect3D::Instance().WorkDev()->CreateVertexShader(compiledBuffer, sizeof(compiledBuffer), nullptr, &m_VS))) {
-			assert(0 && "é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ä½œæˆå¤±æ•—");
+			assert(0 && "’¸“_ƒVƒF[ƒ_[ì¬¸”s");
 			Release();
 			return false;
 		}
 
-		// ï¼‘é ‚ç‚¹ã®è©³ç´°ãªæƒ…å ±
+		// ‚P’¸“_‚ÌÚ×‚Èî•ñ
 		std::vector<D3D11_INPUT_ELEMENT_DESC> layout = {
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,		0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,			0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		// é ‚ç‚¹ã‚¤ãƒ³ãƒ—ãƒƒãƒˆãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆä½œæˆ
+		// ’¸“_ƒCƒ“ƒvƒbƒgƒŒƒCƒAƒEƒgì¬
 		if (FAILED(KdDirect3D::Instance().WorkDev()->CreateInputLayout(
 			&layout[0],
 			(UINT)layout.size(),
@@ -34,28 +34,28 @@ bool KdSpriteShader::Init()
 			sizeof(compiledBuffer),
 			&m_VLayout))
 		){
-			assert(0 && "CreateInputLayoutå¤±æ•—");
+			assert(0 && "CreateInputLayout¸”s");
 			Release();
 			return false;
 		}
 	}
 
 	//-------------------------------------
-	// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€
+	// ƒsƒNƒZƒ‹ƒVƒF[ƒ_
 	//-------------------------------------
 	{
-		// ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ¸ˆã¿ã®ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ãƒ˜ãƒƒãƒ€ãƒ¼ãƒ•ã‚¡ã‚¤ãƒ«ã‚’ã‚¤ãƒ³ã‚¯ãƒ«ãƒ¼ãƒ‰
+		// ƒRƒ“ƒpƒCƒ‹Ï‚İ‚ÌƒVƒF[ƒ_[ƒwƒbƒ_[ƒtƒ@ƒCƒ‹‚ğƒCƒ“ƒNƒ‹[ƒh
 		#include "KdSpriteShader_PS.shaderInc"
 
 		if (FAILED(KdDirect3D::Instance().WorkDev()->CreatePixelShader(compiledBuffer, sizeof(compiledBuffer), nullptr, &m_PS))) {
-			assert(0 && "ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼ä½œæˆå¤±æ•—");
+			assert(0 && "ƒsƒNƒZƒ‹ƒVƒF[ƒ_[ì¬¸”s");
 			Release();
 			return false;
 		}
 	}
 
 	//-------------------------------------
-	// å®šæ•°ãƒãƒƒãƒ•ã‚¡ä½œæˆ
+	// ’è”ƒoƒbƒtƒ@ì¬
 	//-------------------------------------
 	m_cb0.Create();
 	m_cb1.Create();
@@ -74,51 +74,51 @@ void KdSpriteShader::Release()
 
 void KdSpriteShader::Begin(bool linear, bool disableZBuffer)
 {
-	// æ—¢ã«Beginã—ã¦ã„ã‚‹
+	// Šù‚ÉBegin‚µ‚Ä‚¢‚é
 	if (m_isBegin)return;
 	m_isBegin = true;
 
 	//---------------------------------------
-	// 2Dç”¨æ­£å°„å½±è¡Œåˆ—ä½œæˆ
+	// 2D—p³Ë‰es—ñì¬
 	//---------------------------------------
 	UINT pNumVierports = 1;
 	D3D11_VIEWPORT vp;
 	KdDirect3D::Instance().WorkDevContext()->RSGetViewports(&pNumVierports, &vp);
 	m_mProj2D = DirectX::XMMatrixOrthographicLH(vp.Width, vp.Height, 0, 1);
 
-	// å®šæ•°ãƒãƒƒãƒ•ã‚¡æ›¸ãè¾¼ã¿
+	// ’è”ƒoƒbƒtƒ@‘‚«‚İ
 	m_cb1.Work().mProj = m_mProj2D;
 	m_cb1.Write();
 
 	//---------------------------------------
-	// ä½¿ç”¨ã™ã‚‹ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ã‚»ãƒƒãƒˆ
+	// g—p‚·‚éƒXƒe[ƒg‚ğƒZƒbƒg
 	//---------------------------------------
-	// Zåˆ¤å®šã€Zæ›¸ãè¾¼ã¿ç„¡åŠ¹ã®ã‚¹ãƒ†ãƒ¼ãƒˆã‚’ã‚»ãƒƒãƒˆ
+	// Z”»’èAZ‘‚«‚İ–³Œø‚ÌƒXƒe[ƒg‚ğƒZƒbƒg
 	if (disableZBuffer) {
 		KdShaderManager::Instance().ChangeDepthStencilState(KdDepthStencilState::ZDisable);
 	}
-	// Samplerã‚¹ãƒ†ãƒ¼ãƒˆã‚’ã‚»ãƒƒãƒˆ
+	// SamplerƒXƒe[ƒg‚ğƒZƒbƒg
 	if (linear) {
 		KdShaderManager::Instance().ChangeSamplerState(KdSamplerState::Linear_Clamp);
 	}
 	else {
 		KdShaderManager::Instance().ChangeSamplerState(KdSamplerState::Point_Clamp);
 	}
-	// Rasterizerã‚¹ãƒ†ãƒ¼ãƒˆã‚’ã‚»ãƒƒãƒˆ
+	// RasterizerƒXƒe[ƒg‚ğƒZƒbƒg
 	KdShaderManager::Instance().ChangeRasterizerState(KdRasterizerState::CullNone);
 
 	//---------------------------------------
-	// ã‚·ã‚§ãƒ¼ãƒ€
+	// ƒVƒF[ƒ_
 	//---------------------------------------
 
-	// ã‚·ã‚§ãƒ¼ãƒ€ã‚’ã‚»ãƒƒãƒˆ
+	// ƒVƒF[ƒ_‚ğƒZƒbƒg
 	KdDirect3D::Instance().WorkDevContext()->VSSetShader(m_VS, 0, 0);
 	KdDirect3D::Instance().WorkDevContext()->PSSetShader(m_PS, 0, 0);
 
-	// é ‚ç‚¹ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚»ãƒƒãƒˆ
+	// ’¸“_ƒŒƒCƒAƒEƒgƒZƒbƒg
 	KdDirect3D::Instance().WorkDevContext()->IASetInputLayout(m_VLayout);
 
-	// å®šæ•°ãƒãƒƒãƒ•ã‚¡ã‚»ãƒƒãƒˆ
+	// ’è”ƒoƒbƒtƒ@ƒZƒbƒg
 	KdDirect3D::Instance().WorkDevContext()->VSSetConstantBuffers(0, 1, m_cb0.GetAddress());
 	KdDirect3D::Instance().WorkDevContext()->PSSetConstantBuffers(0, 1, m_cb0.GetAddress());
 
@@ -132,7 +132,7 @@ void KdSpriteShader::End()
 	m_isBegin = false;
 
 	//---------------------------------------
-	// è¨˜æ†¶ã—ã¦ãŸã‚¹ãƒ†ãƒ¼ãƒˆã«æˆ»ã™
+	// ‹L‰¯‚µ‚Ä‚½ƒXƒe[ƒg‚É–ß‚·
 	//---------------------------------------
 	KdShaderManager::Instance().UndoDepthStencilState();
 	KdShaderManager::Instance().UndoSamplerState();
@@ -143,14 +143,14 @@ void KdSpriteShader::DrawTex(const KdTexture* tex, int x, int y, int w, int h, c
 {
 	if (tex == nullptr)return;
 
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ãƒ†ã‚¯ã‚¹ãƒãƒ£(ShaderResourceView)ã‚»ãƒƒãƒˆ
+	// ƒeƒNƒXƒ`ƒƒ(ShaderResourceView)ƒZƒbƒg
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, tex->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
@@ -168,13 +168,13 @@ void KdSpriteShader::DrawTex(const KdTexture* tex, int x, int y, int w, int h, c
 		uvMax.y = (srcRect->y + srcRect->height) / (float)tex->GetInfo().Height;
 	}
 
-	// é ‚ç‚¹ä½œæˆ
+	// ’¸“_ì¬
 	float x1 = (float)x;
 	float y1 = (float)y;
 	float x2 = (float)(x + w);
 	float y2 = (float)(y + h);
 
-	// åŸºæº–ç‚¹(Pivot)ã¶ã‚“ãšã‚‰ã™
+	// Šî€“_(Pivot)‚Ô‚ñ‚¸‚ç‚·
 	x1 -= pivot.x * w;
 	x2 -= pivot.x * w;
 	y1 -= pivot.y * h;
@@ -188,87 +188,145 @@ void KdSpriteShader::DrawTex(const KdTexture* tex, int x, int y, int w, int h, c
 
 	};
 
-	// æç”»
+	// •`‰æ
 	KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, sizeof(Vertex));
 
-	// ã‚»ãƒƒãƒˆã—ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’è§£é™¤ã—ã¦ãŠã
+	// ƒZƒbƒg‚µ‚½ƒeƒNƒXƒ`ƒƒ‚ğ‰ğœ‚µ‚Ä‚¨‚­
 	ID3D11ShaderResourceView* srv = nullptr;
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, &srv);
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
+	if (!bBgn)End();
+}
+
+void KdSpriteShader::DrawTexRot(const KdTexture* tex, int x, int y, int w, int h, float angle, const Math::Rectangle* srcRect, const Math::Color* color, const Math::Vector2& pivot)
+{
+	if (tex == nullptr)return;
+
+	// DrawTex‚Æ“¯‚¶—¬‚ê‚ÅA’¸“_‚¾‚¯’†SŠî€‚Å‰ñ“]‚³‚¹‚éB
+	bool bBgn = m_isBegin;
+	if (!bBgn)Begin();
+
+	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, tex->WorkSRViewAddress());
+
+	if (color) {
+		m_cb0.Work().Color = *color;
+	}
+	m_cb0.Write();
+
+	Math::Vector2 uvMin = { 0, 0 };
+	Math::Vector2 uvMax = { 1, 1 };
+	if (srcRect)
+	{
+		uvMin.x = srcRect->x / (float)tex->GetInfo().Width;
+		uvMin.y = srcRect->y / (float)tex->GetInfo().Height;
+
+		uvMax.x = (srcRect->x + srcRect->width) / (float)tex->GetInfo().Width;
+		uvMax.y = (srcRect->y + srcRect->height) / (float)tex->GetInfo().Height;
+	}
+
+	const float localX1 = -pivot.x * w;
+	const float localY1 = -pivot.y * h;
+	const float localX2 = localX1 + w;
+	const float localY2 = localY1 + h;
+
+	const float cosAngle = cosf(angle);
+	const float sinAngle = sinf(angle);
+
+	auto rotatePos = [&](float localX, float localY)
+	{
+		Math::Vector3 pos;
+		pos.x = x + (localX * cosAngle) - (localY * sinAngle);
+		pos.y = y + (localX * sinAngle) + (localY * cosAngle);
+		pos.z = 0.0f;
+		return pos;
+	};
+
+	Vertex vertex[] = {
+		{ rotatePos(localX1, localY1),	{uvMin.x, uvMax.y} },
+		{ rotatePos(localX1, localY2),	{uvMin.x, uvMin.y} },
+		{ rotatePos(localX2, localY1),	{uvMax.x, uvMax.y} },
+		{ rotatePos(localX2, localY2),	{uvMax.x, uvMin.y} }
+	};
+
+	KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, sizeof(Vertex));
+
+	ID3D11ShaderResourceView* srv = nullptr;
+	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, &srv);
+
 	if (!bBgn)End();
 }
 
 void KdSpriteShader::DrawPoint(int x, int y, const Math::Color* color)
 {
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	// ”’ƒeƒNƒXƒ`ƒƒ
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, KdDirect3D::Instance().GetWhiteTex()->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
 	m_cb0.Write();
 
 
-	// æç”»
+	// •`‰æ
 	Vertex vertex[] = {
 		{ {(float)x, (float)y, 0},	{0, 0} },
 	};
 	KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_POINTLIST, 1, vertex, sizeof(Vertex));
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
 	if (!bBgn)End();
 }
 
 void KdSpriteShader::DrawLine(int x1, int y1, int x2, int y2, const Math::Color* color)
 {
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	// ”’ƒeƒNƒXƒ`ƒƒ
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, KdDirect3D::Instance().GetWhiteTex()->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
 	m_cb0.Write();
 
 
-	// æç”»
+	// •`‰æ
 	Vertex vertex[] = {
 		{ {(float)x1, (float)y1, 0},	{0, 0} },
 		{ {(float)x2, (float)y2, 0},	{1, 0} },
 	};
 	KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP, 2, vertex, sizeof(Vertex));
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
 	if (!bBgn)End();
 }
 
 void KdSpriteShader::DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, const Math::Color* color, bool fill)
 {
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	// ”’ƒeƒNƒXƒ`ƒƒ
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, KdDirect3D::Instance().GetWhiteTex()->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
 	m_cb0.Write();
 
 
-	// æç”»
+	// •`‰æ
 	Vertex vertex[] = {
 		{ {(float)x1, (float)y1, 0},	{0, 0} },
 		{ {(float)x2, (float)y2, 0},	{1, 0} },
@@ -280,7 +338,7 @@ void KdSpriteShader::DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3
 		4, vertex, sizeof(Vertex));
 
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
 	if (!bBgn)End();
 }
 
@@ -288,27 +346,27 @@ void KdSpriteShader::DrawCircle(int x, int y, int radius, const Math::Color* col
 {
 	if (radius <= 0)return;
 
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	// ”’ƒeƒNƒXƒ`ƒƒ
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, KdDirect3D::Instance().GetWhiteTex()->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
 	m_cb0.Write();
 
-	// é ‚ç‚¹
+	// ’¸“_
 	if (fill)
 	{
 		int faceNum = radius + 1;
 		if (faceNum > 300)faceNum = 300;
-		std::vector<Vertex> vertex(faceNum * 3);		// åŠå¾„ã«ã‚ˆã‚Šé ‚ç‚¹æ•°ã‚’èª¿æ•´
+		std::vector<Vertex> vertex(faceNum * 3);		// ”¼Œa‚É‚æ‚è’¸“_”‚ğ’²®
 
-		// æç”»
+		// •`‰æ
 		for (int i = 0; i < faceNum; i++)
 		{
 			int idx = i * 3;
@@ -330,9 +388,9 @@ void KdSpriteShader::DrawCircle(int x, int y, int radius, const Math::Color* col
 	{
 		int numVertex = radius + 1;
 		if (numVertex > 300)numVertex = 300;
-		std::vector<Vertex> vertex(numVertex);		// åŠå¾„ã«ã‚ˆã‚Šé ‚ç‚¹æ•°ã‚’èª¿æ•´
+		std::vector<Vertex> vertex(numVertex);		// ”¼Œa‚É‚æ‚è’¸“_”‚ğ’²®
 
-		// æç”»
+		// •`‰æ
 		for (int i = 0; i < numVertex; i++)
 		{
 			vertex[i].Pos.x = x + cos(DirectX::XMConvertToRadians(i * (360.0f / (numVertex - 1)))) * (float)radius;
@@ -343,20 +401,20 @@ void KdSpriteShader::DrawCircle(int x, int y, int radius, const Math::Color* col
 		KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP, numVertex, &vertex[0], sizeof(Vertex));
 	}
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
 	if (!bBgn)End();
 }
 
 void KdSpriteShader::DrawBox(int x, int y, int extentX, int extentY, const Math::Color* color, bool fill)
 {
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	// ”’ƒeƒNƒXƒ`ƒƒ
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, KdDirect3D::Instance().GetWhiteTex()->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
@@ -367,7 +425,7 @@ void KdSpriteShader::DrawBox(int x, int y, int extentX, int extentY, const Math:
 	Math::Vector3 p3 = { (float)x + extentX, (float)y + extentY, 0 };
 	Math::Vector3 p4 = { (float)x + extentX, (float)y - extentY, 0 };
 
-	// æç”»
+	// •`‰æ
 	if (fill)
 	{
 		Vertex vertex[] = {
@@ -392,16 +450,16 @@ void KdSpriteShader::DrawBox(int x, int y, int extentX, int extentY, const Math:
 		KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_LINESTRIP, 5, vertex, sizeof(Vertex));
 	}
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
 	if (!bBgn)End();
 }
 
-// åˆ‡ã‚ŠæŠœãç¯„å›²ã‚’è¨­å®šã™ã‚‹
-// ãƒ»rect			â€¦ ç¯„å›²
+// Ø‚è”²‚«”ÍˆÍ‚ğİ’è‚·‚é
+// Erect			c ”ÍˆÍ
 
 void KdSpriteShader::SetScissorRect(const Math::Rectangle& rect)
 {
-	// ãƒ©ã‚¹ã‚¿ãƒ©ã‚¤ã‚¶ã‚¹ãƒ†ãƒ¼ãƒˆä½œæˆãƒ»ã‚»ãƒƒãƒˆ
+	// ƒ‰ƒXƒ^ƒ‰ƒCƒUƒXƒe[ƒgì¬EƒZƒbƒg
 	ID3D11RasterizerState* rs = KdDirect3D::Instance().CreateRasterizerState(D3D11_CULL_BACK, D3D11_FILL_SOLID, true, true);
 	KdDirect3D::Instance().WorkDevContext()->RSSetState(rs);
 	rs->Release();
@@ -419,44 +477,44 @@ void KdSpriteShader::DrawFont(std::shared_ptr<KdFontSprite>& fontSprite, const M
 	if (fontSprite == nullptr)					return;
 	if (fontSprite->GetTexList().size() == 0)	return;
 
-	// ã‚‚ã—é–‹å§‹ã—ã¦ã„ãªã„å ´åˆã¯é–‹å§‹ã™ã‚‹(æœ€å¾Œã«End())
+	// ‚à‚µŠJn‚µ‚Ä‚¢‚È‚¢ê‡‚ÍŠJn‚·‚é(ÅŒã‚ÉEnd())
 	bool bBgn = m_isBegin;
 	if (!bBgn)Begin();
 
-	// ç™½ãƒ†ã‚¯ã‚¹ãƒãƒ£
+	// ”’ƒeƒNƒXƒ`ƒƒ
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, KdDirect3D::Instance().GetWhiteTex()->WorkSRViewAddress());
 
-	// è‰²
+	// F
 	if (color) {
 		m_cb0.Work().Color = *color;
 	}
 	m_cb0.Write();
 
-	// ãƒ•ã‚©ãƒ³ãƒˆã®é«˜ã•
+	// ƒtƒHƒ“ƒg‚Ì‚‚³
 	float _moveY = (float)fontSprite->GetTexList()[0]->FontTex->GetInfo().Height;
 
-	// å…¨ã¦ã®æ–‡å­—ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’æç”»ã™ã‚‹
+	// ‘S‚Ä‚Ì•¶šƒeƒNƒXƒ`ƒƒ‚ğ•`‰æ‚·‚é
 	float			_moveX	= 0;
 	Math::Vector2	_pos	= Pos;
 	for (auto& data : fontSprite->GetTexList())
 	{
-		// æ”¹è¡Œæ–‡å­—ã®å ´åˆã¯ã€X,Yåº§æ¨™ã‚’æ“ä½œ
+		// ‰üs•¶š‚Ìê‡‚ÍAX,YÀ•W‚ğ‘€ì
 		if (data->Code == '\n')
 		{
 			_pos.x -= _moveX;
 			_pos.y -= _moveY;
 			_moveX = 0;
 		}
-		// ãã®ä»–ã®æ–‡å­—
+		// ‚»‚Ì‘¼‚Ì•¶š
 		else {
-			// ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
+			// ƒeƒNƒXƒ`ƒƒ‚ğƒZƒbƒg
 			KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, data->FontTex->WorkSRViewAddress());
 
 			// UV
 			Math::Vector2 uvMin = { 0, 0 };
 			Math::Vector2 uvMax = { 1, 1 };
 
-			// é ‚ç‚¹ä½œæˆ
+			// ’¸“_ì¬
 			float imageW = (float)data->FontTex->GetInfo().Width;
 			float imageH = (float)data->FontTex->GetInfo().Height;
 			float x1 = (float)_pos.x;
@@ -470,20 +528,20 @@ void KdSpriteShader::DrawFont(std::shared_ptr<KdFontSprite>& fontSprite, const M
 				{ {x2, y1, 0},	{uvMax.x, uvMax.y} },
 				{ {x2, y2, 0},	{uvMax.x, uvMin.y} }
 			};
-			// æç”»
+			// •`‰æ
 			KdDirect3D::Instance().DrawVertices(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, 4, vertex, sizeof(Vertex));
 
-			// æ¬¡ã®æ–‡å­—ã®ãŸã‚ã€Xåº§æ¨™ã‚’é€²ã‚ã‚‹
+			// Ÿ‚Ì•¶š‚Ì‚½‚ßAXÀ•W‚ği‚ß‚é
 			_pos.x += data->FontTex->GetInfo().Width;
 			_moveX += data->FontTex->GetInfo().Width;
 		}
 	}
 
-	// ã‚»ãƒƒãƒˆã—ãŸãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’è§£é™¤ã—ã¦ãŠã
+	// ƒZƒbƒg‚µ‚½ƒeƒNƒXƒ`ƒƒ‚ğ‰ğœ‚µ‚Ä‚¨‚­
 	ID3D11ShaderResourceView* srv = nullptr;
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, 1, &srv);
 
-	// ã“ã®é–¢æ•°ã§Beginã—ãŸå ´åˆã¯ã€Endã—ã¦ãŠã
+	// ‚±‚ÌŠÖ”‚ÅBegin‚µ‚½ê‡‚ÍAEnd‚µ‚Ä‚¨‚­
 	if (!bBgn)End();
 }
 

@@ -1,11 +1,11 @@
-ï»¿#include "FPSCamera.h"
+#include "FPSCamera.h"
 
 void FPSCamera::Init()
 {
-	// è¦ªã‚¯ãƒ©ã‚¹ã®åˆæœŸåŒ–å‘¼ã³å‡ºã—
+	// eƒNƒ‰ƒX‚Ì‰Šú‰»ŒÄ‚Ño‚µ
 	CameraBase::Init();
 
-	// åŸºæº–ç‚¹(ã‚¿ãƒ¼ã‚²ãƒƒãƒˆ)ã®ç›®ç·š
+	// Šî€“_(ƒ^[ƒQƒbƒg)‚Ì–Úü
 	m_mLocalPos = Math::Matrix::CreateTranslation(0, 1.5f, 0.0f);
 
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
@@ -13,7 +13,7 @@ void FPSCamera::Init()
 
 void FPSCamera::PostUpdate()
 {
-	// ã‚¿ãƒ¼ã‚²ãƒƒãƒˆã®è¡Œåˆ—(æœ‰åŠ¹ãªå ´åˆåˆ©ç”¨ã™ã‚‹)
+	// ƒ^[ƒQƒbƒg‚Ìs—ñ(—LŒø‚Èê‡—˜—p‚·‚é)
 	Math::Matrix								_targetMat	= Math::Matrix::Identity;
 	const std::shared_ptr<const KdGameObject>	_spTarget	= m_wpTarget.lock();	
 	if (_spTarget)
@@ -21,7 +21,7 @@ void FPSCamera::PostUpdate()
 		_targetMat = Math::Matrix::CreateTranslation(_spTarget->GetPos());
 	}
 
-	// ã‚«ãƒ¡ãƒ©ã®å›è»¢
+	// ƒJƒƒ‰‚Ì‰ñ“]
 	UpdateRotateByMouse();
 	m_mRotation = GetRotationMatrix();
 	m_mWorld	= m_mRotation * m_mLocalPos * _targetMat;

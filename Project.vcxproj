@@ -276,8 +276,11 @@
     <ClInclude Include="Src\Application\GameObject\Camera\CameraBase.h" />
     <ClInclude Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.h" />
     <ClInclude Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.h" />
-    <ClInclude Include="Src\Application\GameObject\Character\Bat\Bat.h" />
-    <ClInclude Include="Src\Application\GameObject\Character\Bat\BatGroup.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.h" />
+    <ClInclude Include="Src\Application\GameObject\UI\UI.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemyBase.h" />
     <ClInclude Include="Src\Application\GameObject\Character\CharaBase.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Player\Player.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.h" />
@@ -345,8 +348,11 @@
     <ClCompile Include="Src\Application\GameObject\Camera\CameraBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.cpp" />
     <ClCompile Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.cpp" />
-    <ClCompile Include="Src\Application\GameObject\Character\Bat\Bat.cpp" />
-    <ClCompile Include="Src\Application\GameObject\Character\Bat\BatGroup.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.cpp" />
+    <ClCompile Include="Src\Application\GameObject\UI\UI.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Character\Enemy\EnemyBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\CharaBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Player\Player.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.cpp" />

@@ -1,4 +1,4 @@
-ï»¿#include "SceneManager.h"
+#include "SceneManager.h"
 
 #include "BaseScene/BaseScene.h"
 #include "TitleScene/TitleScene.h"
@@ -6,7 +6,7 @@
 
 void SceneManager::PreUpdate()
 {
-	// ã‚·ãƒ¼ãƒ³åˆ‡æ›¿
+	// ƒV[ƒ“Ø‘Ö
 	if (m_currentSceneType != m_nextSceneType)
 	{
 		ChangeScene(m_nextSceneType);
@@ -57,7 +57,7 @@ void SceneManager::AddObject(const std::shared_ptr<KdGameObject>& _obj)
 
 void SceneManager::ChangeScene(SceneType _sceneType)
 {
-	// æ¬¡ã®ã‚·ãƒ¼ãƒ³ã‚’ä½œæˆã—ã€ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³ã«ã™ã‚‹
+	// Ÿ‚ÌƒV[ƒ“‚ğì¬‚µAŒ»İ‚ÌƒV[ƒ“‚É‚·‚é
 	switch (_sceneType)
 	{
 	case SceneType::Title:
@@ -68,6 +68,6 @@ void SceneManager::ChangeScene(SceneType _sceneType)
 		break;
 	}
 
-	// ç¾åœ¨ã®ã‚·ãƒ¼ãƒ³æƒ…å ±ã‚’æ›´æ–°
+	// Œ»İ‚ÌƒV[ƒ“î•ñ‚ğXV
 	m_currentSceneType = _sceneType;
 }

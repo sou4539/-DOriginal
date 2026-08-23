@@ -6,7 +6,7 @@ void Village::Init()
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/Stage/World/village.gltf");
 
-	m_mWorld = Math::Matrix::CreateTranslation(0.120777f, -0.878495f, 14.227562f);
+	m_mWorld = Math::Matrix::CreateTranslation(0.0f, 0.0f, 0.0f);
 
 	m_pDebugWire = std::make_unique<KdDebugWireFrame>();
 

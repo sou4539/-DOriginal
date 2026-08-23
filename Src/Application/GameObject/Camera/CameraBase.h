@@ -14,6 +14,12 @@ public:
 	// カメラの横回転角度を外から指定する。
 	void SetYawDeg(float yawDeg) { m_DegAng.y = yawDeg; }
 
+	// UI操作後に、次のカメラ更新でマウス移動量を使わないようにする。
+	void ResetMouseMove();
+
+	// UIなどがカメラ基準の方向を計算する時に使う。
+	float GetYawDeg() const { return m_DegAng.y; }
+
 	// 「絶対変更しません！見るだけ！」な書き方
 	const std::shared_ptr<KdCamera>& GetCamera() const
 	{
@@ -47,17 +53,18 @@ public:
 
 protected:
 	// カメラ回転用角度
-	Math::Vector3								m_DegAng		= Math::Vector3::Zero;
+	Math::Vector3								m_DegAng = Math::Vector3::Zero;
 
 	void UpdateRotateByMouse();
 
-	std::shared_ptr<KdCamera>					m_spCamera		= nullptr;
+	std::shared_ptr<KdCamera>					m_spCamera = nullptr;
 	std::weak_ptr<KdGameObject>					m_wpTarget;
 	std::vector<std::weak_ptr<KdGameObject>>	m_wpHitObjectList{};
 
-	Math::Matrix								m_mLocalPos		= Math::Matrix::Identity;
-	Math::Matrix								m_mRotation		= Math::Matrix::Identity;
+	Math::Matrix								m_mLocalPos = Math::Matrix::Identity;
+	Math::Matrix								m_mRotation = Math::Matrix::Identity;
 
 	// カメラ回転用マウス座標の差分
 	POINT										m_FixMousePos{};
+	bool										m_skipMouseMove = false;
 };

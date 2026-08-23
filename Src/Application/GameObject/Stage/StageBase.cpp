@@ -1,4 +1,4 @@
-﻿#include "StageBase.h"
+#include "StageBase.h"
 
 void StageBase::DrawLit()
 {

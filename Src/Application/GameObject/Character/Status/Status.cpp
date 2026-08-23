@@ -1,21 +1,27 @@
-#include "Status.h"
+ï»¿#include "Status.h"
 
 #include "../../../main.h"
+#include "../../Camera/CameraBase.h"
+#include "../Staff/Magic/MagicBase.h"
+
+#include <filesystem>
+#include <fstream>
 
 namespace
 {
-	// HPƒo[‚Ì•\¦İ’èB
-	// ‰æ‘œ‚ğ·‚µ‘Ö‚¦‚½‚èA•\¦ˆÊ’u‚ğ’²®‚µ‚½‚¢‚Í‚Ü‚¸‚±‚±‚ğŒ©‚éB
+	const char* ProgressSavePath = "Save/Progress.txt";
+	const char* UIClickSoundPath = "Asset/Sounds/UI/Click.wav";
+
+	// HPãƒãƒ¼ã®è¡¨ç¤ºè¨­å®šã€‚
 	constexpr int HpBarX = -660;
 	constexpr int HpBarY = 320;
 	constexpr int HpBarDrawW = 400;
 	constexpr int HpBarDrawH = 45;
 
-	// HP_Bar.png ‚Ìˆê”Ôã‚É‚ ‚é‰¡ƒo[•”•ªB
+	// HP_Bar.png ã®ä¸€ç•ªä¸Šã«ã‚ã‚‹æ¨ªãƒãƒ¼éƒ¨åˆ†ã€‚
 	const Math::Rectangle HpBarSrcRect = { 0, 0, 384, 128 };
 
-	// •\¦Œã‚ÌHPƒo[“à‚ÅAÀÛ‚ÉÔƒQ[ƒW‚ª“ü‚Á‚Ä‚¢‚é”ÍˆÍB
-	// Œ¸‚Á‚½HP‚Í‚±‚Ì”ÍˆÍ‚¾‚¯‚ğ‰E‚©‚ç‰B‚·B
+	// è¡¨ç¤ºå¾Œã®HPãƒãƒ¼å†…ã§ã€å®Ÿéš›ã«èµ¤ã‚²ãƒ¼ã‚¸ãŒå…¥ã£ã¦ã„ã‚‹ç¯„å›²ã€‚
 	constexpr int HpGaugeOffsetX = 42;
 	constexpr int HpGaugeOffsetY = 10;
 	constexpr int HpGaugeW = 333;
@@ -23,7 +29,7 @@ namespace
 
 	const Math::Color HpHideColor = { 0.08f, 0.07f, 0.13f, 1.0f };
 
-	// EXPƒo[‚ÍHPƒo[‚Ì‰º‚É¬‚³‚­•\¦‚·‚éB
+	// EXPãƒãƒ¼ã¯HPãƒãƒ¼ã®ä¸‹ã«å°ã•ãè¡¨ç¤ºã™ã‚‹ã€‚
 	constexpr int ExpBarX = HpBarX + 10;
 	constexpr int ExpBarY = HpBarY - 52;
 	constexpr int ExpBarDrawW = 300;
@@ -36,7 +42,7 @@ namespace
 	const Math::Color ExpGaugeColor = { 0.05f, 0.35f, 1.0f, 1.0f };
 	const Math::Color ExpHideColor = HpHideColor;
 
-	// Number.png‚Í0`9‚ª‰¡ˆê—ñ‚É•À‚ñ‚Å‚¢‚éB
+	// Number.pngã¯0ï½9ãŒæ¨ªä¸€åˆ—ã«ä¸¦ã‚“ã§ã„ã‚‹ã€‚
 	constexpr int NumberSrcW = 50;
 	constexpr int NumberSrcH = 100;
 	constexpr int LevelNumberX = ExpBarX + 5;
@@ -44,79 +50,95 @@ namespace
 	constexpr int NumberDrawW = 18;
 	constexpr int NumberDrawH = 36;
 
-	// ƒŒƒxƒ‹ƒAƒbƒv‘I‘ğUI‚Ì•\¦İ’èB
-	// V‚µ‚¢Back.png‚Í‰¡’·Šñ‚è‚È‚Ì‚ÅA‰æ‘œ”ä—¦‚É‹ß‚¢ƒJ[ƒhƒTƒCƒY‚Å3–‡•À‚×‚éB
-	// •¶š‰æ‘œ‚àƒJ[ƒh‚É‘Î‚µ‚Ä‘å‚«‚ß‚É•`‰æ‚µAã‰º¶‰E‚Ì—]”’‚ªo‚·‚¬‚È‚¢‚æ‚¤‚É‚·‚éB
+	// ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—é¸æŠUIã®è¡¨ç¤ºè¨­å®šã€‚
 	constexpr int LevelUpCardY = 10;
 	constexpr int LevelUpCardW = 300;
 	constexpr int LevelUpCardH = 220;
 	constexpr int LevelUpIconY = 0;
 	constexpr int LevelUpIconSize = 150;
 	constexpr int LevelUpCardXList[3] = { -340, 0, 340 };
+	constexpr int LevelUpHoverAddW = 24;
+	constexpr int LevelUpHoverAddH = 18;
+	constexpr int LevelUpHoverIconAdd = 12;
+	const Math::Color LevelUpHoverColor = { 1.15f, 1.15f, 1.15f, 1.0f };
+	constexpr int CursorDrawW = 32;
+	constexpr int CursorDrawH = 32;
 
-	bool IsMouseInSprite(const POINT& mousePos, int centerX, int centerY, int width, int height)
+	// æ‘ã®å¤–ã«å‡ºãŸæ™‚ã«ã€ç”»é¢ç«¯ã¸æ‘æ–¹å‘ã®çŸ¢å°ã‚’è¡¨ç¤ºã™ã‚‹ã€‚
+	constexpr float VillageArrowEdgeX = 560.0f;
+	constexpr float VillageArrowEdgeY = 300.0f;
+	constexpr int VillageArrowGuideW = 96;
+	constexpr int VillageArrowGuideH = 58;
+
+	void PlayUIClickSound()
 	{
-		const int spriteX = mousePos.x - 640;
-		const int spriteY = 360 - mousePos.y;
-
-		const int halfW = width / 2;
-		const int halfH = height / 2;
-
-		return spriteX >= centerX - halfW &&
-			   spriteX <= centerX + halfW &&
-			   spriteY >= centerY - halfH &&
-			   spriteY <= centerY + halfH;
+		auto sound = KdAudioManager::Instance().Play(UIClickSoundPath);
+		if (sound)
+		{
+			sound->SetVolume(0.5f);
+		}
 	}
+
 }
 
-// Status‚Ì‰Šú‰»ˆ—B
-// g‚¢•ûF
-//   Status¶¬‚ÉƒRƒ“ƒXƒgƒ‰ƒNƒ^‚©‚ç©“®‚ÅŒÄ‚Î‚ê‚éB
-//   HPƒo[‰æ‘œ‚ğ·‚µ‘Ö‚¦‚½ê‡‚ÍALoad()‚ÌƒpƒX‚ğ•ÏX‚·‚éB
-// ˆ—“à—eF
-//   HPƒo[‰æ‘œ‚ğ“Ç‚İ‚İA“Ç‚İ‚İ¸”s‚ÍDrawSprite‚Åg‚í‚È‚¢‚æ‚¤nullptr‚É–ß‚·B
+// Statusã®åˆæœŸåŒ–å‡¦ç†ã€‚
 void Status::Init()
 {
-	auto loadTexture = [](const char* path)
-	{
-		std::shared_ptr<KdTexture> tex = std::make_shared<KdTexture>();
-		if (!tex->Load(path))
-		{
-			return std::shared_ptr<KdTexture>(nullptr);
-		}
-		return tex;
-	};
-
-	// HPƒo[‚Ég‚¤‰æ‘œ‚ğ“Ç‚İ‚ŞB
-	// ‰æ‘œ‚ÍAsset/Textures/UIƒtƒHƒ‹ƒ_‚É’u‚¢‚Ä‚¢‚é‰¡Œü‚«ƒo[‚ğg‚¤B
+	// HPãƒãƒ¼ã«ä½¿ã†ç”»åƒã‚’èª­ã¿è¾¼ã‚€ã€‚
 	if (!m_hpBarTex)
 	{
-		// Œ»İ‚Ì‘fŞ”z’u‚É‡‚í‚¹‚ÄALevelUpƒtƒHƒ‹ƒ_“à‚ÌHP_Bar.png‚ğ“Ç‚ŞB
-		// Load‚É¸”s‚µ‚½ê‡‚Ínullptr‚É‚µ‚ÄADrawSprite‚Å•`‰æ‚µ‚È‚¢‚æ‚¤‚É‚·‚éB
-		m_hpBarTex = loadTexture("Asset/Textures/UI/HP_Bar.png");
+		m_hpBarTex = LoadTexture("Asset/Textures/UI/HP_Bar.png");
 	}
 
-	// ƒŒƒxƒ‹ƒAƒbƒv‘I‘ğUI—p‚Ì‰æ‘œ‚ğ“Ç‚İ‚ŞB
-	// ‚Ü‚¾‘I‘ğˆ—‚Í“ü‚ê‚¸A‚Ü‚¸‚ÍuBack‚Ìã‚É•¶š‰æ‘œ‚ğd‚Ë‚év•\¦‚¾‚¯ì‚éB
+	// ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—é¸æŠUIç”¨ã®ç”»åƒã‚’èª­ã¿è¾¼ã‚€ã€‚
 	if (!m_levelUpBackTex)
 	{
-		m_levelUpBackTex = loadTexture("Asset/Textures/UI/LevelUp/Back.png");
+		m_levelUpBackTex = LoadTexture("Asset/Textures/UI/LevelUp/Back.png");
 	}
 	if (!m_fireUpTex)
 	{
-		m_fireUpTex = loadTexture("Asset/Textures/UI/LevelUp/FireUp.png");
+		m_fireUpTex = LoadTexture("Asset/Textures/UI/LevelUp/FireUp.png");
 	}
 	if (!m_iceUpTex)
 	{
-		m_iceUpTex = loadTexture("Asset/Textures/UI/LevelUp/IceUp.png");
+		m_iceUpTex = LoadTexture("Asset/Textures/UI/LevelUp/IceUp.png");
 	}
 	if (!m_voltUpTex)
 	{
-		m_voltUpTex = loadTexture("Asset/Textures/UI/LevelUp/VoltUp.png");
+		m_voltUpTex = LoadTexture("Asset/Textures/UI/LevelUp/VoltUp.png");
+	}
+	if (!m_fireGetTex)
+	{
+		m_fireGetTex = LoadTexture("Asset/Textures/UI/LevelUp/FireGet.png");
+	}
+	if (!m_iceGetTex)
+	{
+		m_iceGetTex = LoadTexture("Asset/Textures/UI/LevelUp/IceGet.png");
+	}
+	if (!m_voltGetTex)
+	{
+		m_voltGetTex = LoadTexture("Asset/Textures/UI/LevelUp/VoltGet.png");
 	}
 	if (!m_numberTex)
 	{
-		m_numberTex = loadTexture("Asset/Textures/UI/LevelUp/Number.png");
+		m_numberTex = LoadTexture("Asset/Textures/UI/LevelUp/Number.png");
+	}
+	if (!m_villageArrowTex)
+	{
+		m_villageArrowTex = LoadTexture("Asset/Textures/UI/arrow.png");
+	}
+	if (!m_cursorTex)
+	{
+		m_cursorTex = LoadTexture("Asset/Textures/UI/Cursor.png");
+	}
+
+	LoadProgress();
+
+	// åˆå›é–‹å§‹æ™‚ã¯é­”æ³•ã‚’æŒã£ã¦ã„ãªã„ãŸã‚ã€æœ€åˆã®é­”æ³•å–å¾—UIã‚’é–‹ãã€‚
+	if (!m_playerStatus.HasAnyMagic())
+	{
+		m_pendingLevelUpSelectCount = 1;
+		OpenLevelUpSelect();
 	}
 }
 
@@ -127,23 +149,51 @@ void Status::Update()
 		UpdateLevelUpSelect();
 	}
 
-	// ƒfƒoƒbƒO—pFQƒL[‚ğ‰Ÿ‚µ‚½uŠÔ‚ÉƒŒƒxƒ‹ƒAƒbƒv‚³‚¹‚éB
-	// ‰Ÿ‚µ‚Á‚Ï‚È‚µ‚Å–ˆƒtƒŒ[ƒ€ã‚ª‚ç‚È‚¢‚æ‚¤‚ÉA‘OƒtƒŒ[ƒ€‚Ì“ü—Íó‘Ô‚Æ”äŠr‚·‚éB
+	UpdateDebugKeys();
+}
+
+void Status::UpdateDebugKeys()
+{
+	// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šQã‚­ãƒ¼ã‚’æŠ¼ã—ãŸç¬é–“ã«ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—ã•ã›ã‚‹ã€‚
 	const bool isDebugLevelUpKey = (GetAsyncKeyState('Q') & 0x8000);
 	if (isDebugLevelUpKey && !m_prevDebugLevelUpKey)
 	{
-		LevelUp();
+		const int levelUpCount = m_playerStatus.AddExp(m_playerStatus.GetNextExp());
+		if (levelUpCount > 0)
+		{
+			m_pendingLevelUpSelectCount += levelUpCount;
+			OpenLevelUpSelect();
+		}
+		SaveProgress();
 	}
 	m_prevDebugLevelUpKey = isDebugLevelUpKey;
+
+	// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šF5ã‚­ãƒ¼ã§ç¾åœ¨ã®é€²è¡ŒçŠ¶æ³ã‚’ä¿å­˜ã™ã‚‹ã€‚
+	const bool isDebugSaveKey = (GetAsyncKeyState(VK_F5) & 0x8000);
+	if (isDebugSaveKey && !m_prevDebugSaveKey)
+	{
+		SaveProgress();
+	}
+	m_prevDebugSaveKey = isDebugSaveKey;
+
+	// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šF9ã‚­ãƒ¼ã§é€²è¡ŒçŠ¶æ³ã‚’åˆæœŸçŠ¶æ…‹ã¸æˆ»ã™ã€‚
+	const bool isDebugResetKey = (GetAsyncKeyState(VK_F9) & 0x8000);
+	if (isDebugResetKey && !m_prevDebugResetKey)
+	{
+		ResetProgress();
+	}
+	m_prevDebugResetKey = isDebugResetKey;
+
+	// ãƒ‡ãƒãƒƒã‚°ç”¨ï¼šKã‚­ãƒ¼ã§ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼HPã‚’0ã«ã™ã‚‹ã€‚
+	const bool isDebugKillKey = (GetAsyncKeyState('K') & 0x8000);
+	if (isDebugKillKey && !m_prevDebugKillKey)
+	{
+		KillPlayerForDebug();
+	}
+	m_prevDebugKillKey = isDebugKillKey;
 }
 
-// HPƒo[‚Ì•`‰æˆ—B
-// g‚¢•ûF
-//   BaseScene‚ÌDrawSprite‚©‚ç–ˆƒtƒŒ[ƒ€©“®‚ÅŒÄ‚Î‚ê‚éB
-// ˆ—“à—eF
-//   –ƒ^ƒ“ó‘Ô‚ÌHPƒo[‰æ‘œ‚ğ•`‰æ‚µAŒ¸‚Á‚½HP•ª‚¾‚¯‰E‘¤‚ğˆÃ‚¢F‚Å‰B‚·B
-// ’ˆÓF
-//   HPƒo[‰æ‘œ‚ÌƒTƒCƒY‚âƒfƒUƒCƒ“‚ğ•Ï‚¦‚½ê‡‚ÍAã‚ÌHpGaugeŒn’è”‚à’²®‚·‚éB
+// HPãƒãƒ¼ã®æç”»å‡¦ç†ã€‚
 void Status::DrawSprite()
 {
 	if (m_isLevelUpSelect)
@@ -151,76 +201,64 @@ void Status::DrawSprite()
 		DrawLevelUpSelect();
 	}
 
-	if (!m_hpBarTex) { return; }
-	if (!m_hpBarTex->GetSRView()) { return; }
-
-	// ‰æ–ÊƒTƒCƒY‚Í1280x720‚È‚Ì‚ÅA2DÀ•W‚Í‚¾‚¢‚½‚¢
-	// ¶’[‚ª -640A‰E’[‚ª 640Aã’[‚ª 360A‰º’[‚ª -360 ‚É‚È‚éB
-	// HPƒo[‚Í‰æ–Ê¶ã‚É’u‚­‚½‚ßA‚©‚È‚è¶Šñ‚è‚ÌÀ•W‚ğg‚¤B
-	const int barX = HpBarX;
-	const int barY = HpBarY;
-
-	// •\¦‚·‚éHPƒo[‚Ì‘å‚«‚³B
-	// Œ³‰æ‘œ‚Í384x384‚ÅA‰¡ƒo[‚ªc‚É3í—Ş•À‚ñ‚Å‚¢‚éB
-	// ‚±‚±‚Å‚Íˆê”Ôã‚Ì‰¡ƒo[•”•ª‚¾‚¯‚ğØ‚è”²‚¢‚Äg‚¤B
-	const int drawW = HpBarDrawW;
-	const int drawH = HpBarDrawH;
-
-	// Œ³‰æ‘œ‚Ìˆê”Ôã‚Ì‰¡ƒo[•”•ª‚ğØ‚è”²‚­B
-	// 0`128px‚Ì”ÍˆÍ‚ÉA–ƒ^ƒ“ó‘Ô‚Ì‰¡ƒo[‚ª“ü‚Á‚Ä‚¢‚éB
-	Math::Rectangle srcRect = HpBarSrcRect;
-
-	// HPƒo[‰æ‘œ‚ğ•`‰æ‚·‚éB
-	// pivot‚ğ¶ãŠî€‚É‚·‚é‚±‚Æ‚ÅAbarX/barY‚ğ¶ãÀ•W‚Æ‚µ‚Äˆµ‚¦‚éB
-	KdShaderManager::Instance().m_spriteShader.DrawTex
-	(
-		m_hpBarTex.get(),
-		barX,
-		barY,
-		drawW,
-		drawH,
-		&srcRect,
-		&kWhiteColor,
-		{ 0.0f, 0.0f }
-	);
-
-	// Œ»İHP‚ÌŠ„‡‚ğ0.0`1.0‚Éû‚ß‚éB
-	float hpRate = 0.0f;
-	if (m_pMaxHp > 0.0f)
+	if (m_hpBarTex && m_hpBarTex->GetSRView())
 	{
-		hpRate = m_pHp / m_pMaxHp;
-	}
-	hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+		const int barX = HpBarX;
+		const int barY = HpBarY;
+		const int drawW = HpBarDrawW;
+		const int drawH = HpBarDrawH;
 
-	// HP_Bar.png‚ÌÔ‚¢•”•ª‚ÍA‰æ‘œ‚Ì“à‘¤‚É—]”’‚ª‚ ‚éB
-	// ‚»‚Ì‚½‚ßAÔƒo[‚Ì“à‘¤‚¾‚¯‚ğ‰B‚·‚æ‚¤‚ÉÀ•W‚ğ­‚µ“à‘¤‚Ö‚¸‚ç‚·B
-	const int innerX = barX + HpGaugeOffsetX;
-	// ÔƒQ[ƒW‚Ìã’[‚ª1px‚Ù‚Çc‚ç‚È‚¢‚æ‚¤‚ÉA‰B‚·”ÍˆÍ‚ğ­‚µã‚©‚çn‚ß‚éB
-	const int innerY = barY + HpGaugeOffsetY;
-	const int innerW = HpGaugeW;
-	const int innerH = HpGaugeH;
-
-	// Œ¸‚Á‚½HP•ª‚¾‚¯A‰E‘¤‚ğˆÃ‚¢F‚Å‰B‚·B
-	// ‰æ‘œ©‘Ì‚Í–ƒ^ƒ“‚ÌÔƒo[‚È‚Ì‚ÅA‘«‚è‚È‚¢•”•ª‚ğã‚©‚ç“h‚Á‚ÄŒ¸‚Á‚ÄŒ©‚¹‚éB
-	const int hideW = static_cast<int>(innerW * (1.0f - hpRate));
-	if (hideW > 0)
-	{
-		const int hideCenterX = innerX + innerW - (hideW / 2);
-		const int hideCenterY = innerY + (innerH / 2);
-
-		KdShaderManager::Instance().m_spriteShader.DrawBox
+		Math::Rectangle srcRect = HpBarSrcRect;
+		KdShaderManager::Instance().m_spriteShader.DrawTex
 		(
-			hideCenterX,
-			hideCenterY,
-			hideW / 2,
-			innerH / 2,
-			&HpHideColor,
-			true
+			m_hpBarTex.get(),
+			barX,
+			barY,
+			drawW,
+			drawH,
+			&srcRect,
+			&kWhiteColor,
+			{ 0.0f, 0.0f }
 		);
+
+		float hpRate = 0.0f;
+		if (m_playerStatus.GetMaxHp() > 0.0f)
+		{
+			hpRate = m_playerStatus.GetHp() / m_playerStatus.GetMaxHp();
+		}
+		hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+
+		const int innerX = barX + HpGaugeOffsetX;
+		const int innerY = barY + HpGaugeOffsetY;
+		const int innerW = HpGaugeW;
+		const int innerH = HpGaugeH;
+
+		const int hideW = static_cast<int>(innerW * (1.0f - hpRate));
+		if (hideW > 0)
+		{
+			const int hideCenterX = innerX + innerW - (hideW / 2);
+			const int hideCenterY = innerY + (innerH / 2);
+
+			KdShaderManager::Instance().m_spriteShader.DrawBox
+			(
+				hideCenterX,
+				hideCenterY,
+				hideW / 2,
+				innerH / 2,
+				&HpHideColor,
+				true
+			);
+		}
 	}
 
 	DrawExpBar();
-	DrawNumber(m_level, LevelNumberX, LevelNumberY, NumberDrawW, NumberDrawH);
+	DrawNumber(m_playerStatus.GetLevel(), LevelNumberX, LevelNumberY, NumberDrawW, NumberDrawH);
+	DrawVillageGuide();
+
+	if (m_isLevelUpSelect)
+	{
+		DrawCursor();
+	}
 }
 
 void Status::DrawExpBar()
@@ -242,9 +280,9 @@ void Status::DrawExpBar()
 	);
 
 	float expRate = 0.0f;
-	if (m_nextExp > 0.0f)
+	if (m_playerStatus.GetNextExp() > 0.0f)
 	{
-		expRate = m_exp / m_nextExp;
+		expRate = m_playerStatus.GetExp() / m_playerStatus.GetNextExp();
 	}
 	expRate = std::clamp(expRate, 0.0f, 1.0f);
 
@@ -315,38 +353,127 @@ void Status::DrawNumber(int value, int x, int y, int drawW, int drawH)
 	}
 }
 
+void Status::DrawVillageGuide()
+{
+	if (!m_villageArrowTex) { return; }
+	if (!m_villageArrowTex->GetSRView()) { return; }
+	if (m_villageGuideRadius <= 0.0f) { return; }
+
+	std::shared_ptr<KdGameObject> spPlayer = m_player.lock();
+	if (!spPlayer) { return; }
+
+	// çŸ¢å°ã®ç›®çš„åœ°ã¯å¸¸ã«ãƒ¯ãƒ¼ãƒ«ãƒ‰åŸç‚¹ã«ã™ã‚‹ã€‚
+	Math::Vector3 toVillage = Math::Vector3::Zero - spPlayer->GetPos();
+	toVillage.y = 0.0f;
+
+	const float distanceSqr = toVillage.LengthSquared();
+	const float guideHideRadiusSqr = m_villageGuideRadius * m_villageGuideRadius;
+
+	// æ‘ãŒååˆ†è¿‘ã„æ™‚ã¯æ¡ˆå†…ã‚’å‡ºã•ãªã„ã€‚
+	if (distanceSqr <= guideHideRadiusSqr) { return; }
+	if (distanceSqr <= 0.0001f) { return; }
+
+	toVillage.Normalize();
+
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‹ã‚‰ãƒ¯ãƒ¼ãƒ«ãƒ‰åŸç‚¹ã¸ã®æœ€çŸ­æ–¹å‘ã‚’ã€ã‚«ãƒ¡ãƒ©åŸºæº–ã®ç”»é¢æ–¹å‘ã«å¤‰æ›ã™ã‚‹ã€‚
+	Math::Vector2 guideDir = { toVillage.x, toVillage.z };
+	std::shared_ptr<CameraBase> spCamera = m_camera.lock();
+	if (spCamera)
+	{
+		const float yaw = DirectX::XMConvertToRadians(spCamera->GetYawDeg());
+		const float cosYaw = cosf(yaw);
+		const float sinYaw = sinf(yaw);
+
+		guideDir.x = (toVillage.x * cosYaw) + (toVillage.z * sinYaw);
+		guideDir.y = (-toVillage.x * sinYaw) + (toVillage.z * cosYaw);
+	}
+	guideDir.y *= -1.0f;
+
+	if (guideDir.LengthSquared() <= 0.0001f) { return; }
+	guideDir.Normalize();
+
+	const float scaleX = VillageArrowEdgeX / std::max(fabsf(guideDir.x), 0.0001f);
+	const float scaleY = VillageArrowEdgeY / std::max(fabsf(guideDir.y), 0.0001f);
+	const float edgeScale = std::min(scaleX, scaleY);
+
+	const int drawX = static_cast<int>(guideDir.x * edgeScale);
+	const int drawY = static_cast<int>(guideDir.y * edgeScale);
+
+	// å…ƒç”»åƒã¯å³å‘ããªã®ã§ã€+Xæ–¹å‘ã‚’åŸºæº–ã«ã—ã¦æ‘æ–¹å‘ã¸å›è»¢ã•ã›ã‚‹ã€‚
+	const float angle = atan2f(guideDir.y, guideDir.x);
+
+	KdShaderManager::Instance().m_spriteShader.DrawTexRot
+	(
+		m_villageArrowTex.get(),
+		drawX,
+		drawY,
+		VillageArrowGuideW,
+		VillageArrowGuideH,
+		angle,
+		nullptr,
+		&kWhiteColor,
+		{ 0.5f, 0.5f }
+	);
+}
+
+void Status::DrawCursor()
+{
+	if (!m_cursorTex) { return; }
+	if (!m_cursorTex->GetSRView()) { return; }
+
+	POINT mousePos;
+	GetCursorPos(&mousePos);
+	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
+
+	KdShaderManager::Instance().m_spriteShader.DrawTex
+	(
+		m_cursorTex.get(),
+		mousePos.x - 640,
+		360 - mousePos.y,
+		CursorDrawW,
+		CursorDrawH,
+		nullptr,
+		&kWhiteColor,
+		{ 0.0f, 0.0f }
+	);
+}
 void Status::DrawLevelUpSelect()
 {
 	if (!m_levelUpBackTex) { return; }
 	if (!m_levelUpBackTex->GetSRView()) { return; }
 
+	POINT mousePos;
+	GetCursorPos(&mousePos);
+	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
+
 	KdTexture* iconTexList[3] =
 	{
-		m_fireUpTex.get(),
-		m_iceUpTex.get(),
-		m_voltUpTex.get()
+		m_playerStatus.HasFire() ? m_fireUpTex.get() : m_fireGetTex.get(),
+		m_playerStatus.HasIce() ? m_iceUpTex.get() : m_iceGetTex.get(),
+		m_playerStatus.HasVolt() ? m_voltUpTex.get() : m_voltGetTex.get()
 	};
 
 	for (int i = 0; i < 3; ++i)
 	{
 		const int cardX = LevelUpCardXList[i];
+		const bool isHover = IsMouseInSprite(mousePos, cardX, LevelUpCardY, LevelUpCardW, LevelUpCardH);
+		const Math::Color* drawColor = isHover ? &LevelUpHoverColor : &kWhiteColor;
+		const int cardW = LevelUpCardW + (isHover ? LevelUpHoverAddW : 0);
+		const int cardH = LevelUpCardH + (isHover ? LevelUpHoverAddH : 0);
+		const int iconSize = LevelUpIconSize + (isHover ? LevelUpHoverIconAdd : 0);
 
-		// ‚Ü‚¸”wŒiƒJ[ƒh‚ğ•`‰æ‚·‚éB
-		// pivot‚ğ’†‰›‚É‚µ‚Ä‚¨‚­‚ÆA3–‡‚ÌƒJ[ƒh‚ğ‰æ–Ê’†‰›Šî€‚Å•À‚×‚â‚·‚¢B
 		KdShaderManager::Instance().m_spriteShader.DrawTex
 		(
 			m_levelUpBackTex.get(),
 			cardX,
 			LevelUpCardY,
-			LevelUpCardW,
-			LevelUpCardH,
+			cardW,
+			cardH,
 			nullptr,
-			&kWhiteColor,
+			drawColor,
 			{ 0.5f, 0.5f }
 		);
 
-		// ”wŒiƒJ[ƒh‚Ìã‚ÉA–‚–@–¼‚Ì‰æ‘œ‚ğd‚Ë‚éB
-		// ‰æ‘œ‚ª“Ç‚İ‚ß‚Ä‚¢‚È‚¢ê‡‚¾‚¯A‚»‚ÌƒJ[ƒh‚Ì•¶š•\¦‚ğ”ò‚Î‚·B
 		KdTexture* iconTex = iconTexList[i];
 		if (!iconTex) { continue; }
 		if (!iconTex->GetSRView()) { continue; }
@@ -356,10 +483,10 @@ void Status::DrawLevelUpSelect()
 			iconTex,
 			cardX,
 			LevelUpIconY,
-			LevelUpIconSize,
-			LevelUpIconSize,
+			iconSize,
+			iconSize,
 			nullptr,
-			&kWhiteColor,
+			drawColor,
 			{ 0.5f, 0.5f }
 		);
 	}
@@ -380,146 +507,205 @@ void Status::UpdateLevelUpSelect()
 
 	if (IsMouseInSprite(mousePos, LevelUpCardXList[0], LevelUpCardY, LevelUpCardW, LevelUpCardH))
 	{
+		PlayUIClickSound();
 		EnhanceFire();
-		m_isLevelUpSelect = false;
+		CloseLevelUpSelect();
 	}
 	else if (IsMouseInSprite(mousePos, LevelUpCardXList[1], LevelUpCardY, LevelUpCardW, LevelUpCardH))
 	{
+		PlayUIClickSound();
 		EnhanceIce();
-		m_isLevelUpSelect = false;
+		CloseLevelUpSelect();
 	}
 	else if (IsMouseInSprite(mousePos, LevelUpCardXList[2], LevelUpCardY, LevelUpCardW, LevelUpCardH))
 	{
+		PlayUIClickSound();
 		EnhanceVolt();
-		m_isLevelUpSelect = false;
+		CloseLevelUpSelect();
 	}
 
 	m_prevLeftClick = isLeftClick;
 }
 
+void Status::OpenLevelUpSelect()
+{
+	if (m_pendingLevelUpSelectCount <= 0) { return; }
+
+	m_isLevelUpSelect = true;
+}
+
+void Status::CloseLevelUpSelect()
+{
+	if (m_pendingLevelUpSelectCount > 0)
+	{
+		--m_pendingLevelUpSelectCount;
+	}
+
+	m_isLevelUpSelect = m_pendingLevelUpSelectCount > 0;
+
+	if (!m_isLevelUpSelect)
+	{
+		std::shared_ptr<CameraBase> spCamera = m_camera.lock();
+		if (spCamera)
+		{
+			spCamera->ResetMouseMove();
+		}
+	}
+}
+
 void Status::EnhanceFire()
 {
-	// ‰Š‚Í”ÍˆÍ–‚–@‚Æ‚µ‚Äˆç‚Ä‚éB
-	// ‘I‚Ô‚½‚Ñ‚É–½’†‚Ì”š”­”ÍˆÍ‚ªL‚ª‚éB
-	m_fireExplosionRadius += 0.5f;
+	if (m_playerStatus.HasFire())
+	{
+		m_playerStatus.EnhanceFire();
+	}
+	else
+	{
+		m_playerStatus.UnlockFire();
+	}
+	SaveProgress();
 }
 
 void Status::EnhanceIce()
 {
-	// •X‚Íu–½’†Œã‚É”h¶’e‚ªo‚év–‚–@‚Æ‚µ‚Äˆç‚Ä‚éB
-	// Å‰‚©‚ç’e”‚ğ‘‚â‚·‚Æ‰æ–Ê‚ª‚¤‚é‚³‚­‚È‚é‚½‚ßA
-	// ‘I‚Ô‚½‚Ñ‚ÉŠÑ’Ê”‚ÆA–½’†Œã‚Éo‚é”¼•ªƒ_ƒ[ƒW‚Ì”h¶’e”‚ğL‚Î‚·B
-	m_iceSplitCount++;
-	m_icePierceCount++;
+	if (m_playerStatus.HasIce())
+	{
+		m_playerStatus.EnhanceIce();
+	}
+	else
+	{
+		m_playerStatus.UnlockIce();
+	}
+	SaveProgress();
 }
 
 void Status::EnhanceVolt()
 {
-	// —‹‚Í˜A½–‚–@‚Æ‚µ‚Äˆç‚Ä‚éB
-	// ‰Šúó‘Ô‚Å‚à1‰ñ˜A½‚µA‘I‚Ô‚½‚Ñ‚É‚³‚ç‚É˜A½”‚ª‘‚¦‚éB
-	m_voltChainCount++;
+	if (m_playerStatus.HasVolt())
+	{
+		m_playerStatus.EnhanceVolt();
+	}
+	else
+	{
+		m_playerStatus.UnlockVolt();
+	}
+	SaveProgress();
 }
 
-// ƒvƒŒƒCƒ„[HP‚ğŒ¸‚ç‚·ˆ—B
-// g‚¢•ûF
-//   “G‚âƒ_ƒ[ƒW”»’è‘¤‚©‚ç spStatus->DamagePlayer(ƒ_ƒ[ƒW—Ê) ‚ÌŒ`‚ÅŒÄ‚ÔB
-// ˆ—“à—eF
-//   ó‚¯æ‚Á‚½ƒ_ƒ[ƒW—Ê‚¾‚¯HP‚ğŒ¸‚ç‚µA0–¢–‚É‚È‚ç‚È‚¢‚æ‚¤‚É‚·‚éB
-// ’ˆÓF
-//   0ˆÈ‰º‚Ì’l‚Í–³‹‚·‚éB‰ñ•œ‚µ‚½‚¢ê‡‚Í•Ê‚Ì‰ñ•œ—pŠÖ”‚ğg‚¤B
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼HPã‚’æ¸›ã‚‰ã™å‡¦ç†ã€‚
 void Status::DamagePlayer(float damage)
 {
-	// 0ˆÈ‰º‚Ì’l‚ğó‚¯æ‚Á‚½ê‡‚Í‰½‚à‚µ‚È‚¢B
-	// ‰ñ•œˆ—‚ÍResetPlayerHp‚È‚Ç•ÊŠÖ”‚É•ª‚¯ADamagePlayer‚ÍuŒ¸‚ç‚·‚¾‚¯v‚É‚·‚éB
-	if (damage <= 0.0f) { return; }
-
-	// ó‚¯æ‚Á‚½ƒ_ƒ[ƒW—Ê‚¾‚¯AƒvƒŒƒCƒ„[HP‚ğŒ¸‚ç‚·B
-	m_pHp -= damage;
-
-	// HP‚ª0‚æ‚è‰º‚És‚­‚ÆAUI•\¦‚â€–S”»’è‚ªˆµ‚¢‚É‚­‚­‚È‚éB
-	// ‚»‚Ì‚½‚ßAÅ’á’l‚Í0‚Å~‚ß‚Ä‚¨‚­B
-	if (m_pHp < 0.0f)
-	{
-		m_pHp = 0.0f;
-	}
+	m_playerStatus.Damage(damage);
 }
 
-// ƒvƒŒƒCƒ„[HP‚ğÅ‘å‚Ü‚Å–ß‚·ˆ—B
-// g‚¢•ûF
-//   Player‚Ì•œŠˆˆ—‚©‚çŒÄ‚ÔB
-// ˆ—“à—eF
-//   Œ»İHP‚ğÅ‘åHP‚Æ“¯‚¶’l‚É–ß‚µAHPƒo[•\¦‚à–ƒ^ƒ“‚É‚·‚éB
+// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼HPã‚’æœ€å¤§ã¾ã§æˆ»ã™å‡¦ç†ã€‚
 void Status::ResetPlayerHp()
 {
-	// ‘º‚Å•œŠˆ‚·‚é‚ÍAƒvƒŒƒCƒ„[HP‚ğÅ‘å’l‚Ü‚Å–ß‚·B
-	// HPƒo[‚Ím_pHp / m_pMaxHp‚Å•\¦‚µ‚Ä‚¢‚é‚½‚ßA‚±‚±‚ğ–ß‚·‚¾‚¯‚Å•\¦‚à–ƒ^ƒ“‚É‚È‚éB
-	m_pHp = m_pMaxHp;
+	m_playerStatus.ResetHp();
 }
 
-// ŒoŒ±’l‚ğ‰ÁZ‚·‚éˆ—B
-// g‚¢•ûF
-//   “G‚ğ“|‚µ‚½‚ÉA“G‘¤‚©‚ç spStatus->AddExp(ŒoŒ±’l—Ê) ‚ÌŒ`‚ÅŒÄ‚ÔB
-// ˆ—“à—eF
-//   ó‚¯æ‚Á‚½ŒoŒ±’l‚ğŒ»İŒoŒ±’l‚É‘«‚µA•K—vŒoŒ±’l‚É“Í‚¢‚½‚çƒŒƒxƒ‹ƒAƒbƒv‚·‚éB
-// ’ˆÓF
-//   0ˆÈ‰º‚Ì’l‚Í–³‹‚·‚éB
+// çµŒé¨“å€¤ã‚’åŠ ç®—ã™ã‚‹å‡¦ç†ã€‚
 void Status::AddExp(float exp)
 {
-	if (exp <= 0.0f) { return; }
-
-	m_exp += exp;
-
-	// ˆê“x‚É‘å—Ê‚ÌŒoŒ±’l‚ğ“¾‚½ê‡A•¡”‰ñƒŒƒxƒ‹ƒAƒbƒv‚Å‚«‚é‚æ‚¤‚Éwhile‚ÅŠm”F‚·‚éB
-	while (m_exp >= m_nextExp)
+	const int levelUpCount = m_playerStatus.AddExp(exp);
+	if (levelUpCount <= 0)
 	{
-		m_exp -= m_nextExp;
-		LevelUp();
+		SaveProgress();
+		return;
+	}
+
+	m_pendingLevelUpSelectCount += levelUpCount;
+	OpenLevelUpSelect();
+	SaveProgress();
+}
+
+void Status::SaveProgress()
+{
+	std::filesystem::create_directories("Save");
+
+	const PlayerStatus::SaveData data = m_playerStatus.GetSaveData();
+	std::ofstream file(ProgressSavePath);
+	if (!file) { return; }
+
+	file << data.hp << '\n';
+	file << data.maxHp << '\n';
+	file << data.mp << '\n';
+	file << data.attack << '\n';
+	file << data.defense << '\n';
+	file << data.speed << '\n';
+	file << data.level << '\n';
+	file << data.exp << '\n';
+	file << data.nextExp << '\n';
+	file << data.fireExplosionRadius << '\n';
+	file << data.iceSplitCount << '\n';
+	file << data.icePierceCount << '\n';
+	file << data.voltChainCount << '\n';
+	file << data.hasFire << '\n';
+	file << data.hasIce << '\n';
+	file << data.hasVolt << '\n';
+}
+
+void Status::LoadProgress()
+{
+	std::ifstream file(ProgressSavePath);
+	if (!file) { return; }
+
+	PlayerStatus::SaveData data;
+	file >> data.hp;
+	file >> data.maxHp;
+	file >> data.mp;
+	file >> data.attack;
+	file >> data.defense;
+	file >> data.speed;
+	file >> data.level;
+	file >> data.exp;
+	file >> data.nextExp;
+	file >> data.fireExplosionRadius;
+	file >> data.iceSplitCount;
+	file >> data.icePierceCount;
+	file >> data.voltChainCount;
+	if (!file) { return; }
+
+	// å¤ã„ä¿å­˜ãƒ‡ãƒ¼ã‚¿ã«ã¯é­”æ³•å–å¾—ãƒ•ãƒ©ã‚°ãŒç„¡ã„å¯èƒ½æ€§ãŒã‚ã‚‹ãŸã‚ã€èª­ã‚ã‚‹æ™‚ã ã‘åæ˜ ã™ã‚‹ã€‚
+	bool hasFire = data.hasFire;
+	bool hasIce = data.hasIce;
+	bool hasVolt = data.hasVolt;
+	if (file >> hasFire >> hasIce >> hasVolt)
+	{
+		data.hasFire = hasFire;
+		data.hasIce = hasIce;
+		data.hasVolt = hasVolt;
+	}
+
+	m_playerStatus.ApplySaveData(data);
+}
+
+void Status::ResetProgress()
+{
+	m_playerStatus.Reset();
+	m_pendingLevelUpSelectCount = 1;
+	OpenLevelUpSelect();
+
+	std::error_code error;
+	std::filesystem::remove(ProgressSavePath, error);
+}
+
+void Status::KillPlayerForDebug()
+{
+	m_playerStatus.Damage(m_playerStatus.GetMaxHp());
+}
+
+bool Status::HasMagic(MagicType type) const
+{
+	switch (type)
+	{
+	case MagicType::Fire:
+		return m_playerStatus.HasFire();
+	case MagicType::Ice:
+		return m_playerStatus.HasIce();
+	case MagicType::Volt:
+		return m_playerStatus.HasVolt();
+	default:
+		return false;
 	}
 }
-
-// ƒŒƒxƒ‹ƒAƒbƒvˆ—B
-// g‚¢•ûF
-//   AddExp()“à‚Å•K—vŒoŒ±’l‚É“’B‚µ‚½‚¾‚¯ŒÄ‚ÔB
-// ˆ—“à—eF
-//   ƒŒƒxƒ‹‚ğã‚°AÅ‘åHP‚ÆUŒ‚—Í‚ğã‚°‚éB
-//   ƒŒƒxƒ‹ƒAƒbƒv‚ÍŒ»İHP‚àÅ‘å’l‚Ü‚Å‰ñ•œ‚·‚éB
-void Status::LevelUp()
-{
-	m_level++;
-
-	// ƒŒƒxƒ‹ƒAƒbƒv‚µ‚½‚çA–‚–@‹­‰»‘I‘ğUI‚ğ•\¦‚·‚éB
-	// Œ»“_‚Å‚Í•\¦Šm”F‚¾‚¯s‚¢A‘I‘ğ‚µ‚Ä•Â‚¶‚éˆ—‚ÍŸ‚Ìì‹Æ‚Å’Ç‰Á‚·‚éB
-	m_isLevelUpSelect = true;
-
-	// ƒŒƒxƒ‹ƒAƒbƒv‚É‚æ‚é¬’·—ÊB
-	// ‚Ü‚¸‚Í•ª‚©‚è‚â‚·‚­AÅ‘åHP‚ÆUŒ‚—Í‚ğŒÅ’è’l‚Å‘‚â‚·B
-	m_pMaxHp += 10.0f;
-	m_pAttack += 2.0f;
-
-	// ƒŒƒxƒ‹ƒAƒbƒv‚µ‚½‹C‚¿‚æ‚³‚ğo‚·‚½‚ßAHP‚ğ‘S‰ñ•œ‚·‚éB
-	m_pHp = m_pMaxHp;
-
-	// ŸƒŒƒxƒ‹‚Ì•K—vŒoŒ±’l‚ğ­‚µ‚¸‚Â‘‚â‚·B
-	// —áF100 ¨ 125 ¨ 156.25 ‚Ì‚æ‚¤‚É‘‚¦‚Ä‚¢‚­B
-	m_nextExp *= 1.25f;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

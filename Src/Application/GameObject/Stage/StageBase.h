@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 class StageBase : public KdGameObject
 {
@@ -8,8 +8,7 @@ public:
 
 	void DrawLit() override;
 
-	// 壁・障害物用のスフィア判定対象にするかどうか。
-	// Groundのような広い地面はfalseのままにして、重い球 vs モデル判定を避ける。
+	// �ǁE��Q���p�̃X�t�B�A����Ώۂɂ��邩�ǂ����B
 	virtual bool EnableSphereCollision() const { return false; }
 
 protected:

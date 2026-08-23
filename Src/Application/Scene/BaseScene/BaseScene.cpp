@@ -3,7 +3,6 @@
 void BaseScene::PreUpdate()
 {
 	// Updateの前の更新処理
-	// オブジェクトリストの整理 ・・・ 無効なオブジェクトを削除
 	auto it = m_objList.begin();
 
 	while (it != m_objList.end())
@@ -62,7 +61,6 @@ void BaseScene::PreDraw()
 void BaseScene::Draw()
 {
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 光を遮るオブジェクト(影を生み出す要因となるオブジェクト)をBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_StandardShader.BeginGenerateDepthMapFromLight();
 	{
 		for (auto& obj : m_objList)
@@ -73,7 +71,6 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndGenerateDepthMapFromLight();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 陰影のないオブジェクト(背景など)はBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();
 	{
 		for (auto& obj : m_objList)
@@ -84,7 +81,6 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndUnLit();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 陰影のあるオブジェクト(光源の影響を受けるオブジェクト)はBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_StandardShader.BeginLit();
 	{
 		for (auto& obj : m_objList)
@@ -95,7 +91,6 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndLit();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 陰影のないオブジェクト(エフェクトなど)はBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();
 	{
 		for (auto& obj : m_objList)
@@ -106,7 +101,6 @@ void BaseScene::Draw()
 	KdShaderManager::Instance().m_StandardShader.EndUnLit();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 光源オブジェクト(自ら光るオブジェクトやエフェクト)はBeginとEndの間にまとめてDrawする
 	KdShaderManager::Instance().m_postProcessShader.BeginBright();
 	{
 		for (auto& obj : m_objList)
@@ -120,7 +114,6 @@ void BaseScene::Draw()
 void BaseScene::DrawSprite()
 {
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// 2Dの描画はこの間で行う
 	KdShaderManager::Instance().m_spriteShader.Begin();
 	{
 		for (auto& obj : m_objList)
@@ -134,7 +127,6 @@ void BaseScene::DrawSprite()
 void BaseScene::DrawDebug()
 {
 	// Zキーを押した瞬間だけ、全デバッグワイヤーの表示/非表示を切り替える。
-	// 当たり判定を確認したい時はON、普通に見た目を確認したい時はOFFにできる。
 	const bool isDebugWireKey = (GetAsyncKeyState('Z') & 0x8000);
 	if (isDebugWireKey && !m_prevDebugWireKey)
 	{
@@ -145,7 +137,6 @@ void BaseScene::DrawDebug()
 	KdDebugWireFrame::SetEnable(m_isDebugWireVisible);
 
 	// 非表示中も各オブジェクトはUpdate内でワイヤー情報を追加している可能性がある。
-	// そのままDrawDebug自体を飛ばすと内部に線が溜まるため、表示せずにクリアだけ行う。
 	if (!m_isDebugWireVisible)
 	{
 		for (auto& obj : m_objList)
@@ -156,7 +147,6 @@ void BaseScene::DrawDebug()
 	}
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	// デバッグ情報の描画はこの間で行う
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();
 	{
 		for (auto& obj : m_objList)

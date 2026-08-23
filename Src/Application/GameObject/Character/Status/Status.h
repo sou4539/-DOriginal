@@ -1,161 +1,119 @@
-#pragma once
+ï»¿#pragma once
 
-class Status : public KdGameObject
+#include "../../UI/UI.h"
+#include "../Player/PlayerStatus/PlayerStatus.h"
+
+class CameraBase;
+enum class MagicType;
+
+class Status : public UI
 {
 public:
-	// Status‚ğì¬‚µ‚½‚ÉA©“®‚ÅInit()‚ğŒÄ‚ñ‚ÅHPƒo[‰æ‘œ‚ğ“Ç‚İ‚ŞB
-	// GameScene‚Å‚Í std::make_shared<Status>() ‚·‚é‚¾‚¯‚Åg‚¦‚éB
+	// ç”Ÿæˆæ™‚ã«UIç”»åƒã‚’èª­ã¿è¾¼ã‚€ã€‚
 	Status() { Init(); }
+	~Status() override {}
 
-	// Status”jŠü‚Ìˆ—B
-	// shared_ptr‚Å‚Á‚Ä‚¢‚é‰æ‘œ‚Í©“®‰ğ•ú‚³‚ê‚é‚½‚ßA‚±‚±‚Å‚Í’Ç‰Áˆ—‚ğ‚½‚¹‚Ä‚¢‚È‚¢B
-	~Status() {}
-
-	// Status‚Ì‰Šú‰»ˆ—B
-	// HPƒo[‰æ‘œ‚Ì“Ç‚İ‚İ‚ğs‚¤B
+	// UIç”»åƒã‚’èª­ã¿è¾¼ã‚€ã€‚
 	void Init();
 
-	// –ˆƒtƒŒ[ƒ€XV—pB
-	// ¡‚Íˆ—‚È‚µB¡ŒãA“Å‚â©“®‰ñ•œ‚È‚ÇŠÔ‚Å•Ï‰»‚·‚éƒXƒe[ƒ^ƒXˆ—‚ğ“ü‚ê‚ç‚ê‚éB
+	// ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ã¨ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—é¸æŠã‚’æ›´æ–°ã™ã‚‹ã€‚
 	void Update();
 
-	// 2D‚ÌUI•`‰æˆ—B
-	// HPƒo[‰æ‘œ‚ğ‰æ–Ê¶ã‚É•`‰æ‚µAŒ»İHP‚É‡‚í‚¹‚ÄÔƒQ[ƒW‚ğ‰B‚·B
+	// HPã€çµŒé¨“å€¤ã€ãƒ¬ãƒ™ãƒ«ã€æ‘æ¡ˆå†…ã‚’æç”»ã™ã‚‹ã€‚
 	void DrawSprite() override;
 
-	// Status‚ªƒvƒŒƒCƒ„[î•ñ‚ğQÆ‚µ‚½‚¢‚Ég‚¤B
-	// Œ»İ‚ÍHPŠÇ—’†S‚¾‚ªA¡ŒãˆÊ’u‚âó‘Ô‚ğŒ©‚½‚¢ê‡‚Ég‚¦‚éB
+	// UIã§å‚ç…§ã™ã‚‹å¯¾è±¡ã‚’è¨­å®šã™ã‚‹ã€‚
 	void SetPlayer(const std::weak_ptr<KdGameObject>& player) { m_player = player; }
-
-	// Status‚ª“Gî•ñ‚ğQÆ‚µ‚½‚¢‚Ég‚¤B
-	// Œ»İ‚Í–¢g—p‚¾‚ªA“GHP‚âƒ{ƒXHP•\¦‚ğ’Ç‰Á‚·‚é‚Ég‚¦‚éB
+	void SetCamera(const std::weak_ptr<CameraBase>& camera) { m_camera = camera; }
 	void SetEnemy(const std::weak_ptr<KdGameObject>& enemy) { m_enemy = enemy; }
 
-	// ƒvƒŒƒCƒ„[‚ÌHP‚ğŒ¸‚ç‚·ŠÖ”B
-	// Player‘¤‚ÅHP‚ğ’¼Ú•ÏX‚¹‚¸AStatus‚ÉˆË—Š‚·‚éŒ`‚É‚µ‚Ä‚¢‚éB
-	// ‚±‚¤‚·‚é‚ÆAHP•\¦‚â€–S”»’è‚ğStatus‘¤‚É‚Ü‚Æ‚ß‚â‚·‚¢B
+	// æ‘æ¡ˆå†…ã‚’æ¶ˆã™åŠå¾„ã‚’è¨­å®šã™ã‚‹ã€‚
+	void SetVillageGuideRadius(float radius) { m_villageGuideRadius = radius; }
+
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼HPã‚’æ¸›ã‚‰ã™ã€‚
 	void DamagePlayer(float damage);
 
-	// ƒvƒŒƒCƒ„[‚ğ•œŠˆ‚³‚¹‚é‚ÉAHP‚ğÅ‘å’l‚Ü‚Å–ß‚·B
-	// •œŠˆˆ—©‘Ì‚ÍPlayer‘¤‚Ås‚¢AHP‚ÌŠÇ—‚¾‚¯Status‘¤‚Å’S“–‚·‚éB
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼HPã‚’æœ€å¤§ã¾ã§æˆ»ã™ã€‚
 	void ResetPlayerHp();
 
-	// ƒvƒŒƒCƒ„[‚ÌHP‚ª0‚É‚È‚Á‚Ä‚¢‚é‚©‚ğŠm”F‚·‚éB
-	// €–S”»’è‚ÌğŒ‚ğStatus‘¤‚É‚Ü‚Æ‚ß‚é‚±‚Æ‚ÅAPlayer‘¤‚Ìˆ—‚ğ“Ç‚İ‚â‚·‚­‚·‚éB
-	bool IsPlayerDead() const { return m_pHp <= 0.0f; }
+	// HPãŒ0ã‹ç¢ºèªã™ã‚‹ã€‚
+	bool IsPlayerDead() const { return m_playerStatus.IsDead(); }
+	float GetPlayerHp() const { return m_playerStatus.GetHp(); }
 
-	// UI•\¦‚âƒfƒoƒbƒO•\¦‚ÅAŒ»İ‚ÌƒvƒŒƒCƒ„[HP‚ğŠm”F‚µ‚½‚¢‚Ég‚¤B
-	float GetPlayerHp() const { return m_pHp; }
-
-	// “G‚ğ“|‚µ‚½‚ÉŒoŒ±’l‚ğ‰ÁZ‚·‚éB
-	// •K—vŒoŒ±’l‚ğ’´‚¦‚½ê‡‚ÍA“à•”‚ÅƒŒƒxƒ‹ƒAƒbƒvˆ—‚às‚¤B
+	// çµŒé¨“å€¤ã‚’åŠ ç®—ã™ã‚‹ã€‚
 	void AddExp(float exp);
 
-	// Œ»İ‚ÌƒŒƒxƒ‹‚ğŠm”F‚µ‚½‚¢‚Ég‚¤B
-	int GetLevel() const { return m_level; }
+	int GetLevel() const { return m_playerStatus.GetLevel(); }
+	float GetExp() const { return m_playerStatus.GetExp(); }
+	float GetNextExp() const { return m_playerStatus.GetNextExp(); }
 
-	// Œ»İ‚ÌŒoŒ±’l‚ğŠm”F‚µ‚½‚¢‚Ég‚¤B
-	float GetExp() const { return m_exp; }
-
-	// Ÿ‚ÌƒŒƒxƒ‹‚Ü‚Å‚É•K—v‚ÈŒoŒ±’l‚ğŠm”F‚µ‚½‚¢‚Ég‚¤B
-	float GetNextExp() const { return m_nextExp; }
-
-	// –‚–@‹­‰»’l‚ğŠm”F‚·‚éŠÖ”B
-	// StaffBase‚âMagicBase‚ªAŒ»İ‚Ì‹­‰»ó‘Ô‚É‡‚í‚¹‚ÄUŒ‚«”\‚ğ•Ï‚¦‚é‚½‚ß‚Ég‚¤B
-	float GetFireExplosionRadius() const { return m_fireExplosionRadius; }
-	int GetIceSplitCount() const { return m_iceSplitCount; }
-	int GetIcePierceCount() const { return m_icePierceCount; }
-	int GetVoltChainCount() const { return m_voltChainCount; }
+	// é­”æ³•å¼·åŒ–å€¤ã‚’è¿”ã™ã€‚
+	float GetFireExplosionRadius() const { return m_playerStatus.GetFireExplosionRadius(); }
+	int GetIceSplitCount() const { return m_playerStatus.GetIceSplitCount(); }
+	int GetIcePierceCount() const { return m_playerStatus.GetIcePierceCount(); }
+	int GetVoltChainCount() const { return m_playerStatus.GetVoltChainCount(); }
+	bool HasFire() const { return m_playerStatus.HasFire(); }
+	bool HasIce() const { return m_playerStatus.HasIce(); }
+	bool HasVolt() const { return m_playerStatus.HasVolt(); }
+	bool HasAnyMagic() const { return m_playerStatus.HasAnyMagic(); }
+	bool HasMagic(MagicType type) const;
 	bool IsLevelUpSelect() const { return m_isLevelUpSelect; }
 
 private:
-	// ƒŒƒxƒ‹ƒAƒbƒvˆ—B
-	// AddExp()‚©‚çŒÄ‚ÑAƒvƒŒƒCƒ„[‚Ì”\—Í’l‚ğã‚°‚éB
-	void LevelUp();
+	void SaveProgress();
+	void LoadProgress();
+	void ResetProgress();
+	void KillPlayerForDebug();
+	void UpdateDebugKeys();
 
-	// ƒŒƒxƒ‹ƒAƒbƒv‚É•\¦‚·‚é–‚–@‹­‰»‘I‘ğUI‚ğ•`‰æ‚·‚éB
-	// Back‰æ‘œ‚ğ3‚Â•À‚×A‚»‚Ìã‚ÉFire/Ice/Volt‚Ì•¶š‰æ‘œ‚ğ1‚Â‚¸‚Âd‚Ë‚éB
+	void OpenLevelUpSelect();
+	void CloseLevelUpSelect();
+
+	// ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—é¸æŠUIã‚’æç”»ã™ã‚‹ã€‚
 	void DrawLevelUpSelect();
 
-	// ƒŒƒxƒ‹ƒAƒbƒv‘I‘ğUI’†‚Ì“ü—Íˆ—B
-	// 1:‰Š 2:•X 3:—‹ ‚ğ‘I‚ñ‚ÅA‘Î‰‚·‚é‹­‰»’l‚ğL‚Î‚·B
+	// ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—é¸æŠUIã®å…¥åŠ›ã‚’å‡¦ç†ã™ã‚‹ã€‚
 	void UpdateLevelUpSelect();
 	void EnhanceFire();
 	void EnhanceIce();
 	void EnhanceVolt();
 	void DrawExpBar();
 	void DrawNumber(int value, int x, int y, int drawW, int drawH);
+	void DrawVillageGuide();
+	void DrawCursor();
 
-	// Status‘¤‚©‚çƒvƒŒƒCƒ„[‚â“G‚Ìî•ñ‚ğQÆ‚µ‚½‚¢‚Ég‚¤B
-	// weak_ptr‚É‚µ‚Ä‚¨‚­‚±‚Æ‚ÅA‘ÎÛƒIƒuƒWƒFƒNƒg‚ğŸè‚É¶‘¶‚³‚¹‘±‚¯‚È‚¢B
+	// UIæç”»ã‚„åˆ¤å®šã§å‚ç…§ã™ã‚‹å¯¾è±¡ã€‚
 	std::weak_ptr<KdGameObject> m_player;
 	std::weak_ptr<KdGameObject> m_enemy;
+	std::weak_ptr<CameraBase> m_camera;
 
-	// HPƒo[‰æ‘œB
-	// ¡‰ñ‚ÍAsset/Textures/UI‚É’u‚¢‚½ HP_Bar.png ‚ğ¶ã‚ÌUI‚Æ‚µ‚Äg‚¤B
+	// UIç”»åƒã€‚
 	std::shared_ptr<KdTexture> m_hpBarTex = nullptr;
-
-	// ƒŒƒxƒ‹ƒAƒbƒv‘I‘ğUI—p‚Ì‰æ‘œB
-	// m_levelUpBackTex‚ğ3–‡•`‰æ‚µA‚»‚Ìã‚ÉŠe–‚–@‚Ì•¶š‰æ‘œ‚ğd‚Ë‚éB
 	std::shared_ptr<KdTexture> m_levelUpBackTex = nullptr;
 	std::shared_ptr<KdTexture> m_fireUpTex = nullptr;
 	std::shared_ptr<KdTexture> m_iceUpTex = nullptr;
 	std::shared_ptr<KdTexture> m_voltUpTex = nullptr;
+	std::shared_ptr<KdTexture> m_fireGetTex = nullptr;
+	std::shared_ptr<KdTexture> m_iceGetTex = nullptr;
+	std::shared_ptr<KdTexture> m_voltGetTex = nullptr;
 	std::shared_ptr<KdTexture> m_numberTex = nullptr;
+	std::shared_ptr<KdTexture> m_villageArrowTex = nullptr;
+	std::shared_ptr<KdTexture> m_cursorTex = nullptr;
 
-	// ƒvƒŒƒCƒ„[‚ÌƒXƒe[ƒ^ƒXB
-	// m_pHp ‚ªŒ»İHPAm_pMaxHp ‚ªÅ‘åHPB
-	// HPƒo[‚Ì‰¡•‚Í m_pHp / m_pMaxHp ‚ÌŠ„‡‚ÅŒˆ‚ß‚éB
-	float m_pHp = 100.0f;
-	float m_pMaxHp = 100.0f;
-	float m_pMp = 100.0f;
-	float m_pAttack = 10.0f;
-	float m_pDefense = 5.0f;
-	float m_pSpeed = 1.0f;
+	// åŸç‚¹ã‹ã‚‰ã“ã®è·é›¢å†…ã§ã¯æ‘æ¡ˆå†…ã‚’è¡¨ç¤ºã—ãªã„ã€‚
+	float m_villageGuideRadius = 0.0f;
 
-	// ƒvƒŒƒCƒ„[‚Ì¬’·î•ñB
-	// “G‚ğ“|‚µ‚Äm_exp‚ğ‘‚â‚µAm_nextExpˆÈã‚É‚È‚Á‚½‚çƒŒƒxƒ‹ƒAƒbƒv‚·‚éB
-	int m_level = 1;
-	float m_exp = 0.0f;
-	float m_nextExp = 100.0f;
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æ•°å€¤ç®¡ç†ã€‚
+	PlayerStatus m_playerStatus;
 
-	// true‚ÌŠÔAƒŒƒxƒ‹ƒAƒbƒv‚Ì–‚–@‹­‰»‘I‘ğUI‚ğ‰æ–Ê‚É•\¦‚·‚éB
-	// ¡‚ÍŒ©‚½–ÚŠm”F—p‚Æ‚µ‚Ä•\¦‚¾‚¯s‚¢A‘I‘ğˆ—‚ÍŸ‚Ìì‹Æ‚Å’Ç‰Á‚·‚éB
+	// ãƒ¬ãƒ™ãƒ«ã‚¢ãƒƒãƒ—é¸æŠUIã®çŠ¶æ…‹ã€‚
 	bool m_isLevelUpSelect = false;
+	int m_pendingLevelUpSelectCount = 0;
 
-	// ƒfƒoƒbƒO—pƒŒƒxƒ‹ƒAƒbƒvƒL[‚Ì‘OƒtƒŒ[ƒ€ó‘ÔB
-	// ‰Ÿ‚µ‚Á‚Ï‚È‚µ‚Å–ˆƒtƒŒ[ƒ€LevelUp‚µ‚È‚¢‚æ‚¤‚É‚·‚é‚½‚ß‚Ég‚¤B
+	// å…¥åŠ›ã®æŠ¼ã—ã£ã±ãªã—é˜²æ­¢ã€‚
 	bool m_prevDebugLevelUpKey = false;
-
-	// ƒŒƒxƒ‹ƒAƒbƒv‘I‘ğƒL[‚Ì‘OƒtƒŒ[ƒ€ó‘ÔB
-	// ‰Ÿ‚µ‚Á‚Ï‚È‚µ‚Å•¡”‰ñ‹­‰»‚³‚ê‚È‚¢‚æ‚¤‚É‚·‚éB
-	bool m_prevSelectFireKey = false;
-	bool m_prevSelectIceKey = false;
-	bool m_prevSelectVoltKey = false;
+	bool m_prevDebugSaveKey = false;
+	bool m_prevDebugResetKey = false;
+	bool m_prevDebugKillKey = false;
 	bool m_prevLeftClick = false;
-
-	// –‚–@‚²‚Æ‚Ì‹­‰»’lB
-	// Å‘å’l‚Íİ‚¯‚¸A‘I‘ğ‚·‚é‚½‚Ñ‚É‚»‚ê‚¼‚ê‚Ì“Á’¥‚ªL‚Ñ‚Ä‚¢‚­B
-	float m_fireExplosionRadius = 3.0f;
-	int m_iceSplitCount = 1;
-	int m_icePierceCount = 1;
-	int m_voltChainCount = 1;
-
-	// “G‚ÌƒXƒe[ƒ^ƒXB
-	// ¡‰ñ‚Í‚Ü‚¾g‚Á‚Ä‚¢‚È‚¢‚ªA¡ŒãƒRƒEƒ‚ƒŠ‚âƒ{ƒX‚ÌHPŠÇ—‚Ég‚¦‚éB
-	float m_eHp = 50.0f;
-	float m_eMp = 50.0f;
-	float m_eAttack = 5.0f;
-	float m_eDefense = 2.0f;
-	float m_eSpeed = 0.5f;
 };
-
-
-
-
-
-
-
-
-
-

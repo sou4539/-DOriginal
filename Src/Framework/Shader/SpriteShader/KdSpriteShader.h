@@ -1,8 +1,8 @@
-ï»¿#pragma once
+#pragma once
 
 //===================================================
 //
-// 2Dæç”»ã‚·ã‚§ãƒ¼ãƒ€
+// 2D•`‰æƒVƒF[ƒ_
 //
 //===================================================
 class KdFontSprite;
@@ -16,13 +16,13 @@ public:
 	};
 
 	//===========================================
-	// åˆæœŸåŒ–ãƒ»è§£æ”¾
+	// ‰Šú‰»E‰ğ•ú
 	//===========================================
 
-	// åˆæœŸåŒ–
+	// ‰Šú‰»
 	bool Init();
 
-	// è§£æ”¾
+	// ‰ğ•ú
 	void Release();
 
 	// 
@@ -32,50 +32,54 @@ public:
 
 	//===========================================
 	//
-	// æç”»ç³»
+	// •`‰æŒn
 	//
 	//===========================================
 
-	// æç”»é–‹å§‹
-	// ã‚¹ãƒ†ãƒ¼ãƒˆã®è¨˜æ†¶ãƒ»å¤‰æ›´ã‚„ã€2Dæç”»ç”¨ã®è¡Œåˆ—ã®è¨­å®šã€ã‚·ã‚§ãƒ¼ãƒ€åˆ‡ã‚Šæ›¿ãˆãªã©ã‚’è¡Œã†
-	// ãƒ»linear			â€¦ ç·šå½¢è£œé–“ãƒ¢ãƒ¼ãƒ‰ã«ã™ã‚‹
-	// ãƒ»disableZBuffer	â€¦ Zãƒãƒƒãƒ•ã‚¡ã‚’ä½¿ç”¨ã—ãªã„
+	// •`‰æŠJn
+	// ƒXƒe[ƒg‚Ì‹L‰¯E•ÏX‚âA2D•`‰æ—p‚Ìs—ñ‚Ìİ’èAƒVƒF[ƒ_Ø‚è‘Ö‚¦‚È‚Ç‚ğs‚¤
+	// Elinear			c üŒ`•âŠÔƒ‚[ƒh‚É‚·‚é
+	// EdisableZBuffer	c Zƒoƒbƒtƒ@‚ğg—p‚µ‚È‚¢
 	void Begin(bool linear = true, bool disableZBuffer = true);
 
-	// æç”»çµ‚äº†
-	//  Begin()ã§è¨˜æ†¶ã—ã¦ã„ãŸã‚¹ãƒ†ãƒ¼ãƒˆã‚’å¾©å…ƒ 
+	// •`‰æI—¹
+	//  Begin()‚Å‹L‰¯‚µ‚Ä‚¢‚½ƒXƒe[ƒg‚ğ•œŒ³ 
 	void End();
 
-	// å¤‰æ›è¡Œåˆ—ã‚»ãƒƒãƒˆ
+	// •ÏŠ·s—ñƒZƒbƒg
 	void SetMatrix(const Math::Matrix& m)
 	{
 		m_cb0.Work().mTransform = m;
 	}
 
-	// 2Dç”»åƒæç”»(Beginï½Endé–“ã§å®Ÿè¡Œã™ã‚‹ã¨ã€å‡¦ç†åŠ¹ç‡ãŒä¸ŠãŒã‚‹)
-	// ãƒ»tex			â€¦ æç”»ã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£(Texture)
-	// ãƒ»x				â€¦ xåº§æ¨™(ãƒ”ã‚¯ã‚»ãƒ«)
-	// ãƒ»y				â€¦ yåº§æ¨™(ãƒ”ã‚¯ã‚»ãƒ«)
-	// ãƒ»w				â€¦ wåº§æ¨™(ãƒ”ã‚¯ã‚»ãƒ«)
-	// ãƒ»h				â€¦ håº§æ¨™(ãƒ”ã‚¯ã‚»ãƒ«)
-	// ãƒ»srcRect		â€¦ å…ƒç”»åƒã®RECT nullptrã§å…¨ä½“
-	// ãƒ»color			â€¦ è‰²(RGBA) nullptrã§è‰²ã¯ã‚»ãƒƒãƒˆã—ãªã„(å‰å›ã®æç”»æ™‚ã®è‰²ãŒä½¿ç”¨ã•ã‚Œã‚‹)
-	// ãƒ»pivot			â€¦ åŸºæº–ç‚¹ 0.0ï½1.0ã®ç¯„å›²ã§æŒ‡å®šã™ã‚‹
+	// 2D‰æ‘œ•`‰æ(Begin`EndŠÔ‚ÅÀs‚·‚é‚ÆAˆ—Œø—¦‚ªã‚ª‚é)
+	// Etex			c •`‰æ‚·‚éƒeƒNƒXƒ`ƒƒ(Texture)
+	// Ex				c xÀ•W(ƒsƒNƒZƒ‹)
+	// Ey				c yÀ•W(ƒsƒNƒZƒ‹)
+	// Ew				c wÀ•W(ƒsƒNƒZƒ‹)
+	// Eh				c hÀ•W(ƒsƒNƒZƒ‹)
+	// EsrcRect		c Œ³‰æ‘œ‚ÌRECT nullptr‚Å‘S‘Ì
+	// Ecolor			c F(RGBA) nullptr‚ÅF‚ÍƒZƒbƒg‚µ‚È‚¢(‘O‰ñ‚Ì•`‰æ‚ÌF‚ªg—p‚³‚ê‚é)
+	// Epivot			c Šî€“_ 0.0`1.0‚Ì”ÍˆÍ‚Åw’è‚·‚é
 	void DrawTex(const KdTexture* tex, int x, int y, int w, int h, const Math::Rectangle* srcRect = nullptr, const Math::Color* color = &kWhiteColor, const Math::Vector2& pivot = { 0.5, 0.5f });
+
+	// Šp“x•t‚«2D‰æ‘œ•`‰æBangle‚Íƒ‰ƒWƒAƒ“‚Åw’è‚·‚éB
+	void DrawTexRot(const KdTexture* tex, int x, int y, int w, int h, float angle, const Math::Rectangle* srcRect = nullptr, const Math::Color* color = &kWhiteColor, const Math::Vector2& pivot = { 0.5, 0.5f });
+
 	void DrawTex(const std::weak_ptr<KdTexture> tex, int x, int y, int w, int h, const Math::Rectangle* srcRect = nullptr, const Math::Color* color = &kWhiteColor, const Math::Vector2& pivot = { 0.5, 0.5f })
 	{
 		if(tex.expired())return;
 		DrawTex(tex.lock().get(), x, y, w, h, srcRect, color, pivot);
 	}
 
-	// 2Dç”»åƒæç”»(Beginï½Endé–“ã§å®Ÿè¡Œã™ã‚‹ã¨ã€å‡¦ç†åŠ¹ç‡ãŒä¸ŠãŒã‚‹)
-	// å¹…ã¨é«˜ã•ã¯texã®æƒ…å ±ãŒä½¿ç”¨ã•ã‚Œã‚‹
-	// ãƒ»tex			â€¦ æç”»ã™ã‚‹ãƒ†ã‚¯ã‚¹ãƒãƒ£(Texture)
-	// ãƒ»x				â€¦ xåº§æ¨™(ãƒ”ã‚¯ã‚»ãƒ«)
-	// ãƒ»y				â€¦ yåº§æ¨™(ãƒ”ã‚¯ã‚»ãƒ«)
-	// ãƒ»srcRect		â€¦ å…ƒç”»åƒã®RECT
-	// ãƒ»color			â€¦ è‰²(RGBA)
-	// ãƒ»pivot			â€¦ åŸºæº–ç‚¹ 0.0ï½1.0ã®ç¯„å›²ã§æŒ‡å®šã™ã‚‹
+	// 2D‰æ‘œ•`‰æ(Begin`EndŠÔ‚ÅÀs‚·‚é‚ÆAˆ—Œø—¦‚ªã‚ª‚é)
+	// •‚Æ‚‚³‚Ítex‚Ìî•ñ‚ªg—p‚³‚ê‚é
+	// Etex			c •`‰æ‚·‚éƒeƒNƒXƒ`ƒƒ(Texture)
+	// Ex				c xÀ•W(ƒsƒNƒZƒ‹)
+	// Ey				c yÀ•W(ƒsƒNƒZƒ‹)
+	// EsrcRect		c Œ³‰æ‘œ‚ÌRECT
+	// Ecolor			c F(RGBA)
+	// Epivot			c Šî€“_ 0.0`1.0‚Ì”ÍˆÍ‚Åw’è‚·‚é
 	void DrawTex(const KdTexture* tex, int x, int y, const Math::Rectangle* srcRect = nullptr, const Math::Color* color = &kWhiteColor, const Math::Vector2& pivot = { 0.5, 0.5f })
 	{
 		if (tex == nullptr)return;
@@ -87,71 +91,71 @@ public:
 		DrawTex(tex.lock().get(), x, y, tex.lock().get()->GetInfo().Width, tex.lock().get()->GetInfo().Height, srcRect, color, pivot);
 	}
 
-	// ç‚¹ã‚’æç”»
-	// ãƒ»x				â€¦ ç‚¹ã®Xåº§æ¨™
-	// ãƒ»y				â€¦ ç‚¹ã®Yåº§æ¨™
-	// ãƒ»color			â€¦ è‰²(RGBA)
+	// “_‚ğ•`‰æ
+	// Ex				c “_‚ÌXÀ•W
+	// Ey				c “_‚ÌYÀ•W
+	// Ecolor			c F(RGBA)
 	void DrawPoint(int x, int y, const Math::Color* color = &kWhiteColor);
 
-	// 2Dç·šã‚’æç”»
-	// ãƒ»x1				â€¦ ç‚¹ï¼‘ã®Xåº§æ¨™
-	// ãƒ»y1				â€¦ ç‚¹ï¼‘ã®Yåº§æ¨™
-	// ãƒ»x2				â€¦ ç‚¹ï¼’ã®Xåº§æ¨™
-	// ãƒ»y2				â€¦ ç‚¹ï¼’ã®Yåº§æ¨™
-	// ãƒ»color			â€¦ è‰²(RGBA)
+	// 2Dü‚ğ•`‰æ
+	// Ex1				c “_‚P‚ÌXÀ•W
+	// Ey1				c “_‚P‚ÌYÀ•W
+	// Ex2				c “_‚Q‚ÌXÀ•W
+	// Ey2				c “_‚Q‚ÌYÀ•W
+	// Ecolor			c F(RGBA)
 	void DrawLine(int x1, int y1, int x2, int y2, const Math::Color* color = &kWhiteColor);
 
-	// ä¸‰è§’å½¢ã‚’æç”»
-	// ãƒ»x1				â€¦ åº§æ¨™ï¼‘ã®Xåº§æ¨™
-	// ãƒ»y1				â€¦ åº§æ¨™ï¼‘ã®Yåº§æ¨™
-	// ãƒ»x2				â€¦ åº§æ¨™ï¼’ã®Xåº§æ¨™
-	// ãƒ»y2				â€¦ åº§æ¨™ï¼’ã®Yåº§æ¨™
-	// ãƒ»x3				â€¦ åº§æ¨™ï¼“ã®Xåº§æ¨™
-	// ãƒ»y3				â€¦ åº§æ¨™ï¼“ã®Yåº§æ¨™
-	// ãƒ»fill			â€¦ å¡—ã‚Šã¤ã¶ã—
+	// OŠpŒ`‚ğ•`‰æ
+	// Ex1				c À•W‚P‚ÌXÀ•W
+	// Ey1				c À•W‚P‚ÌYÀ•W
+	// Ex2				c À•W‚Q‚ÌXÀ•W
+	// Ey2				c À•W‚Q‚ÌYÀ•W
+	// Ex3				c À•W‚R‚ÌXÀ•W
+	// Ey3				c À•W‚R‚ÌYÀ•W
+	// Efill			c “h‚è‚Â‚Ô‚µ
 	void DrawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, const Math::Color* color = &kWhiteColor, bool fill = true);
 
-	// 2Då††ã‚’æç”»
-	// ãƒ»x				â€¦ å††ã®ä¸­å¿ƒåº§æ¨™ã®Xåº§æ¨™
-	// ãƒ»y				â€¦ å††ã®ä¸­å¿ƒåº§æ¨™ã®Yåº§æ¨™
-	// ãƒ»radius			â€¦ å††ã®åŠå¾„
-	// ãƒ»color			â€¦ è‰²(RGBA)
-	// ãƒ»fill			â€¦ å¡—ã‚Šã¤ã¶ã—
+	// 2D‰~‚ğ•`‰æ
+	// Ex				c ‰~‚Ì’†SÀ•W‚ÌXÀ•W
+	// Ey				c ‰~‚Ì’†SÀ•W‚ÌYÀ•W
+	// Eradius			c ‰~‚Ì”¼Œa
+	// Ecolor			c F(RGBA)
+	// Efill			c “h‚è‚Â‚Ô‚µ
 	void DrawCircle(int x, int y, int radius, const Math::Color* color = &kWhiteColor, bool fill = true);
 
-	// 2Dç®±ã‚’æç”»
-	// ãƒ»x				â€¦ ç®±ã®ä¸­å¿ƒåº§æ¨™ã®Xåº§æ¨™
-	// ãƒ»y				â€¦ ç®±ã®ä¸­å¿ƒåº§æ¨™ã®Yåº§æ¨™
-	// ãƒ»extentX		â€¦ ç®±ã®Xæ–¹å‘ã®ãƒãƒ¼ãƒ•ã‚µã‚¤ã‚º
-	// ãƒ»extentY		â€¦ ç®±ã®Yæ–¹å‘ã®ãƒãƒ¼ãƒ•ã‚µã‚¤ã‚º
-	// ãƒ»color			â€¦ è‰²(RGBA)
-	// ãƒ»fill			â€¦ å¡—ã‚Šã¤ã¶ã—
+	// 2D” ‚ğ•`‰æ
+	// Ex				c ” ‚Ì’†SÀ•W‚ÌXÀ•W
+	// Ey				c ” ‚Ì’†SÀ•W‚ÌYÀ•W
+	// EextentX		c ” ‚ÌX•ûŒü‚Ìƒn[ƒtƒTƒCƒY
+	// EextentY		c ” ‚ÌY•ûŒü‚Ìƒn[ƒtƒTƒCƒY
+	// Ecolor			c F(RGBA)
+	// Efill			c “h‚è‚Â‚Ô‚µ
 	void DrawBox(int x, int y, int extentX, int extentY, const Math::Color* color = &kWhiteColor, bool fill = true);
 
-	// åˆ‡ã‚ŠæŠœãç¯„å›²ã‚’è¨­å®šã™ã‚‹
-	// ãƒ»rect			â€¦ ç¯„å›²
+	// Ø‚è”²‚«”ÍˆÍ‚ğİ’è‚·‚é
+	// Erect			c ”ÍˆÍ
 	void SetScissorRect(const Math::Rectangle& rect);
 
-	// ãƒ•ã‚©ãƒ³ãƒˆæç”»
+	// ƒtƒHƒ“ƒg•`‰æ
 	void DrawFont(const Math::Vector2& Pos, const Math::Color* color, const char* format, ...);
 
 private:
-	// ãƒ•ã‚©ãƒ³ãƒˆæç”»
+	// ƒtƒHƒ“ƒg•`‰æ
 	void DrawFont(std::shared_ptr<KdFontSprite>& fontSprite, const Math::Vector2& Pos, const Math::Color* color, const int antiAliasingFlag);
 
-	ID3D11VertexShader*		m_VS = nullptr;				// é ‚ç‚¹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
-	ID3D11InputLayout*		m_VLayout = nullptr;		// é ‚ç‚¹ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆ
+	ID3D11VertexShader*		m_VS = nullptr;				// ’¸“_ƒVƒF[ƒ_[
+	ID3D11InputLayout*		m_VLayout = nullptr;		// ’¸“_ƒŒƒCƒAƒEƒg
 
-	ID3D11PixelShader*		m_PS = nullptr;				// ãƒ”ã‚¯ã‚»ãƒ«ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
+	ID3D11PixelShader*		m_PS = nullptr;				// ƒsƒNƒZƒ‹ƒVƒF[ƒ_[
 
-	// å®šæ•°ãƒãƒƒãƒ•ã‚¡
+	// ’è”ƒoƒbƒtƒ@
 	struct cbSprite {
 		Math::Matrix		mTransform;
 		Math::Vector4		Color = { 1, 1, 1, 1 };
 	};
 	KdConstantBuffer<cbSprite>	m_cb0;
 
-	// å®šæ•°ãƒãƒƒãƒ•ã‚¡
+	// ’è”ƒoƒbƒtƒ@
 	struct cbProjection {
 		Math::Matrix		mProj;
 	};
@@ -160,6 +164,6 @@ private:
 	// Flag
 	bool					m_isBegin = false;
 
-	// 2Dç”¨æ­£å°„å½±è¡Œåˆ—
+	// 2D—p³Ë‰es—ñ
 	Math::Matrix			m_mProj2D;
 };

@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 
 class CharaBase :public KdGameObject
 {
@@ -16,10 +16,10 @@ public:
 	}
 
 private:
-	// è¡çªåˆ¤å®šã¨ãã‚Œã«ä¼´ã†åº§æ¨™ã®æ›´æ–°
+	// Õ“Ë”»’è‚Æ‚»‚ê‚É”º‚¤À•W‚ÌXV
 	void UpdateCollision();
 
-	// è§£æ”¾å‡¦ç†
+	// ‰ğ•úˆ—
 	void Release();
 
 protected:
@@ -28,7 +28,7 @@ protected:
 	std::vector<std::weak_ptr<KdGameObject>>	m_wpHitObjectList{};
 	float										m_Gravity = 0;
 
-	//ä¹—ã‚Šç‰©åˆ¶å¾¡é–¢ä¿‚
+	//æ‚è•¨§ŒäŠÖŒW
 	Math::Matrix                                m_mLocalFromRideObject;
 	std::weak_ptr<KdGameObject>                 m_wpRiddenObject;
 

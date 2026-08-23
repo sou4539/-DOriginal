@@ -6,7 +6,7 @@ void CameraBase::Init()
 	{
 		m_spCamera = std::make_shared<KdCamera>();
 	}
-	// ↓画面中央座標
+	// 画面中央座標。
 	m_FixMousePos.x = 640;
 	m_FixMousePos.y = 360;
 }
@@ -26,11 +26,24 @@ void CameraBase::SetTarget(const std::shared_ptr<KdGameObject>& target)
 	m_wpTarget = target;
 }
 
+void CameraBase::ResetMouseMove()
+{
+	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
+	m_skipMouseMove = true;
+}
+
 void CameraBase::UpdateRotateByMouse()
 {
-	// マウスでカメラを回転させる処理
+	// マウスでカメラを横回転させる。
 	POINT _nowPos;
 	GetCursorPos(&_nowPos);
+
+	if (m_skipMouseMove)
+	{
+		SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
+		m_skipMouseMove = false;
+		return;
+	}
 
 	POINT _mouseMove{};
 	_mouseMove.x = _nowPos.x - m_FixMousePos.x;
@@ -38,8 +51,6 @@ void CameraBase::UpdateRotateByMouse()
 
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
 
-	// 実際にカメラを回転させる処理(0.15はただの補正値)
-	// 上下方向の見回しは使わないため、マウスのY移動は反映しない。
-	// 横方向だけ反映して、プレイヤーの周囲を左右に見回せるようにする。
+	// 上下方向は使わず、左右の移動量だけを反映する。
 	m_DegAng.y += _mouseMove.x * 0.15f;
 }
