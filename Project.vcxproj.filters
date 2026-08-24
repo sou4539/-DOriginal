@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Library">
@@ -127,7 +127,7 @@
     <Filter Include="Src\Application\GameObject\Character\Staff\VoltStaff">
       <UniqueIdentifier>{a5de2a12-c162-4c95-9d6a-161b9654abec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Src\Application\GameObject\Character\Staff\Magic">
+    <Filter Include="Src\Application\GameObject\Character\Magic">
       <UniqueIdentifier>{1ae1be84-1cd8-4843-8fd5-dc6917aba075}</UniqueIdentifier>
     </Filter>
     <Filter Include="Src\Application\GameObject\UI">
@@ -135,6 +135,18 @@
     </Filter>
     <Filter Include="Src\Application\GameObject\Character\Player\PlayerStatus">
       <UniqueIdentifier>{1968d062-9ab6-4dd2-8271-6e9f3584483d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Magic\IceMagic">
+      <UniqueIdentifier>{0436dc2d-db1f-420d-a06a-e1e5c6d01937}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Magic\FireMagic">
+      <UniqueIdentifier>{7f036143-6de5-43ff-89ec-cd4366c8b173}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Magic\VoltMagic">
+      <UniqueIdentifier>{c079ccea-0dcd-4618-99ca-6196cbca815f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Stage\Tree">
+      <UniqueIdentifier>{be1b5659-72de-4d3c-b628-fd79c7f6e6d3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -360,14 +372,26 @@
     <ClInclude Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.h">
       <Filter>Src\Application\GameObject\Character\Staff\FireStaff</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Application\GameObject\Character\Staff\Magic\MagicBase.h">
-      <Filter>Src\Application\GameObject\Character\Staff\Magic</Filter>
+    <ClInclude Include="Src\Application\GameObject\Character\Magic\MagicBase.h">
+      <Filter>Src\Application\GameObject\Character\Magic</Filter>
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.h">
       <Filter>Src\Application\GameObject\Character\Player\PlayerStatus</Filter>
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\UI\UI.h">
       <Filter>Src\Application\GameObject\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Magic\FireMagic\FireMagic.h">
+      <Filter>Src\Application\GameObject\Character\Magic\FireMagic</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Magic\IceMagic\IceMagic.h">
+      <Filter>Src\Application\GameObject\Character\Magic\IceMagic</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Magic\VoltMagic\VoltMagic.h">
+      <Filter>Src\Application\GameObject\Character\Magic\VoltMagic</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Stage\Tree\Tree.h">
+      <Filter>Src\Application\GameObject\Stage\Tree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -563,14 +587,26 @@
     <ClCompile Include="Src\Application\GameObject\Character\Staff\FireStaff\FireStaff.cpp">
       <Filter>Src\Application\GameObject\Character\Staff\FireStaff</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Application\GameObject\Character\Staff\Magic\MagicBase.cpp">
-      <Filter>Src\Application\GameObject\Character\Staff\Magic</Filter>
+    <ClCompile Include="Src\Application\GameObject\Character\Magic\MagicBase.cpp">
+      <Filter>Src\Application\GameObject\Character\Magic</Filter>
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.cpp">
       <Filter>Src\Application\GameObject\Character\Player\PlayerStatus</Filter>
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\UI\UI.cpp">
       <Filter>Src\Application\GameObject\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Magic\FireMagic\FireMagic.cpp">
+      <Filter>Src\Application\GameObject\Character\Magic\FireMagic</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Magic\IceMagic\IceMagic.cpp">
+      <Filter>Src\Application\GameObject\Character\Magic\IceMagic</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Magic\VoltMagic\VoltMagic.cpp">
+      <Filter>Src\Application\GameObject\Character\Magic\VoltMagic</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Stage\Tree\Tree.cpp">
+      <Filter>Src\Application\GameObject\Stage\Tree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

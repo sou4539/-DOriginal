@@ -1,12 +1,12 @@
-#include "CharaBase.h"
+ï»¿#include "CharaBase.h"
 
 #include "../Stage/StageBase.h"
 
-// ‰Šú‰»
+// åˆæœŸåŒ–
 void CharaBase::Init()
 {}
 
-// XV
+// æ›´æ–°
 void CharaBase::Update()
 {
 	
@@ -14,11 +14,11 @@ void CharaBase::Update()
 
 void CharaBase::PostUpdate()
 {
-	// Update‚ÅˆÚ“®‚µ‚½Œã‚ÌÀ•W‚ğg‚Á‚ÄÕ“Ë”»’è‚ğs‚¤B
+	// Updateã§ç§»å‹•ã—ãŸå¾Œã®åº§æ¨™ã‚’ä½¿ã£ã¦è¡çªåˆ¤å®šã‚’è¡Œã†ã€‚
 	UpdateCollision();
 }
 
-// •`‰æ
+// æç”»
 void CharaBase::DrawLit()
 {
 	//if (m_spPoly)
@@ -32,50 +32,50 @@ void CharaBase::DrawLit()
 
 void CharaBase::UpdateCollision()
 {
-	// “–‚½‚è”»’è‘ÎÛ‚ª‚È‚¢ƒLƒƒƒ‰‚ÍAƒŒƒC‚âƒXƒtƒBƒA‚ğì‚é•K—v‚ª‚È‚¢B
+	// å½“ãŸã‚Šåˆ¤å®šå¯¾è±¡ãŒãªã„ã‚­ãƒ£ãƒ©ã¯ã€ãƒ¬ã‚¤ã‚„ã‚¹ãƒ•ã‚£ã‚¢ã‚’ä½œã‚‹å¿…è¦ãŒãªã„ã€‚
 	if (m_wpHitObjectList.empty()) { return; }
 
 	// ============================================================
 
-	// ‡@ ƒŒƒC”»’è‚É•K—v‚Èî•ñ‚ğì‚éB
+	// â‘  ãƒ¬ã‚¤åˆ¤å®šã«å¿…è¦ãªæƒ…å ±ã‚’ä½œã‚‹ã€‚
 	KdCollider::RayInfo rayInfo;
 
-	// Œ»İ‚ÌƒLƒƒƒ‰ƒNƒ^[ˆÊ’u‚ğƒŒƒC‚ÌŠJnˆÊ’u‚É‚·‚éB
+	// ç¾åœ¨ã®ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ä½ç½®ã‚’ãƒ¬ã‚¤ã®é–‹å§‹ä½ç½®ã«ã™ã‚‹ã€‚
 	rayInfo.m_pos = GetPos();
 
-	// ƒLƒƒƒ‰ƒNƒ^[ˆÊ’u‚æ‚è­‚µ‚‚¢êŠ‚©‚çƒŒƒC‚ğ”ò‚Î‚·B
+	// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ä½ç½®ã‚ˆã‚Šå°‘ã—é«˜ã„å ´æ‰€ã‹ã‚‰ãƒ¬ã‚¤ã‚’é£›ã°ã™ã€‚
 	static float enableStepHigh = 0.2f;
 	rayInfo.m_pos.y += enableStepHigh;
 
-	// ƒŒƒC‚ğ^‰º‚Ö”ò‚Î‚·B
+	// ãƒ¬ã‚¤ã‚’çœŸä¸‹ã¸é£›ã°ã™ã€‚
 	rayInfo.m_dir = Math::Vector3::Down;
 
-	// —‰º—Ê‚Æ’i·‹–—e‚‚³‚ğ‡‚í‚¹‚½’·‚³‚¾‚¯ƒŒƒC‚ğL‚Î‚·B
+	// è½ä¸‹é‡ã¨æ®µå·®è¨±å®¹é«˜ã•ã‚’åˆã‚ã›ãŸé•·ã•ã ã‘ãƒ¬ã‚¤ã‚’ä¼¸ã°ã™ã€‚
 	rayInfo.m_range = m_Gravity + enableStepHigh;
 
-	// Ground‘®«‚ğ‚ÂƒRƒ‰ƒCƒ_[‚¾‚¯‚ğ’n–Ê”»’è‚Ì‘ÎÛ‚É‚·‚éB
+	// Groundå±æ€§ã‚’æŒã¤ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã ã‘ã‚’åœ°é¢åˆ¤å®šã®å¯¾è±¡ã«ã™ã‚‹ã€‚
 	rayInfo.m_type = KdCollider::TypeGround;
 
-	// ¡ƒtƒŒ[ƒ€‚Åæ‚Á‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg‚ğ’²‚×’¼‚·‚½‚ßAˆê“x‰ğœ‚·‚éB
+	// ä»Šãƒ•ãƒ¬ãƒ¼ãƒ ã§ä¹—ã£ã¦ã„ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’èª¿ã¹ç›´ã™ãŸã‚ã€ä¸€åº¦è§£é™¤ã™ã‚‹ã€‚
 	m_wpRiddenObject.reset();
 
-	// ‡A “o˜^‚³‚ê‚Ä‚¢‚é“–‚½‚è”»’è‘ÎÛ‚ğ1‚Â‚¸‚Â’²‚×‚éB
+	// â‘¡ ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹å½“ãŸã‚Šåˆ¤å®šå¯¾è±¡ã‚’1ã¤ãšã¤èª¿ã¹ã‚‹ã€‚
 	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
 		if (spGameObj)
 		{
-			// 1‚Â‚ÌƒIƒuƒWƒFƒNƒg“à‚Å•¡”‰ÓŠ‚É“–‚½‚é‰Â”\«‚ª‚ ‚é‚½‚ßA
+			// 1ã¤ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå†…ã§è¤‡æ•°ç®‡æ‰€ã«å½“ãŸã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ãŸã‚ã€
 			std::list<KdCollider::CollisionResult> retRayList;
 			spGameObj->Intersects(rayInfo, &retRayList);
 
-			// ‡B ƒŒƒC‚Ì”»’èŒ‹‰Ê‚©‚çAÀ•W•â³‚Ég‚¤’n–Ê‚ğ‘I‚ÔB
+			// â‘¢ ãƒ¬ã‚¤ã®åˆ¤å®šçµæœã‹ã‚‰ã€åº§æ¨™è£œæ­£ã«ä½¿ã†åœ°é¢ã‚’é¸ã¶ã€‚
 			float maxOverLap = 0;
 			Math::Vector3 hitPos = {};
 			bool hit = false;
 			for (auto& ret : retRayList)
 			{
-				// Œ»İ‚Ü‚Å‚ÅÅ‚à•â³—Ê‚ª‘å‚«‚¢Œ‹‰Ê‚ğ•Û‘¶‚·‚éB
+				// ç¾åœ¨ã¾ã§ã§æœ€ã‚‚è£œæ­£é‡ãŒå¤§ãã„çµæœã‚’ä¿å­˜ã™ã‚‹ã€‚
 				if (maxOverLap < ret.m_overlapDistance)
 				{
 					maxOverLap = ret.m_overlapDistance;
@@ -85,16 +85,16 @@ void CharaBase::UpdateCollision()
 			}
 			if (hit)
 			{
-				// ’n–Ê‚Æ‚ÌŒğ“_‚ÖƒLƒƒƒ‰ƒNƒ^[‚ğˆÚ“®‚µ‚ÄA‚ß‚è‚İ‚ğ‰ğÁ‚·‚éB
+				// åœ°é¢ã¨ã®äº¤ç‚¹ã¸ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã‚’ç§»å‹•ã—ã¦ã€ã‚ã‚Šè¾¼ã¿ã‚’è§£æ¶ˆã™ã‚‹ã€‚
 				SetPos(hitPos);
 
-				// ’…’n‚µ‚½‚Ì‚Å—‰º—Ê‚ğ0‚Ö–ß‚·B
+				// ç€åœ°ã—ãŸã®ã§è½ä¸‹é‡ã‚’0ã¸æˆ»ã™ã€‚
 				m_Gravity = 0;
 
-				// “®‚­°‚È‚ÇAæ‚é‚±‚Æ‚ª‚Å‚«‚éƒIƒuƒWƒFƒNƒg‚¾‚Á‚½ê‡‚Ìˆ—B
+				// å‹•ãåºŠãªã©ã€ä¹—ã‚‹ã“ã¨ãŒã§ãã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã ã£ãŸå ´åˆã®å‡¦ç†ã€‚
 				if (spGameObj->IsRideable())
 				{
-					// ƒLƒƒƒ‰ƒNƒ^[‚Ìƒ[ƒ‹ƒhs—ñ‚ğæ‚è•¨‚Ìƒ[ƒJƒ‹‹óŠÔ‚Ö•ÏŠ·‚·‚éB
+					// ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®ãƒ¯ãƒ¼ãƒ«ãƒ‰è¡Œåˆ—ã‚’ä¹—ã‚Šç‰©ã®ãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ã¸å¤‰æ›ã™ã‚‹ã€‚
 					Math::Matrix _mInvertRideObject;
 					spGameObj->GetMatrix().Invert(_mInvertRideObject);
 
@@ -107,34 +107,34 @@ void CharaBase::UpdateCollision()
 
 	// ============================================================
 
-	// ‡@ ‹…”»’è‚É•K—v‚Èî•ñ‚ğì‚éB
+	// â‘  çƒåˆ¤å®šã«å¿…è¦ãªæƒ…å ±ã‚’ä½œã‚‹ã€‚
 	DirectX::BoundingSphere sphere;
 
-	// GetPos‚Í‘«Œ³‚ÌÀ•W‚È‚Ì‚ÅA‹…‚Ì’†S‚ğ1.0‚¾‚¯ã‚Ö‚¸‚ç‚·B
+	// GetPosã¯è¶³å…ƒã®åº§æ¨™ãªã®ã§ã€çƒã®ä¸­å¿ƒã‚’1.0ã ã‘ä¸Šã¸ãšã‚‰ã™ã€‚
 	sphere.Center = GetPos() + Math::Vector3(0, 1.0f, 0);
 	sphere.Radius = 0.5f;
 
-	// Ground‘®«‚ğ‚ÂƒRƒ‰ƒCƒ_[‚ğ•ÇEáŠQ•¨‚Æ‚µ‚Ä‚à”»’è‚·‚éB
+	// Groundå±æ€§ã‚’æŒã¤ã‚³ãƒ©ã‚¤ãƒ€ãƒ¼ã‚’å£ãƒ»éšœå®³ç‰©ã¨ã—ã¦ã‚‚åˆ¤å®šã™ã‚‹ã€‚
 	KdCollider::SphereInfo spherInfo(KdCollider::TypeGround, sphere);
 
-	// ‡A “o˜^‚³‚ê‚Ä‚¢‚é“–‚½‚è”»’è‘ÎÛ‚ğ1‚Â‚¸‚Â’²‚×‚éB
+	// â‘¡ ç™»éŒ²ã•ã‚Œã¦ã„ã‚‹å½“ãŸã‚Šåˆ¤å®šå¯¾è±¡ã‚’1ã¤ãšã¤èª¿ã¹ã‚‹ã€‚
 	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
 		if (spGameObj)
 		{
-			// StageBase‚ğŒp³‚µ‚Ä‚¢‚éƒIƒuƒWƒFƒNƒg‚ÍA
+			// StageBaseã‚’ç¶™æ‰¿ã—ã¦ã„ã‚‹ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯ã€
 			std::shared_ptr<StageBase> spStage = std::dynamic_pointer_cast<StageBase>(spGameObj);
 			if (spStage && !spStage->EnableSphereCollision())
 			{
 				continue;
 			}
 
-			// ‹…‚Æ‘ÎÛƒIƒuƒWƒFƒNƒg‚Ì‚·‚×‚Ä‚ÌÕ“ËŒ‹‰Ê‚ğó‚¯æ‚éB
+			// çƒã¨å¯¾è±¡ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®ã™ã¹ã¦ã®è¡çªçµæœã‚’å—ã‘å–ã‚‹ã€‚
 			std::list<KdCollider::CollisionResult> retBumpList;
 			spGameObj->Intersects(spherInfo, &retBumpList);
 
-			// ‡B •¡”“–‚½‚Á‚½ê‡‚ÍAˆê”Ô[‚­‚ß‚è‚ñ‚Å‚¢‚éŒ‹‰Ê‚ğg‚¤B
+			// â‘¢ è¤‡æ•°å½“ãŸã£ãŸå ´åˆã¯ã€ä¸€ç•ªæ·±ãã‚ã‚Šè¾¼ã‚“ã§ã„ã‚‹çµæœã‚’ä½¿ã†ã€‚
 			float maxOverLap = 0.0f;
 			Math::Vector3 hitDir = Math::Vector3::Zero;
 			bool hit = false;
@@ -151,7 +151,7 @@ void CharaBase::UpdateCollision()
 
 			if (hit)
 			{
-				// m_hitDir‚Í‰Ÿ‚µ–ß‚·•ûŒüAm_overlapDistance‚Íd‚È‚Á‚½‹——£B
+				// m_hitDirã¯æŠ¼ã—æˆ»ã™æ–¹å‘ã€m_overlapDistanceã¯é‡ãªã£ãŸè·é›¢ã€‚
 				Math::Vector3 newPos = GetPos() + (hitDir * maxOverLap);
 				SetPos(newPos);
 			}
@@ -159,7 +159,7 @@ void CharaBase::UpdateCollision()
 	}
 }
 
-// ‰ğ•ú
+// è§£æ”¾
 void CharaBase::Release()
 {
 	m_spPoly = nullptr;

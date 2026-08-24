@@ -3,16 +3,19 @@
 #include "../../../Scene/SceneManager.h"
 #include "../Enemy/EnemyBase.h"
 #include "../Status/Status.h"
+#include "../Magic/FireMagic/FireMagic.h"
+#include "../Magic/IceMagic/IceMagic.h"
+#include "../Magic/VoltMagic/VoltMagic.h"
 
 #include <algorithm>
 #include <vector>
 
 namespace
 {
-	// –‚–@‚ğñ‚Ì’†S‚Å‚Í‚È‚­A­‚µã‚Éo‚·‚½‚ß‚Ì‚‚³B
+	// ï¿½ï¿½ï¿½@ï¿½ï¿½ï¿½ï¿½Ì’ï¿½ï¿½Sï¿½Å‚Í‚È‚ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éoï¿½ï¿½ï¿½ï¿½ï¿½ß‚Ìï¿½ï¿½ï¿½ï¿½B
 	constexpr float MagicChantHeight = 1.5f;
 
-	// ‘S‚Ä‚Ìñ‚ª“¯‚¶‰ñ“]ˆÊ’u‚ğg‚¤‚½‚ß‚ÌŠî€Šp“xB
+	// ï¿½Sï¿½Ä‚Ìñ‚ª“ï¿½ï¿½ï¿½ï¿½ï¿½]ï¿½Ê’uï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ß‚ÌŠî€ï¿½pï¿½xï¿½B
 	float StaffOrbitBaseAngle = 0.0f;
 }
 
@@ -56,7 +59,7 @@ void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget
 		return;
 	}
 
-	// ‘S‚Ä‚Ìñ‚Å“¯‚¶Šî€Šp“x‚ğg‚¢Aæ“¾”‚ª•Ï‚í‚Á‚Ä‚à•K‚¸“™ŠÔŠu‚É•À‚×‚éB
+	// ï¿½Sï¿½Ä‚Ìï¿½Å“ï¿½ï¿½ï¿½ï¿½î€ï¿½pï¿½xï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Aï¿½æ“¾ï¿½ï¿½ï¿½ï¿½ï¿½Ï‚ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½Kï¿½ï¿½ï¿½ï¿½ï¿½ÔŠuï¿½É•ï¿½ï¿½×‚ï¿½B
 	if (layoutInfo.index == 0)
 	{
 		StaffOrbitBaseAngle += m_rotateSpeed;
@@ -74,16 +77,16 @@ void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget
 
 void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 {
-	// –‚–@ƒ^ƒCƒv‚ª–¢İ’è‚Ìñ‚ÍUŒ‚‚µ‚È‚¢B
+	// ï¿½ï¿½ï¿½@ï¿½^ï¿½Cï¿½vï¿½ï¿½ï¿½ï¿½ï¿½İ’ï¿½Ìï¿½ÍUï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½B
 	if (m_magicType == MagicType::None)
 	{
 		return;
 	}
 
-	// –‚–@‚ÌƒN[ƒ‹ƒ^ƒCƒ€‚ğŒ¸‚ç‚·B
+	// ï¿½ï¿½ï¿½@ï¿½ÌƒNï¿½[ï¿½ï¿½ï¿½^ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç‚·ï¿½B
 	m_magicCoolTime--;
 
-	// ƒN[ƒ‹ƒ^ƒCƒ€‚ªc‚Á‚Ä‚¢‚é‚È‚çA‚Ü‚¾Œ‚‚½‚È‚¢B
+	// ï¿½Nï¿½[ï¿½ï¿½ï¿½^ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½cï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½È‚ï¿½Aï¿½Ü‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½B
 	if (m_magicCoolTime > 0.0f)
 	{
 		return;
@@ -91,13 +94,13 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 
 	std::shared_ptr<KdGameObject> spTargetEnemy = SearchEnemy(spPlayer);
 
-	// ”ÍˆÍ“à‚É“G‚ª‚¢‚È‚¯‚ê‚ÎŒ‚‚½‚È‚¢B
+	// ï¿½ÍˆÍ“ï¿½ï¿½É“Gï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ÎŒï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½B
 	if (!spTargetEnemy)
 	{
 		return;
 	}
 
-	// ñ‚©‚ç“G‚ÖŒü‚©‚¤•ûŒü‚ğì‚éB
+	// ï¿½ñ‚©‚ï¿½Gï¿½ÖŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	Math::Vector3 shotDir = spTargetEnemy->GetPos() - GetPos();
 	if (shotDir.LengthSquared() <= 0.0001f)
 	{
@@ -105,38 +108,43 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 	}
 	shotDir.Normalize();
 
-	// –‚–@‚ğì‚Á‚ÄA“G‚Ì•ûŒü‚Ö”ò‚Î‚·B
+	// ï¿½ï¿½ï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÄAï¿½Gï¿½Ì•ï¿½ï¿½ï¿½ï¿½Ö”ï¿½Î‚ï¿½ï¿½B
 	Math::Vector3 chantPos = GetPos() + Math::Vector3(0.0f, MagicChantHeight, 0.0f);
 	std::shared_ptr<KdGameObject> spStaff = shared_from_this();
 
 	std::shared_ptr<Status> spStatus = m_wpStatus.lock();
-	const float fireExplosionRadius = spStatus ? spStatus->GetFireExplosionRadius() : 3.0f;
-	const int iceSplitCount = (m_magicType == MagicType::Ice && spStatus) ? spStatus->GetIceSplitCount() : 1;
-	const int icePierceCount = (m_magicType == MagicType::Ice && spStatus) ? spStatus->GetIcePierceCount() : 1;
-	const int voltChainCount = (m_magicType == MagicType::Volt && spStatus) ? spStatus->GetVoltChainCount() : ((m_magicType == MagicType::Volt) ? 1 : 0);
+	switch (m_magicType)
+	{
+	case MagicType::Fire:
+	{
+		const float explosionRadius = spStatus ? spStatus->GetFireExplosionRadius() : 3.0f;
+		std::shared_ptr<FireMagic> magic = std::make_shared<FireMagic>();
+		magic->Shot(chantPos, shotDir, m_magicType, m_magicDamage, m_magicSpeed, spStaff, spTargetEnemy, nullptr, explosionRadius);
+		SceneManager::Instance().AddObject(magic);
+		break;
+	}
+	case MagicType::Ice:
+	{
+		const int splitCount = spStatus ? spStatus->GetIceSplitCount() : 1;
+		const int pierceCount = spStatus ? spStatus->GetIcePierceCount() : 1;
+		std::shared_ptr<IceMagic> magic = std::make_shared<IceMagic>();
+		magic->Shot(chantPos, shotDir, m_magicType, m_magicDamage, m_magicSpeed, spStaff, spTargetEnemy, nullptr, pierceCount, splitCount, false);
+		SceneManager::Instance().AddObject(magic);
+		break;
+	}
+	case MagicType::Volt:
+	{
+		const int chainCount = spStatus ? spStatus->GetVoltChainCount() : 1;
+		std::shared_ptr<VoltMagic> magic = std::make_shared<VoltMagic>();
+		magic->Shot(chantPos, shotDir, m_magicType, m_magicDamage, m_magicSpeed, spStaff, spTargetEnemy, nullptr, chainCount, false);
+		SceneManager::Instance().AddObject(magic);
+		break;
+	}
+	default:
+		return;
+	}
 
-	// ‚±‚±‚Å¶¬‚·‚é–‚–@‚Íí‚É1”­‚¾‚¯‚É‚·‚éB
-	std::shared_ptr<MagicBase> magic = std::make_shared<MagicBase>();
-	magic->Shot
-	(
-		chantPos,
-		shotDir,
-		m_magicType,
-		m_magicDamage,
-		m_magicSpeed,
-		spStaff,
-		spTargetEnemy,
-		voltChainCount,
-		nullptr,
-		false,
-		fireExplosionRadius,
-		icePierceCount,
-		iceSplitCount,
-		false
-	);
-	SceneManager::Instance().AddObject(magic);
-
-	// ñ‚²‚Æ‚Éİ’è‚³‚ê‚½ƒN[ƒ‹ƒ^ƒCƒ€‚Ö–ß‚·B
+	// ï¿½ñ‚²‚Æ‚Éİ’è‚³ï¿½ê‚½ï¿½Nï¿½[ï¿½ï¿½ï¿½^ï¿½Cï¿½ï¿½ï¿½Ö–ß‚ï¿½ï¿½B
 	m_magicCoolTime = m_magicCoolTimeMax;
 }
 
@@ -147,7 +155,7 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 
 	for (auto& spObj : SceneManager::Instance().GetObjList())
 	{
-		// ¡‚Í“G‚ªBat‚¾‚¯‚È‚Ì‚ÅAEnemyBase‚É•ÏŠ·‚Å‚«‚½‚à‚Ì‚ğUŒ‚‘ÎÛ‚É‚·‚éB
+		// ï¿½ï¿½ï¿½Í“Gï¿½ï¿½Batï¿½ï¿½ï¿½ï¿½ï¿½È‚Ì‚ÅAEnemyBaseï¿½É•ÏŠï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ï¿½ï¿½Uï¿½ï¿½ï¿½ÎÛ‚É‚ï¿½ï¿½ï¿½B
 		auto spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
 		if (!spEnemy)
 		{
@@ -173,7 +181,7 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 
 StaffBase::StaffLayoutInfo StaffBase::GetLayoutInfo() const
 {
-	// ƒV[ƒ““à‚Ì‰ğ•úÏ‚İ‚Ìñ‚¾‚¯‚ğW‚ßA–‚–@‚Ìí—Ş‡‚É•À‚×‚éB
+	// ï¿½Vï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ì‰ï¿½ï¿½ï¿½Ï‚İ‚Ìñ‚¾‚ï¿½ï¿½ï¿½ï¿½Wï¿½ßAï¿½ï¿½ï¿½@ï¿½Ìï¿½Şï¿½ï¿½É•ï¿½ï¿½×‚ï¿½B
 	std::vector<const StaffBase*> unlockedStaffs;
 
 	for (auto& spObj : SceneManager::Instance().GetObjList())
@@ -210,7 +218,7 @@ float StaffBase::GetLayoutOffset(int index, int count) const
 {
 	if (count <= 0) { return 0.0f; }
 
-	// ‰¡•À‚Ñ‚ÉŒ©‚¦‚É‚­‚¢‚æ‚¤‚ÉA‘S‚Ä‚Ì–{”‚Å‘OŒã•ûŒü‚ğŠî€‚É“™ŠÔŠu”z’u‚·‚éB
+	// ï¿½ï¿½ï¿½ï¿½ï¿½Ñ‚ÉŒï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½æ‚¤ï¿½ÉAï¿½Sï¿½Ä‚Ì–{ï¿½ï¿½ï¿½Å‘Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½î€ï¿½É“ï¿½ï¿½ÔŠuï¿½zï¿½uï¿½ï¿½ï¿½ï¿½B
 	const float startAngle = DirectX::XM_PIDIV2;
 	const float angleStep = DirectX::XM_2PI / static_cast<float>(count);
 

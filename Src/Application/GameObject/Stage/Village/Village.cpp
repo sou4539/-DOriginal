@@ -2,7 +2,7 @@
 
 void Village::Init()
 {
-	// ‘ºƒ‚ƒfƒ‹‚Æ“–‚½‚è”»’è‚ğ€”õ‚·‚éB
+	// ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Æ“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/Stage/World/village.gltf");
 
@@ -23,7 +23,7 @@ void Village::Update()
 {
 	if (!IsInVisibleRange()) { return; }
 
-	// ‘º‚ÌˆÀ‘S’n‘Ñ‚ğÂ‚¢ƒXƒtƒBƒA‚Å•\¦‚·‚éB
+	// ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½Ñ‚ï¿½Â‚ï¿½ï¿½Xï¿½tï¿½Bï¿½Aï¿½Å•\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	if (m_pDebugWire)
 	{
 		m_pDebugWire->AddDebugSphere(m_safeAreaCenter, m_safeAreaRadius, kBlueColor);
@@ -37,6 +37,26 @@ void Village::DrawLit()
 	StageBase::DrawLit();
 }
 
+void Village::GenerateDepthMapFromLight()
+{
+	if (!IsInVisibleRange()) { return; }
+	if (!m_spModel) { return; }
+
+	// æ‘ãŒè¡¨ç¤ºã•ã‚Œã¦ã„ã‚‹æ™‚ã ã‘å½±ã‚‚ä½œã‚Šã€éè¡¨ç¤ºä¸­ã«å½±ã ã‘æ®‹ã‚‰ãªã„ã‚ˆã†ã«ã™ã‚‹ã€‚
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld);
+}
+void Village::DrawEffect()
+{
+	if (!IsInVisibleRange()) { return; }
+	if (!m_spModel) { return; }
+
+	// Fake ground shadow.
+	Math::Matrix shadowMat = m_mWorld * Math::Matrix::CreateScale(1.0f, 0.0f, 1.0f);
+	shadowMat.Translation({ 0.0f, 0.025f, 0.0f });
+
+	const Math::Color shadowColor = { 0.0f, 0.0f, 0.0f, 0.20f };
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, shadowMat, shadowColor);
+}
 bool Village::IsInVisibleRange() const
 {
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();

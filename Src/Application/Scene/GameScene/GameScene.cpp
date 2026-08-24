@@ -7,6 +7,7 @@
 #include "../../GameObject/Character/Status/Status.h"
 #include "../../GameObject/Stage/Ground/Ground.h"
 #include "../../GameObject/Stage/Village/Village.h"
+#include "../../GameObject/Stage/Tree/Tree.h"
 #include "../../GameObject/Character/Staff/FireStaff/FireStaff.h"
 #include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
 #include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
@@ -32,7 +33,7 @@ void GameScene::SetCursorVisible(bool isVisible)
 	}
 }
 
-// TƒL[‚ğ‰Ÿ‚µ‚½uŠÔ‚Éƒ^ƒCƒgƒ‹‚Ö–ß‚éB
+// Tï¿½Lï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½uï¿½Ô‚Éƒ^ï¿½Cï¿½gï¿½ï¿½ï¿½Ö–ß‚ï¿½B
 void GameScene::Event()
 {
 	SetCursorVisible(false);
@@ -48,32 +49,32 @@ void GameScene::Event()
 	m_prevBackTitleKey = isBackTitleKey;
 }
 
-// ƒQ[ƒ€ƒV[ƒ“‚Åg‚¤ƒIƒuƒWƒFƒNƒg‚ğì¬‚µAQÆŠÖŒW‚ğ‚Â‚È‚®B
+// ï¿½Qï¿½[ï¿½ï¿½ï¿½Vï¿½[ï¿½ï¿½ï¿½Ågï¿½ï¿½ï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½Aï¿½Qï¿½ÆŠÖŒWï¿½ï¿½ï¿½Â‚È‚ï¿½ï¿½B
 void GameScene::Init()
 {
-	// ‘º‚Ì’†‚Å•œŠˆ‚·‚éˆÊ’uB
+	// ï¿½ï¿½ï¿½Ì’ï¿½ï¿½Å•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½B
 	const Math::Vector3 playerRespawnPos = { -30.0f, 0.0f, 0.0f };
 
-	// ƒJƒƒ‰‚ğì¬‚·‚éB
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<TPSCamera> camera;
 	camera = std::make_shared<TPSCamera>();
 	camera->Init();
 	camera->SetYawDeg(-90.0f);
 	m_objList.push_back(camera);
 
-	// ƒvƒŒƒCƒ„[‚ğì¬‚·‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<Player> player;
 	player = std::make_shared<Player>();
 	player->SetAngle(DirectX::XMConvertToRadians(-90.0f));
 	m_objList.push_back(player);
 
-	// ƒXƒe[ƒ^ƒXUI‚ğì¬‚·‚éB
+	// ï¿½Xï¿½eï¿½[ï¿½^ï¿½XUIï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<Status> status;
 	status = std::make_shared<Status>();
 	m_status = status;
 	m_objList.push_back(status);
 
-	// “G‚Ì¶¬ŠÇ—‚ğì¬‚·‚éB
+	// ï¿½Gï¿½Ìï¿½ï¿½ï¿½ï¿½Ç—ï¿½ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<EnemySpawner> enemySpawner;
 	enemySpawner = std::make_shared<EnemySpawner>();
 	m_objList.push_back(enemySpawner);
@@ -86,17 +87,21 @@ void GameScene::Init()
 	enemySpawner->AddSpawnArea({ -120.0f, 3.0f,  0.0f }, 16.0f, 15);
 	enemySpawner->SetStatus(status);
 
-	// ’n–Ê‚ğì¬‚·‚éB
+	// ï¿½nï¿½Ê‚ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<Ground> ground;
 	ground = std::make_shared<Ground>();
 	m_objList.push_back(ground);
 
-	// ‘º‚ğì¬‚·‚éB
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<Village> village;
 	village = std::make_shared<Village>();
 	m_objList.push_back(village);
 
-	// ñ‚ğì¬‚·‚éB
+	std::shared_ptr<Tree> tree;
+	tree = std::make_shared<Tree>();
+	m_objList.push_back(tree);
+
+	// ï¿½ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<FireStaff> fireStaff;
 	fireStaff = std::make_shared<FireStaff>();
 	m_objList.push_back(fireStaff);
@@ -109,9 +114,9 @@ void GameScene::Init()
 	voltStaff = std::make_shared<VoltStaff>();
 	m_objList.push_back(voltStaff);
 
-	// ŠeƒIƒuƒWƒFƒNƒg“¯m‚ÌQÆ‚ğ‚Â‚È‚®B
+	// ï¿½eï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½mï¿½ÌQï¿½Æ‚ï¿½ï¿½Â‚È‚ï¿½ï¿½B
 	camera->SetTarget(player);
-	// ‰‰ñ‚Ì–‚–@‘I‘ğ‚ÅƒQ[ƒ€XV‚ª~‚Ü‚Á‚Ä‚àAƒJƒƒ‰‚¾‚¯‚Í³‚µ‚¢‰ŠúˆÊ’u‚É‚µ‚Ä‚¨‚­B
+	// ï¿½ï¿½ï¿½ï¿½Ì–ï¿½ï¿½@ï¿½Iï¿½ï¿½ï¿½ÅƒQï¿½[ï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½~ï¿½Ü‚ï¿½ï¿½Ä‚ï¿½ï¿½Aï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½É‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½B
 	camera->PostUpdate();
 	player->SetStatus(status);
 	player->SetCamera(camera);
@@ -131,9 +136,10 @@ void GameScene::Init()
 	iceStaff->SetStatus(status);
 	voltStaff->SetStatus(status);
 
-	// ƒvƒŒƒCƒ„[‚Ì’nŒ`”»’è‘ÎÛ‚ğ“o˜^‚·‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì’nï¿½`ï¿½ï¿½ï¿½ï¿½ÎÛ‚ï¿½oï¿½^ï¿½ï¿½ï¿½ï¿½B
 	player->RegistHitObject(ground);
 	player->RegistHitObject(village);
+	player->RegistHitObject(tree);
 
 	status->SetPlayer(player);
 

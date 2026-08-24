@@ -2,7 +2,7 @@
 
 #include "../../../main.h"
 #include "../../Camera/CameraBase.h"
-#include "../Staff/Magic/MagicBase.h"
+#include "../Magic/MagicBase.h"
 
 #include <filesystem>
 #include <fstream>
@@ -10,7 +10,6 @@
 namespace
 {
 	const char* ProgressSavePath = "Save/Progress.txt";
-	const char* UIClickSoundPath = "Asset/Sounds/UI/Click.wav";
 
 	// HPバーの表示設定。
 	constexpr int HpBarX = -660;
@@ -49,35 +48,6 @@ namespace
 	constexpr int LevelNumberY = ExpBarY - 34;
 	constexpr int NumberDrawW = 18;
 	constexpr int NumberDrawH = 36;
-
-	// レベルアップ選択UIの表示設定。
-	constexpr int LevelUpCardY = 10;
-	constexpr int LevelUpCardW = 300;
-	constexpr int LevelUpCardH = 220;
-	constexpr int LevelUpIconY = 0;
-	constexpr int LevelUpIconSize = 150;
-	constexpr int LevelUpCardXList[3] = { -340, 0, 340 };
-	constexpr int LevelUpHoverAddW = 24;
-	constexpr int LevelUpHoverAddH = 18;
-	constexpr int LevelUpHoverIconAdd = 12;
-	const Math::Color LevelUpHoverColor = { 1.15f, 1.15f, 1.15f, 1.0f };
-	constexpr int CursorDrawW = 32;
-	constexpr int CursorDrawH = 32;
-
-	// 村の外に出た時に、画面端へ村方向の矢印を表示する。
-	constexpr float VillageArrowEdgeX = 560.0f;
-	constexpr float VillageArrowEdgeY = 300.0f;
-	constexpr int VillageArrowGuideW = 96;
-	constexpr int VillageArrowGuideH = 58;
-
-	void PlayUIClickSound()
-	{
-		auto sound = KdAudioManager::Instance().Play(UIClickSoundPath);
-		if (sound)
-		{
-			sound->SetVolume(0.5f);
-		}
-	}
 
 }
 
@@ -355,176 +325,53 @@ void Status::DrawNumber(int value, int x, int y, int drawW, int drawH)
 
 void Status::DrawVillageGuide()
 {
-	if (!m_villageArrowTex) { return; }
-	if (!m_villageArrowTex->GetSRView()) { return; }
-	if (m_villageGuideRadius <= 0.0f) { return; }
-
 	std::shared_ptr<KdGameObject> spPlayer = m_player.lock();
 	if (!spPlayer) { return; }
 
-	// 矢印の目的地は常にワールド原点にする。
-	Math::Vector3 toVillage = Math::Vector3::Zero - spPlayer->GetPos();
-	toVillage.y = 0.0f;
-
-	const float distanceSqr = toVillage.LengthSquared();
-	const float guideHideRadiusSqr = m_villageGuideRadius * m_villageGuideRadius;
-
-	// 村が十分近い時は案内を出さない。
-	if (distanceSqr <= guideHideRadiusSqr) { return; }
-	if (distanceSqr <= 0.0001f) { return; }
-
-	toVillage.Normalize();
-
-	// プレイヤーからワールド原点への最短方向を、カメラ基準の画面方向に変換する。
-	Math::Vector2 guideDir = { toVillage.x, toVillage.z };
 	std::shared_ptr<CameraBase> spCamera = m_camera.lock();
-	if (spCamera)
-	{
-		const float yaw = DirectX::XMConvertToRadians(spCamera->GetYawDeg());
-		const float cosYaw = cosf(yaw);
-		const float sinYaw = sinf(yaw);
+	if (!spCamera) { return; }
 
-		guideDir.x = (toVillage.x * cosYaw) + (toVillage.z * sinYaw);
-		guideDir.y = (-toVillage.x * sinYaw) + (toVillage.z * cosYaw);
-	}
-	guideDir.y *= -1.0f;
-
-	if (guideDir.LengthSquared() <= 0.0001f) { return; }
-	guideDir.Normalize();
-
-	const float scaleX = VillageArrowEdgeX / std::max(fabsf(guideDir.x), 0.0001f);
-	const float scaleY = VillageArrowEdgeY / std::max(fabsf(guideDir.y), 0.0001f);
-	const float edgeScale = std::min(scaleX, scaleY);
-
-	const int drawX = static_cast<int>(guideDir.x * edgeScale);
-	const int drawY = static_cast<int>(guideDir.y * edgeScale);
-
-	// 元画像は右向きなので、+X方向を基準にして村方向へ回転させる。
-	const float angle = atan2f(guideDir.y, guideDir.x);
-
-	KdShaderManager::Instance().m_spriteShader.DrawTexRot
-	(
-		m_villageArrowTex.get(),
-		drawX,
-		drawY,
-		VillageArrowGuideW,
-		VillageArrowGuideH,
-		angle,
-		nullptr,
-		&kWhiteColor,
-		{ 0.5f, 0.5f }
-	);
+	DrawVillageGuideUI(m_villageArrowTex.get(), spPlayer->GetPos(), m_villageGuideRadius, spCamera->WorkCamera().get());
 }
 
 void Status::DrawCursor()
 {
-	if (!m_cursorTex) { return; }
-	if (!m_cursorTex->GetSRView()) { return; }
-
-	POINT mousePos;
-	GetCursorPos(&mousePos);
-	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
-
-	KdShaderManager::Instance().m_spriteShader.DrawTex
-	(
-		m_cursorTex.get(),
-		mousePos.x - 640,
-		360 - mousePos.y,
-		CursorDrawW,
-		CursorDrawH,
-		nullptr,
-		&kWhiteColor,
-		{ 0.0f, 0.0f }
-	);
+	DrawCursorUI(m_cursorTex.get());
 }
 void Status::DrawLevelUpSelect()
 {
-	if (!m_levelUpBackTex) { return; }
-	if (!m_levelUpBackTex->GetSRView()) { return; }
+	LevelUpSelectUITextureSet textures;
+	textures.back = m_levelUpBackTex.get();
+	textures.icons[0] = m_playerStatus.HasFire() ? m_fireUpTex.get() : m_fireGetTex.get();
+	textures.icons[1] = m_playerStatus.HasIce() ? m_iceUpTex.get() : m_iceGetTex.get();
+	textures.icons[2] = m_playerStatus.HasVolt() ? m_voltUpTex.get() : m_voltGetTex.get();
 
-	POINT mousePos;
-	GetCursorPos(&mousePos);
-	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
-
-	KdTexture* iconTexList[3] =
-	{
-		m_playerStatus.HasFire() ? m_fireUpTex.get() : m_fireGetTex.get(),
-		m_playerStatus.HasIce() ? m_iceUpTex.get() : m_iceGetTex.get(),
-		m_playerStatus.HasVolt() ? m_voltUpTex.get() : m_voltGetTex.get()
-	};
-
-	for (int i = 0; i < 3; ++i)
-	{
-		const int cardX = LevelUpCardXList[i];
-		const bool isHover = IsMouseInSprite(mousePos, cardX, LevelUpCardY, LevelUpCardW, LevelUpCardH);
-		const Math::Color* drawColor = isHover ? &LevelUpHoverColor : &kWhiteColor;
-		const int cardW = LevelUpCardW + (isHover ? LevelUpHoverAddW : 0);
-		const int cardH = LevelUpCardH + (isHover ? LevelUpHoverAddH : 0);
-		const int iconSize = LevelUpIconSize + (isHover ? LevelUpHoverIconAdd : 0);
-
-		KdShaderManager::Instance().m_spriteShader.DrawTex
-		(
-			m_levelUpBackTex.get(),
-			cardX,
-			LevelUpCardY,
-			cardW,
-			cardH,
-			nullptr,
-			drawColor,
-			{ 0.5f, 0.5f }
-		);
-
-		KdTexture* iconTex = iconTexList[i];
-		if (!iconTex) { continue; }
-		if (!iconTex->GetSRView()) { continue; }
-
-		KdShaderManager::Instance().m_spriteShader.DrawTex
-		(
-			iconTex,
-			cardX,
-			LevelUpIconY,
-			iconSize,
-			iconSize,
-			nullptr,
-			drawColor,
-			{ 0.5f, 0.5f }
-		);
-	}
+	DrawLevelUpSelectUI(textures);
 }
 
 void Status::UpdateLevelUpSelect()
 {
-	POINT mousePos;
-	GetCursorPos(&mousePos);
-	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
-
 	const bool isLeftClick = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
-	if (!isLeftClick || m_prevLeftClick)
-	{
-		m_prevLeftClick = isLeftClick;
-		return;
-	}
+	const int selectIndex = GetClickedLevelUpSelectIndex(isLeftClick, m_prevLeftClick);
 
-	if (IsMouseInSprite(mousePos, LevelUpCardXList[0], LevelUpCardY, LevelUpCardW, LevelUpCardH))
+	if (selectIndex == 0)
 	{
 		PlayUIClickSound();
 		EnhanceFire();
 		CloseLevelUpSelect();
 	}
-	else if (IsMouseInSprite(mousePos, LevelUpCardXList[1], LevelUpCardY, LevelUpCardW, LevelUpCardH))
+	else if (selectIndex == 1)
 	{
 		PlayUIClickSound();
 		EnhanceIce();
 		CloseLevelUpSelect();
 	}
-	else if (IsMouseInSprite(mousePos, LevelUpCardXList[2], LevelUpCardY, LevelUpCardW, LevelUpCardH))
+	else if (selectIndex == 2)
 	{
 		PlayUIClickSound();
 		EnhanceVolt();
 		CloseLevelUpSelect();
 	}
-
-	m_prevLeftClick = isLeftClick;
 }
 
 void Status::OpenLevelUpSelect()

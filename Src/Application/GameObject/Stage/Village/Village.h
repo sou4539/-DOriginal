@@ -10,42 +10,44 @@ public:
 
 	void Update() override;
 	void DrawLit() override;
+	void GenerateDepthMapFromLight() override;
+	void DrawEffect() override;
 
-	// ‘º‚Í•Ç”»’è‚É‚àg‚¤B
+	// ï¿½ï¿½ï¿½Í•Ç”ï¿½ï¿½ï¿½É‚ï¿½ï¿½gï¿½ï¿½ï¿½B
 	bool EnableSphereCollision() const override { return true; }
 
-	// ˆÀ‘S’n‘Ñ‚Ì’†SÀ•WB
+	// ï¿½ï¿½ï¿½Sï¿½nï¿½Ñ‚Ì’ï¿½ï¿½Sï¿½ï¿½ï¿½Wï¿½B
 	const Math::Vector3& GetSafeAreaCenter() const { return m_safeAreaCenter; }
 
-	// ˆÀ‘S’n‘Ñ‚Ì”¼ŒaB
+	// ï¿½ï¿½ï¿½Sï¿½nï¿½Ñ‚Ì”ï¿½ï¿½aï¿½B
 	float GetSafeAreaRadius() const { return m_safeAreaRadius; }
 
-	// ‘ºƒ‚ƒfƒ‹‚ª•\¦‚³‚ê‚Ä‚¢‚éŠÔ‚Í–îˆó‚ğÁ‚·‚½‚ß‚Ég‚¤B
+	// ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Ô‚Í–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß‚Égï¿½ï¿½ï¿½B
 	float GetVisibleRadius() const { return m_visibleRadius; }
 
-	// ‘º‚Ì•\¦”»’è‚Ég‚¤‘ÎÛ‚ğİ’è‚·‚éB
+	// ï¿½ï¿½ï¿½Ì•\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Égï¿½ï¿½ï¿½ÎÛ‚ï¿½İ’è‚·ï¿½ï¿½B
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{
 		m_wpTarget = target;
 	}
 
-	// ‘º‚ğ•\¦‚·‚é‹——£‚ğİ’è‚·‚éB
+	// ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½é‹—ï¿½ï¿½ï¿½ï¿½İ’è‚·ï¿½ï¿½B
 	void SetVisibleRadius(float radius) { m_visibleRadius = radius; }
 
 private:
 	void Init() override;
 
-	// ‘º‚ª•\¦”ÍˆÍ“à‚©Šm”F‚·‚éB
+	// ï¿½ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ÍˆÍ“ï¿½ï¿½ï¿½ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½B
 	bool IsInVisibleRange() const;
 
-	// ‘º‘S‘Ì‚ğ•¢‚¤ˆÀ‘S’n‘ÑB
+	// ï¿½ï¿½ï¿½Sï¿½Ì‚ğ•¢‚ï¿½ï¿½ï¿½ï¿½Sï¿½nï¿½ÑB
 	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 46.0f;
 
-	// •\¦‹——£‚ğŠm”F‚·‚é‘ÎÛB
+	// ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½ÎÛB
 	std::weak_ptr<KdGameObject> m_wpTarget;
 
-	// ‘º‚ğ•\¦‚·‚é”¼ŒaB
+	// ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½é”¼ï¿½aï¿½B
 	float m_visibleRadius = 85.0f;
 };
 

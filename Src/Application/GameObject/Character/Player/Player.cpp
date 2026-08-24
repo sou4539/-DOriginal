@@ -16,28 +16,46 @@ namespace
 	const Math::Vector3 DefaultRespawnPos = { -30.0f, 0.0f, 0.0f };
 }
 
-// Player‚Ì‰Šú‰»ˆ—B
+// Playerï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 void Player::Init()
 {
-	// ƒvƒŒƒCƒ„[ƒ‚ƒfƒ‹‚ğ“Ç‚İ‚ŞB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ŞB
 	if (!m_spModel)
 	{
 		m_spModel = std::make_shared<KdModelWork>();
 		m_spModel->SetModelData("Asset/Models/Objects/Character/Witch/Witch.gltf");
 	}
 
-	// ƒvƒŒƒCƒ„[‚Ì‰ŠúˆÊ’uB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½ï¿½ï¿½Ê’uï¿½B
 	m_respawnPos = DefaultRespawnPos;
 	m_pos = m_respawnPos;
 
-	// KdGameObject‘¤‚Ìƒ[ƒ‹ƒhs—ñ‚É‚à‰ŠúˆÊ’u‚ğ”½‰f‚·‚éB
+	// KdGameObjectï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½ğ”½‰fï¿½ï¿½ï¿½ï¿½B
 	SetPos(m_pos);
 }
 
-// Player‚Ì–ˆƒtƒŒ[ƒ€XVB
+void Player::GenerateDepthMapFromLight()
+{
+	if (!m_spModel) { return; }
+
+	// é€šå¸¸æç”»ã¨åŒã˜ãƒ¢ãƒ‡ãƒ«è¡Œåˆ—ã§æãã“ã¨ã§ã€è¦‹ãŸç›®ã¨åŒã˜å½¢ã®å½±ã‚’ä½œã‚‹ã€‚
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld);
+}
+void Player::DrawEffect()
+{
+	if (!m_spModel) { return; }
+
+	// Fake ground shadow.
+	Math::Matrix shadowMat = m_mWorld * Math::Matrix::CreateScale(1.0f, 0.0f, 1.0f);
+	shadowMat.Translation({ m_pos.x, 0.03f, m_pos.z });
+
+	const Math::Color shadowColor = { 0.0f, 0.0f, 0.0f, 0.35f };
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, shadowMat, shadowColor);
+}
+// Playerï¿½Ì–ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Xï¿½Vï¿½B
 void Player::Update()
 {
-	// CharaBase‘¤‚ÌŠî–{XV‚ğŒÄ‚ÔB
+	// CharaBaseï¿½ï¿½ï¿½ÌŠï¿½{ï¿½Xï¿½Vï¿½ï¿½ï¿½Ä‚ÔB
 	CharaBase::Update();
 
 	UpdateInvincible();
@@ -48,19 +66,19 @@ void Player::Update()
 	UpdateWorldMatrix();
 }
 
-// –³“GŠÔ‚ÌXVˆ—B
+// ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½Ô‚ÌXï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½B
 void Player::UpdateInvincible()
 {
 	if (m_damageCoolTime <= 0.0f) { return; }
 
-	// –³“GŠÔ‚ğ1ƒtƒŒ[ƒ€‚¸‚ÂŒ¸‚ç‚·B
+	// ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½Ô‚ï¿½1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ÂŒï¿½ï¿½ç‚·ï¿½B
 	m_damageCoolTime -= 1.0f;
 }
 
-// ƒvƒŒƒCƒ„[‚ÌˆÚ“®ˆ—B
+// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 void Player::UpdateMove()
 {
-	// WASD“ü—Í‚©‚çˆÚ“®‚µ‚½‚¢•ûŒü‚ğì‚éB
+	// WASDï¿½ï¿½ï¿½Í‚ï¿½ï¿½ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	Math::Vector3 moveDir = Math::Vector3::Zero;
 
 	if (GetAsyncKeyState('W') & 0x8000)
@@ -82,138 +100,138 @@ void Player::UpdateMove()
 
 	if (moveDir.LengthSquared() > 0.0f)
 	{
-		// Î‚ßˆÚ“®‚É‘¬“x‚ª‘¬‚­‚È‚ç‚È‚¢‚æ‚¤A•ûŒüƒxƒNƒgƒ‹‚ğ³‹K‰»‚·‚éB
+		// ï¿½Î‚ßˆÚ“ï¿½ï¿½ï¿½ï¿½É‘ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½È‚ï¿½ï¿½æ‚¤ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Nï¿½gï¿½ï¿½ï¿½ğ³‹Kï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 		moveDir.Normalize();
 
-		// ƒJƒƒ‰‚ª‚È‚¢ê‡‚ÍA“ü—Í•ûŒü‚ğ‚»‚Ì‚Ü‚ÜˆÚ“®•ûŒü‚Æ‚µ‚Äg‚¤B
+		// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ê‡ï¿½ÍAï¿½ï¿½ï¿½Í•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚Ü‚ÜˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Ägï¿½ï¿½ï¿½B
 		m_dir = moveDir;
 
 		std::shared_ptr<CameraBase> spCamera = m_wpCamera.lock();
 		if (spCamera)
 		{
-			// ƒJƒƒ‰‚ÌY‰ñ“]‚¾‚¯‚ğg‚¢A“ü—Í•ûŒü‚ğƒJƒƒ‰Šî€‚Ì•ûŒü‚Ö•ÏŠ·‚·‚éB
+			// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Yï¿½ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½Í•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½î€ï¿½Ì•ï¿½ï¿½ï¿½ï¿½Ö•ÏŠï¿½ï¿½ï¿½ï¿½ï¿½B
 			m_dir = Math::Vector3::TransformNormal(moveDir, spCamera->GetRotationYMatrix());
 			m_dir.Normalize();
 		}
 
-		// ÀÛ‚ÉƒvƒŒƒCƒ„[À•W‚ğˆÚ“®‚³‚¹‚éB
+		// ï¿½ï¿½ï¿½Û‚Éƒvï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 		m_pos += m_dir * PlayerMoveSpeed;
 
-		// ˆÚ“®•ûŒü‚©‚çY²‰ñ“]Šp“x‚ğì‚éB
+		// ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½]ï¿½pï¿½xï¿½ï¿½ï¿½ï¿½ï¿½B
 		m_angle = atan2(m_dir.x, m_dir.z);
 	}
 }
 
-// ƒvƒŒƒCƒ„[‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éˆ—B
+// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½ï¿½ï¿½ï¿½éˆï¿½ï¿½ï¿½B
 void Player::UpdateWorldMatrix()
 {
-	// ƒvƒŒƒCƒ„[‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	Math::Matrix m_scale = Math::Matrix::CreateScale(1);
 	Math::Matrix m_rot = Math::Matrix::CreateRotationY(m_angle);
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = m_scale * m_rot * m_trans;
 }
 
-// UpdateŒã‚Ì•â³E”»’èˆ—B
+// Updateï¿½ï¿½Ì•â³ï¿½Eï¿½ï¿½ï¿½èˆï¿½ï¿½ï¿½B
 void Player::PostUpdate()
 {
-	// CharaBase‘¤‚Å’n–Ê‚â•Ç‚Æ‚Ì“–‚½‚è”»’è‚ğs‚¤B
+	// CharaBaseï¿½ï¿½ï¿½Å’nï¿½Ê‚ï¿½Ç‚Æ‚Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½B
 	CharaBase::PostUpdate();
 
-	// CharaBase‚Ì“–‚½‚è”»’è‚Å•â³‚³‚ê‚½À•W‚ğAPlayer‘¤‚Ìm_pos‚É‚à”½‰f‚·‚éB
+	// CharaBaseï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½Å•â³ï¿½ï¿½ï¿½ê‚½ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½APlayerï¿½ï¿½ï¿½ï¿½m_posï¿½É‚ï¿½ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½B
 	m_pos = GetPos();
 
-	// Œ»İˆÊ’u‚ª‘º‚ÌˆÀ‘S’n‘Ñ“à‚©‚Ç‚¤‚©‚ğXV‚·‚éB
+	// ï¿½ï¿½ï¿½İˆÊ’uï¿½ï¿½ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½Ñ“ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½B
 	UpdateSafeAreaFlag();
 
-	// ˆÚ“®‚Æ’nŒ`•â³‚ªI‚í‚Á‚½Œã‚Ì³‚µ‚¢À•W‚ÅA
+	// ï¿½Ú“ï¿½ï¿½Æ’nï¿½`ï¿½â³ï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Wï¿½ÅA
 	UpdateDamageCollision();
 
-	// ƒ_ƒ[ƒW”»’è‚ÌŒ‹‰ÊHP‚ª0‚É‚È‚Á‚½ê‡‚ÍAƒ^ƒCƒgƒ‹‚Ö–ß‚ç‚¸‘º‚Ì’†‚Å•œŠˆ‚·‚éB
+	// ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ÌŒï¿½ï¿½ï¿½HPï¿½ï¿½0ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½ê‡ï¿½ÍAï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½Ö–ß‚ç‚¸ï¿½ï¿½ï¿½Ì’ï¿½ï¿½Å•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	RespawnIfDead();
 }
 
-// “G‚Æ‚ÌÚGƒ_ƒ[ƒW”»’èB
+// ï¿½Gï¿½Æ‚ÌÚGï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½B
 void Player::UpdateDamageCollision()
 {
-	// ˆÀ‘S’n‘Ñ“à‚Å‚Í“G‚Æ‚ÌÚGƒ_ƒ[ƒW‚ğó‚¯‚È‚¢B
+	// ï¿½ï¿½ï¿½Sï¿½nï¿½Ñ“ï¿½ï¿½Å‚Í“Gï¿½Æ‚ÌÚGï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ó‚¯‚È‚ï¿½ï¿½B
 	if (m_isInSafeArea) { return; }
 
-	// –³“GŠÔ’†‚Íƒ_ƒ[ƒW‚ğó‚¯‚È‚¢B
+	// ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½Ô’ï¿½ï¿½Íƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ó‚¯‚È‚ï¿½ï¿½B
 	if (m_damageCoolTime > 0.0f) { return; }
 
-	// HP‚ÍStatus‚ª‚Á‚Ä‚¢‚é‚½‚ßA‚Ü‚¸Status‚ğæ“¾‚·‚éB
+	// HPï¿½ï¿½Statusï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚½ï¿½ßAï¿½Ü‚ï¿½Statusï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<Status> spStatus = m_status.lock();
 	if (!spStatus) { return; }
 
-	// ƒvƒŒƒCƒ„[‚Ì‘Ì‚ğ‹…‚Æ‚µ‚Äˆµ‚¤B
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‘Ì‚ï¿½ï¿½ï¿½ï¿½Æ‚ï¿½ï¿½Äˆï¿½ï¿½ï¿½ï¿½B
 	DirectX::BoundingSphere playerSphere;
 	playerSphere.Center = GetPos() + Math::Vector3(0.0f, PlayerDamageSphereHeight, 0.0f);
 	playerSphere.Radius = PlayerDamageRadius;
 
-	// TypeDamage‚¾‚¯‚ğŒ©‚éSphereInfo‚ğì‚éB
+	// TypeDamageï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SphereInfoï¿½ï¿½ï¿½ï¿½ï¿½B
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, playerSphere);
 
-	// Œ»İ‚ÌƒV[ƒ“‚É‘¶İ‚·‚é‘SƒIƒuƒWƒFƒNƒg‚ğ’²‚×‚éB
+	// ï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½É‘ï¿½ï¿½İ‚ï¿½ï¿½ï¿½Sï¿½Iï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ğ’²‚×‚ï¿½B
 	const std::list<std::shared_ptr<KdGameObject>>& objList = SceneManager::Instance().GetObjList();
 	for (const std::shared_ptr<KdGameObject>& spObj : objList)
 	{
-		// ‹ó‚Ìƒ|ƒCƒ“ƒ^‚Í–³‹‚·‚éB
+		// ï¿½ï¿½Ìƒ|ï¿½Cï¿½ï¿½ï¿½^ï¿½Í–ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 		if (!spObj) { continue; }
 
-		// ©•ª©g‚Æ‚Í”»’è‚µ‚È‚¢B
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½gï¿½Æ‚Í”ï¿½ï¿½è‚µï¿½È‚ï¿½ï¿½B
 		if (spObj.get() == this) { continue; }
 
-		// ‘ÎÛƒIƒuƒWƒFƒNƒg‚ªTypeDamage‚ÌƒRƒ‰ƒCƒ_[‚ğ‚Á‚Ä‚¢‚ÄA
+		// ï¿½ÎÛƒIï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½TypeDamageï¿½ÌƒRï¿½ï¿½ï¿½Cï¿½_ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ÄA
 		std::list<KdCollider::CollisionResult> retList;
 		if (spObj->Intersects(sphereInfo, &retList))
 		{
-			// ƒ_ƒ[ƒW”»’è‚ÉG‚ê‚½‚Ì‚ÅAƒvƒŒƒCƒ„[HP‚ğ5Œ¸‚ç‚·B
+			// ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ÉGï¿½ê‚½ï¿½Ì‚ÅAï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[HPï¿½ï¿½5ï¿½ï¿½ï¿½ç‚·ï¿½B
 			spStatus->DamagePlayer(BatContactDamage);
 
-			// Ÿ‚Ìƒ_ƒ[ƒW‚Ü‚Å–ñ1•b‘Ò‚ÂB
+			// ï¿½ï¿½ï¿½Ìƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½Ü‚Å–ï¿½1ï¿½bï¿½Ò‚ÂB
 			m_damageCoolTime = DamageCoolTimeFrame;
 
-			// 1‘Ì‚Å‚à“–‚½‚Á‚Ä‚¢‚ê‚ÎA¡‰ñ‚Ìƒ_ƒ[ƒWˆ—‚ÍI‚í‚èB
+			// 1ï¿½Ì‚Å‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ÎAï¿½ï¿½ï¿½ï¿½Ìƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ÍIï¿½ï¿½ï¿½B
 			break;
 		}
 	}
 }
 
-// HP‚ª0‚É‚È‚Á‚½‚Ì•œŠˆˆ—B
+// HPï¿½ï¿½0ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 void Player::RespawnIfDead()
 {
-	// HP‚ÍStatus‘¤‚ÅŠÇ—‚µ‚Ä‚¢‚é‚½‚ßA‚Ü‚¸Status‚ğæ“¾‚·‚éB
+	// HPï¿½ï¿½Statusï¿½ï¿½ï¿½ÅŠÇ—ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½é‚½ï¿½ßAï¿½Ü‚ï¿½Statusï¿½ï¿½ï¿½æ“¾ï¿½ï¿½ï¿½ï¿½B
 	std::shared_ptr<Status> spStatus = m_status.lock();
 	if (!spStatus) { return; }
 
-	// HP‚ª‚Ü‚¾c‚Á‚Ä‚¢‚é‚È‚ç•œŠˆˆ—‚Í•s—vB
+	// HPï¿½ï¿½ï¿½Ü‚ï¿½ï¿½cï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½È‚ç•œï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í•sï¿½vï¿½B
 	if (!spStatus->IsPlayerDead()) { return; }
 
-	// ƒvƒŒƒCƒ„[‚ğ‘º‚Ì•œŠˆ’n“_‚Ö–ß‚·B
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ğ‘º‚Ì•ï¿½ï¿½ï¿½ï¿½nï¿½_ï¿½Ö–ß‚ï¿½ï¿½B
 	m_pos = m_respawnPos;
 	SetPos(m_respawnPos);
 
-	// •œŠˆ’¼Œã‚Ìƒ[ƒ‹ƒhs—ñ‚à‚·‚®³‚µ‚¢ˆÊ’u‚É‚µ‚Ä‚¨‚­B
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½É‚ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½B
 	UpdateWorldMatrix();
 
-	// HP‚ğÅ‘å‚Ü‚Å‰ñ•œ‚·‚éB
+	// HPï¿½ï¿½ï¿½Å‘ï¿½Ü‚Å‰ñ•œ‚ï¿½ï¿½ï¿½B
 	spStatus->ResetPlayerHp();
 
-	// •œŠˆ’¼Œã‚ÉƒRƒEƒ‚ƒŠ‚ÖG‚ê‚Ä‚¢‚Ä‚àA‚·‚®Äƒ_ƒ[ƒW‚ğó‚¯‚È‚¢‚æ‚¤‚É‚·‚éB
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÉƒRï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ÖGï¿½ï¿½Ä‚ï¿½ï¿½Ä‚ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½Äƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ó‚¯‚È‚ï¿½ï¿½æ‚¤ï¿½É‚ï¿½ï¿½ï¿½B
 	m_damageCoolTime = RespawnInvincibleFrame;
 }
 
 void Player::UpdateSafeAreaFlag()
 {
-	// ”¼Œa‚ª0ˆÈ‰º‚È‚çAˆÀ‘S’n‘Ñ‚ª–¢İ’è‚È‚Ì‚Åfalse‚É‚·‚éB
+	// ï¿½ï¿½ï¿½aï¿½ï¿½0ï¿½È‰ï¿½ï¿½È‚ï¿½Aï¿½ï¿½ï¿½Sï¿½nï¿½Ñ‚ï¿½ï¿½ï¿½ï¿½İ’ï¿½È‚Ì‚ï¿½falseï¿½É‚ï¿½ï¿½ï¿½B
 	if (m_safeAreaRadius <= 0.0f)
 	{
 		m_isInSafeArea = false;
 		return;
 	}
 
-	// XZ•½–Êã‚ÅAƒvƒŒƒCƒ„[‚ª‘º‚ÌˆÀ‘S’n‘ÑƒXƒtƒBƒA“à‚É‚¢‚é‚©Šm”F‚·‚éB
+	// XZï¿½ï¿½ï¿½Êï¿½ÅAï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½ÑƒXï¿½tï¿½Bï¿½Aï¿½ï¿½ï¿½É‚ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½B
 	Math::Vector3 toPlayer = GetPos() - m_safeAreaCenter;
 	toPlayer.y = 0.0f;
 

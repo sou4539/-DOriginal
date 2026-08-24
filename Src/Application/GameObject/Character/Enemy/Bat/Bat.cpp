@@ -5,15 +5,17 @@
 
 namespace
 {
-	// ‰“‚­‚ÌƒRƒEƒ‚ƒŠ‚Ü‚Å–ˆƒtƒŒ[ƒ€œƒAƒjƒ[ƒVƒ‡ƒ“‚ği‚ß‚é‚ÆA
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ÌƒRï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Å–ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½jï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½ß‚ï¿½ÆA
 	constexpr float BatAnimActiveRadius = 45.0f;
 	constexpr int BatHitFlashFrame = 5;
+	const Math::Color BatHitColor = Math::Color(2.0f, 0.05f, 0.05f, 1.0f);
+	const Math::Vector3 BatHitEmissive = Math::Vector3(1.2f, 0.0f, 0.0f);
 }
 
 void Bat::Init()
 {
 
-	//ƒRƒEƒ‚ƒŠƒ‚ƒfƒ‹‚ğ“Ç‚İ‚ŞB
+	//ï¿½Rï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½fï¿½ï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ŞB
 
 	if (!m_spModel)
 	{
@@ -21,25 +23,22 @@ void Bat::Init()
 		m_spModel->SetModelData("Asset/Models/Objects/Character/Bat/Bat.gltf");
 	}
 
-
-	//ƒ‚ƒfƒ‹‚É“ü‚Á‚Ä‚¢‚éƒAƒjƒ[ƒVƒ‡ƒ“‚ğ–¼‘O‚Åæ“¾‚µ‚ÄÄ¶‚·‚éB
-
+	// Play bat flap animation.
 	if (m_spModel)
 	{
 		m_animator.SetAnimation(m_spModel->GetAnimation("flap_loop"), true);
 	}
 
 
-	//‰¼•\¦—p‚ÉAƒvƒŒƒCƒ„[‚Æ“¯‚¶‰ŠúÀ•W‚Ö”z’u‚·‚éB
-
+	// Set temporary initial position.
 	m_pos = { -15,3,0 };
 	m_startPos = m_pos;
 	SetPos(m_pos);
 
-	// Š´’m”ÍˆÍ‚ğƒfƒoƒbƒO•\¦‚·‚é‚½‚ß‚ÌƒƒCƒ„‚ğì¬‚·‚éB
+	// ï¿½ï¿½ï¿½mï¿½ÍˆÍ‚ï¿½ï¿½fï¿½oï¿½bï¿½Oï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½é‚½ï¿½ß‚Ìƒï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½B
 	m_pDebugWire = std::make_unique<KdDebugWireFrame>();
 
-	// ƒRƒEƒ‚ƒŠ‚Éƒ_ƒ[ƒW”»’è‚ğ‚½‚¹‚éB
+	// ï¿½Rï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½Éƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	m_pCollider = std::make_unique<KdCollider>();
 	m_pCollider->RegisterCollisionShape
 	(
@@ -55,6 +54,7 @@ void Bat::Update()
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	float distanceSqr = 0.0f;
 	bool hasTargetDistance = false;
+	bool isMoving = false;
 
 	if (spTarget)
 	{
@@ -63,20 +63,12 @@ void Bat::Update()
 		hasTargetDistance = true;
 	}
 
-	//ƒAƒjƒ[ƒVƒ‡ƒ“‚ğ1ƒtƒŒ[ƒ€i‚ß‚éB
-
-	const float animActiveRadiusSqr = BatAnimActiveRadius * BatAnimActiveRadius;
-	if (m_spModel && (!hasTargetDistance || m_isChasing || distanceSqr <= animActiveRadiusSqr))
-	{
-		m_animator.AdvanceTime(m_spModel->WorkNodes(), 1.0f);
-	}
-
 	if (m_hitFlashFrame > 0)
 	{
 		--m_hitFlashFrame;
 	}
 
-	// ƒRƒEƒ‚ƒŠ‚Ìõ“G”ÍˆÍ‚ğƒfƒoƒbƒOƒƒCƒ„‚Å•\¦‚·‚éB
+	// ï¿½Rï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½Gï¿½ÍˆÍ‚ï¿½ï¿½fï¿½oï¿½bï¿½Oï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Å•\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	if (m_pDebugWire)
 	{
 		float debugRadius = m_isChasing ? m_chaseRadius : m_searchRadius;
@@ -85,7 +77,7 @@ void Bat::Update()
 
 	if (spTarget)
 	{
-		// ƒvƒŒƒCƒ„[‚ª‘º‚ÌˆÀ‘S’n‘Ñ‚É‚¢‚é‚©Šm”F‚·‚éB
+		// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½Ñ‚É‚ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½B
 		bool isTargetInSafeArea = false;
 		std::shared_ptr<Player> spPlayer = std::dynamic_pointer_cast<Player>(spTarget);
 		if (spPlayer)
@@ -93,18 +85,18 @@ void Bat::Update()
 			isTargetInSafeArea = spPlayer->IsInSafeArea();
 		}
 
-		// ƒvƒŒƒCƒ„[‚Ü‚Å‚Ì•ûŒü‚Æ‹——£‚ğ’²‚×‚éB
+		// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ü‚Å‚Ì•ï¿½ï¿½ï¿½ï¿½Æ‹ï¿½ï¿½ï¿½ï¿½ğ’²‚×‚ï¿½B
 		Math::Vector3 toTarget = spTarget->GetPos() - m_pos;
 		distanceSqr = toTarget.LengthSquared();
 
-		// ‘º‚ÌˆÀ‘S’n‘Ñ‚É“ü‚Á‚½‚çA’ÇÕó‘Ô‚ğ‰ğœ‚·‚éB
+		// ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½Ñ‚É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½ÇÕï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 		if (isTargetInSafeArea)
 		{
 			m_isChasing = false;
 		}
 		else
 		{
-			// Œ©‚Â‚©‚é‘O‚Í¬‚³‚¢”­Œ©”ÍˆÍ‚Å”»’è‚·‚éB
+			// ï¿½ï¿½ï¿½Â‚ï¿½ï¿½ï¿½Oï¿½Íï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÍˆÍ‚Å”ï¿½ï¿½è‚·ï¿½ï¿½B
 			if (!m_isChasing && distanceSqr <= m_searchRadius * m_searchRadius)
 			{
 				m_isChasing = true;
@@ -115,86 +107,113 @@ void Bat::Update()
 			}
 		}
 
-		// ’ÇÕó‘Ô‚È‚çƒvƒŒƒCƒ„[‚ÖˆÚ“®‚·‚éB
+		// ï¿½ÇÕï¿½Ô‚È‚ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÖˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½B
 		if (m_isChasing)
 		{
-			// ‹——£‚ª0‚É‹ß‚¢‚Æ³‹K‰»‚Å‚«‚È‚¢‚½‚ßA­‚µ—£‚ê‚Ä‚¢‚é‚¾‚¯“®‚­B
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0ï¿½É‹ß‚ï¿½ï¿½Æï¿½ï¿½Kï¿½ï¿½ï¿½Å‚ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½ßAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 			if (distanceSqr > 0.0001f)
 			{
 				toTarget.Normalize();
 
-				// ƒvƒŒƒCƒ„[‚æ‚è­‚µ’x‚¢‘¬“x‚Å‹ß‚Ã‚­B
+				// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½è­ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½xï¿½Å‹ß‚Ã‚ï¿½ï¿½B
 				m_pos += toTarget * m_moveSpeed;
+				isMoving = true;
 
-				// ˆÚ“®•ûŒü‚É‡‚í‚¹‚ÄƒRƒEƒ‚ƒŠ‚ÌŒü‚«‚ğ•Ï‚¦‚éB
+				// ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Éï¿½ï¿½í‚¹ï¿½ÄƒRï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ÌŒï¿½ï¿½ï¿½ï¿½ï¿½Ï‚ï¿½ï¿½ï¿½B
 				m_angle = atan2(toTarget.x, toTarget.z);
 			}
 		}
 		else
 		{
-			// ƒvƒŒƒCƒ„[‚ªŠ´’mƒXƒtƒBƒA‚ÌŠO‚É‚¢‚éA‚Ü‚½‚ÍˆÀ‘S’n‘Ñ‚É‚¢‚éê‡‚ÍA
+			// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½Xï¿½tï¿½Bï¿½Aï¿½ÌŠOï¿½É‚ï¿½ï¿½ï¿½Aï¿½Ü‚ï¿½ï¿½Íˆï¿½ï¿½Sï¿½nï¿½Ñ‚É‚ï¿½ï¿½ï¿½ê‡ï¿½ÍA
 			Math::Vector3 toStart = m_startPos - m_pos;
 			float startDistanceSqr = toStart.LengthSquared();
 			float moveSpeedSqr = m_moveSpeed * m_moveSpeed;
 
-			// ‰ŠúˆÊ’u‚Ü‚Å‚Ì‹——£‚ª1ƒtƒŒ[ƒ€‚ÌˆÚ“®—ÊˆÈ‰º‚È‚çA
+			// ï¿½ï¿½ï¿½ï¿½ï¿½Ê’uï¿½Ü‚Å‚Ì‹ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ÌˆÚ“ï¿½ï¿½ÊˆÈ‰ï¿½ï¿½È‚ï¿½A
 			if (startDistanceSqr <= moveSpeedSqr)
 			{
+				isMoving = (startDistanceSqr > 0.0001f);
 				m_pos = m_startPos;
 			}
 			else
 			{
 				toStart.Normalize();
 				m_pos += toStart * m_moveSpeed;
+				isMoving = true;
 
-				// –ß‚é‚àˆÚ“®•ûŒü‚ÉŒü‚«‚ğ‡‚í‚¹‚éB
+				// ï¿½ß‚éï¿½ï¿½ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÉŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½í‚¹ï¿½ï¿½B
 				m_angle = atan2(toStart.x, toStart.z);
 			}
 		}
 	}
 
-	//ƒRƒEƒ‚ƒŠ‘S‘Ì‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éB
+	//ï¿½Rï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½Sï¿½Ì‚Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 
 	Math::Matrix scaleMat = Math::Matrix::CreateScale(0.5);
-	// Batƒ‚ƒfƒ‹‚Ì³–Ê•ûŒü‚ªˆÚ“®•ûŒü‚ÌŒvZ‚Æ‹tŒü‚«‚È‚Ì‚ÅA
+	// Batï¿½ï¿½ï¿½fï¿½ï¿½ï¿½Ìï¿½ï¿½Ê•ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÌŒvï¿½Zï¿½Æ‹tï¿½ï¿½ï¿½ï¿½ï¿½È‚Ì‚ÅA
 	Math::Matrix rotMat = Math::Matrix::CreateRotationY(m_angle + DirectX::XM_PI);
 	Math::Matrix transMat = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = scaleMat * rotMat * transMat;
+
+	const float animActiveRadiusSqr = BatAnimActiveRadius * BatAnimActiveRadius;
+	if (m_spModel && (!hasTargetDistance || isMoving || m_isChasing || distanceSqr <= animActiveRadiusSqr))
+	{
+		m_animator.AdvanceTime(m_spModel->WorkNodes(), 1.0f);
+	}
 }
 
 void Bat::DrawLit()
 {
 	if (!m_spModel) { return; }
 
-	const Math::Color drawColor = (m_hitFlashFrame > 0) ? kRedColor : kWhiteColor;
-	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld, drawColor);
+	if (m_hitFlashFrame > 0)
+	{
+		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld, BatHitColor, BatHitEmissive);
+		return;
+	}
 
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld, kWhiteColor);
+
+}
+
+void Bat::GenerateDepthMapFromLight()
+{
+	if (!m_spModel) { return; }
+
+	// Draw animated bat model into the shadow map.
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld);
+}
+
+void Bat::DrawEffect()
+{
+	// Bat uses the real shadow map, so no fake flattened shadow is drawn here.
 }
 
 void Bat::OnHit()
 {
-	// ˆø”‚È‚µ‚ÅŒÄ‚Î‚ê‚½ê‡‚ÍA‰¼‚ÌŠî–{ƒ_ƒ[ƒW‚ğg‚¤B
+	// ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ÅŒÄ‚Î‚ê‚½ï¿½ê‡ï¿½ÍAï¿½ï¿½ï¿½ÌŠï¿½{ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½gï¿½ï¿½ï¿½B
 	OnHit(10.0f);
 }
 
 void Bat::OnHit(float damage)
 {
-	// ‚·‚Å‚É€–Sˆ—‚ª“ü‚Á‚Ä‚¢‚éê‡‚ÍA“ñd‚ÉŒoŒ±’l‚ª“ü‚ç‚È‚¢‚æ‚¤‚É‰½‚à‚µ‚È‚¢B
+	// ï¿½ï¿½ï¿½Å‚Éï¿½ï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ê‡ï¿½ÍAï¿½ï¿½dï¿½ÉŒoï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½æ‚¤ï¿½É‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½B
 	if (m_isExpired) { return; }
 
-	// 0ˆÈ‰º‚Ìƒ_ƒ[ƒW‚Í–³Œø‚É‚·‚éB
+	// 0ï¿½È‰ï¿½ï¿½Ìƒ_ï¿½ï¿½ï¿½[ï¿½Wï¿½Í–ï¿½ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½B
 	if (damage <= 0.0f) { return; }
 
-	// –‚–@‚ª“–‚½‚Á‚½‚Ì‚ÅAó‚¯æ‚Á‚½ƒ_ƒ[ƒW—Ê‚¾‚¯HP‚ğŒ¸‚ç‚·B
+	// ï¿½ï¿½ï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÅAï¿½ó‚¯ï¿½ï¿½ï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½Ê‚ï¿½ï¿½ï¿½HPï¿½ï¿½ï¿½ï¿½ï¿½ç‚·ï¿½B
 	m_hp -= damage;
 	m_hitFlashFrame = BatHitFlashFrame;
 
-	// HP‚ª0ˆÈ‰º‚É‚È‚Á‚½‚çABaseScene::PreUpdate‚Åíœ‚³‚ê‚é‚æ‚¤‚É‚·‚éB
+	// HPï¿½ï¿½0ï¿½È‰ï¿½ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½ï¿½ABaseScene::PreUpdateï¿½Åíœï¿½ï¿½ï¿½ï¿½ï¿½æ‚¤ï¿½É‚ï¿½ï¿½ï¿½B
 	if (m_hp <= 0.0f)
 	{
 		m_isExpired = true;
 
-		// ƒRƒEƒ‚ƒŠ‚ğ“|‚µ‚½•ñV‚Æ‚µ‚ÄAƒvƒŒƒCƒ„[‚ÌStatus‚ÖŒoŒ±’l‚ğ“n‚·B
+		// ï¿½Rï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½|ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Vï¿½Æ‚ï¿½ï¿½ÄAï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½Statusï¿½ÖŒoï¿½ï¿½ï¿½lï¿½ï¿½nï¿½ï¿½ï¿½B
 		std::shared_ptr<Status> spStatus = m_wpStatus.lock();
 		if (spStatus)
 		{

@@ -7,37 +7,43 @@ class CameraBase;
 class Player : public CharaBase
 {
 public:
-	// Player‚ğì¬‚µ‚½‚ÉA©“®‚ÅInit()‚ğŒÄ‚ñ‚Å‰Šú‰»‚·‚éB
+	// Playerï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÉAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Init()ï¿½ï¿½ï¿½Ä‚ï¿½Åï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	Player() { Init(); }
 
-	// Player”jŠü‚Ìˆ—B
+	// Playerï¿½jï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½ï¿½ï¿½ï¿½B
 	~Player() override {}
 
-	// –ˆƒtƒŒ[ƒ€‚Ì’ÊíXVB
+	// ï¿½ï¿½ï¿½tï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ì’Êï¿½Xï¿½Vï¿½B
 	void Update() override;
 
-	// UpdateŒã‚ÉŒÄ‚Î‚ê‚éXVB
+	// å½±ã‚’è½ã¨ã™ãŸã‚ã€ãƒ©ã‚¤ãƒˆè¦–ç‚¹ã®æ·±åº¦ãƒãƒƒãƒ—ã¸ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãƒ¢ãƒ‡ãƒ«ã‚’æç”»ã™ã‚‹ã€‚
+	void GenerateDepthMapFromLight() override;
+
+	// åœ°é¢ã«æ¥åœ°æ„Ÿã‚’å‡ºã™ãŸã‚ã€ç°¡æ˜“çš„ãªé»’ã„å½±ã‚’æç”»ã™ã‚‹ã€‚
+	void DrawEffect() override;
+
+	// Updateï¿½ï¿½ÉŒÄ‚Î‚ï¿½ï¿½Xï¿½Vï¿½B
 	void PostUpdate() override;
 
-	// Player‚ªƒ_ƒ[ƒW‚ğó‚¯‚½‚É‘€ì‚·‚éStatus‚ğ“o˜^‚·‚éB
+	// Playerï¿½ï¿½ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ó‚¯‚ï¿½ï¿½ï¿½ï¿½É‘ï¿½ï¿½ì‚·ï¿½ï¿½Statusï¿½ï¿½oï¿½^ï¿½ï¿½ï¿½ï¿½B
 	void SetStatus(const std::shared_ptr<Status>& status)
 	{
 		m_status = status;
 	}
 
-	// ƒJƒƒ‰Šî€‚ÅˆÚ“®‚·‚é‚½‚ß‚ÉAŒ»İg‚Á‚Ä‚¢‚éƒJƒƒ‰‚ğ“o˜^‚·‚éB
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½î€ï¿½ÅˆÚ“ï¿½ï¿½ï¿½ï¿½é‚½ï¿½ß‚ÉAï¿½ï¿½ï¿½İgï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½oï¿½^ï¿½ï¿½ï¿½ï¿½B
 	void SetCamera(const std::shared_ptr<CameraBase>& camera)
 	{
 		m_wpCamera = camera;
 	}
 
-	// HP‚ª0‚É‚È‚Á‚½‚É–ß‚éÀ•W‚ğŠO‚©‚çİ’è‚·‚éB
+	// HPï¿½ï¿½0ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É–ß‚ï¿½ï¿½ï¿½Wï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½İ’è‚·ï¿½ï¿½B
 	void SetRespawnPos(const Math::Vector3& respawnPos)
 	{
 		m_respawnPos = respawnPos;
 	}
 
-	// ‘º‚ÌˆÀ‘S’n‘ÑƒXƒtƒBƒA‚ğİ’è‚·‚éB
+	// ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½ÑƒXï¿½tï¿½Bï¿½Aï¿½ï¿½İ’è‚·ï¿½ï¿½B
 	void SetSafeArea(const Math::Vector3& center, float radius)
 	{
 		m_safeAreaCenter = center;
@@ -48,67 +54,67 @@ public:
 		m_isInSafeArea = toPlayer.LengthSquared() <= m_safeAreaRadius * m_safeAreaRadius;
 	}
 
-	// ƒvƒŒƒCƒ„[‚ªˆÀ‘S’n‘Ñ‚É‚¢‚é‚©‚ğ•Ô‚·B
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Sï¿½nï¿½Ñ‚É‚ï¿½ï¿½é‚©ï¿½ï¿½Ô‚ï¿½ï¿½B
 	bool IsInSafeArea() const { return m_isInSafeArea; }
 
-	// ƒvƒŒƒCƒ„[‘€ì‚Ì—LŒø/–³Œø‚ğØ‚è‘Ö‚¦‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½Ì—Lï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½ï¿½B
 	void SetControlEnable(bool enable) { m_isControlEnable = enable; }
 
-	// ŠO•”‚©‚ç•\¦ˆÊ’u‚ğİ’è‚·‚éB
+	// ï¿½Oï¿½ï¿½ï¿½ï¿½ï¿½ï¿½\ï¿½ï¿½ï¿½Ê’uï¿½ï¿½İ’è‚·ï¿½ï¿½B
 	void SetPos(const Math::Vector3& pos) override
 	{
 		m_pos = pos;
 		KdGameObject::SetPos(pos);
 	}
 
-	// ƒ^ƒCƒgƒ‹‰æ–Ê‚È‚Ç‚ÅAƒvƒŒƒCƒ„[‚ÌŒü‚«‚¾‚¯‚ğw’è‚µ‚½‚¢‚Ég‚¤B
+	// ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½Ê‚È‚Ç‚ÅAï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÌŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½wï¿½è‚µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Égï¿½ï¿½ï¿½B
 	void SetAngle(float angle) { m_angle = angle; }
 
 private:
-	// Player‚Ì‰Šú‰»ˆ—B
+	// Playerï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	void Init() override;
 
-	// –³“GŠÔ‚ğXV‚·‚éB
+	// ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½Ô‚ï¿½ï¿½Xï¿½Vï¿½ï¿½ï¿½ï¿½B
 	void UpdateInvincible();
 
-	// “ü—Í‚ÆƒJƒƒ‰Œü‚«‚©‚çˆÚ“®•ûŒü‚ğì‚èAƒvƒŒƒCƒ„[‚ğˆÚ“®‚³‚¹‚éB
+	// ï¿½ï¿½ï¿½Í‚ÆƒJï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Ú“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	void UpdateMove();
 
-	// m_pos‚Æm_angle‚©‚çA•`‰æ—p‚Ìƒ[ƒ‹ƒhs—ñ‚ğì‚éB
+	// m_posï¿½ï¿½m_angleï¿½ï¿½ï¿½ï¿½Aï¿½`ï¿½ï¿½pï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	void UpdateWorldMatrix();
 
-	// ƒvƒŒƒCƒ„[‚Ì‘Ì—pƒXƒtƒBƒA‚ªATypeDamage‚Ì“–‚½‚è”»’è‚ÉG‚ê‚Ä‚¢‚é‚©Šm”F‚·‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‘Ì—pï¿½Xï¿½tï¿½Bï¿½Aï¿½ï¿½ï¿½ATypeDamageï¿½Ì“ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ÉGï¿½ï¿½Ä‚ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½B
 	void UpdateDamageCollision();
 
-	// HP‚ª0‚É‚È‚Á‚Ä‚¢‚é‚©Šm”F‚µA0‚È‚ç‘º‚Ì•œŠˆ’n“_‚Ö–ß‚·B
+	// HPï¿½ï¿½0ï¿½É‚È‚ï¿½ï¿½Ä‚ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½A0ï¿½È‚ç‘ºï¿½Ì•ï¿½ï¿½ï¿½ï¿½nï¿½_ï¿½Ö–ß‚ï¿½ï¿½B
 	void RespawnIfDead();
 
-	// ƒvƒŒƒCƒ„[‚ª‘º‚ÌˆÀ‘S’n‘Ñ“à‚É‚¢‚é‚©Šm”F‚·‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½Ñ“ï¿½ï¿½É‚ï¿½ï¿½é‚©ï¿½mï¿½Fï¿½ï¿½ï¿½ï¿½B
 	void UpdateSafeAreaFlag();
 
-	// ƒvƒŒƒCƒ„[HP‚ÍStatus‚ªŠÇ—‚µ‚Ä‚¢‚éB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[HPï¿½ï¿½Statusï¿½ï¿½ï¿½Ç—ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½B
 	std::weak_ptr<Status> m_status;
 
-	// WASD“ü—Í‚ğƒJƒƒ‰Šî€‚ÌˆÚ“®•ûŒü‚Ö•ÏŠ·‚·‚é‚½‚ß‚Ég‚¤B
+	// WASDï¿½ï¿½ï¿½Í‚ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½î€ï¿½ÌˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö•ÏŠï¿½ï¿½ï¿½ï¿½é‚½ï¿½ß‚Égï¿½ï¿½ï¿½B
 	std::weak_ptr<CameraBase> m_wpCamera;
 
-	// ƒvƒŒƒCƒ„[‚ÌY²‰ñ“]Šp“xB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½Yï¿½ï¿½ï¿½ï¿½]ï¿½pï¿½xï¿½B
 	float m_angle = 0.0f;
 
-	// ƒ_ƒ[ƒW‚ğó‚¯‚½Œã‚Ì–³“GŠÔB
+	// ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½ï¿½ï¿½ó‚¯‚ï¿½ï¿½ï¿½Ì–ï¿½ï¿½Gï¿½ï¿½ï¿½ÔB
 	float m_damageCoolTime = 0.0f;
 
-	// HP‚ª0‚É‚È‚Á‚½‚É–ß‚é‘º‚Ì’†‚ÌÀ•WB
+	// HPï¿½ï¿½0ï¿½É‚È‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É–ß‚é‘ºï¿½Ì’ï¿½ï¿½Ìï¿½ï¿½Wï¿½B
 	Math::Vector3 m_respawnPos = Math::Vector3::Zero;
 
-	// ‘º‚ÌˆÀ‘S’n‘Ñ‚É‚¢‚é‚©‚Ç‚¤‚©B
+	// ï¿½ï¿½ï¿½Ìˆï¿½ï¿½Sï¿½nï¿½Ñ‚É‚ï¿½ï¿½é‚©ï¿½Ç‚ï¿½ï¿½ï¿½ï¿½B
 	bool m_isInSafeArea = false;
 
-	// ‘º‚ğ•¢‚¤ˆÀ‘S’n‘ÑƒXƒtƒBƒAB
+	// ï¿½ï¿½ï¿½ğ•¢‚ï¿½ï¿½ï¿½ï¿½Sï¿½nï¿½ÑƒXï¿½tï¿½Bï¿½Aï¿½B
 	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 0.0f;
 
-	// true‚È‚çWASD“ü—Í‚ÅˆÚ“®‚·‚éB
+	// trueï¿½È‚ï¿½WASDï¿½ï¿½ï¿½Í‚ÅˆÚ“ï¿½ï¿½ï¿½ï¿½ï¿½B
 	bool m_isControlEnable = true;
 };
 

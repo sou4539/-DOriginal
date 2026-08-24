@@ -30,7 +30,7 @@ void PlayerStatus::Reset()
 	m_exp = 0.0f;
 	m_nextExp = 100.0f;
 	m_fireExplosionRadius = 3.0f;
-	m_iceSplitCount = 1;
+	m_iceSplitCount = 2;
 	m_icePierceCount = 1;
 	m_voltChainCount = 1;
 	m_hasFire = false;
@@ -131,7 +131,7 @@ void PlayerStatus::ApplySaveData(const SaveData& data)
 	m_exp = std::max(data.exp, 0.0f);
 	m_nextExp = std::max(data.nextExp, 1.0f);
 	m_fireExplosionRadius = std::max(data.fireExplosionRadius, 0.0f);
-	m_iceSplitCount = std::max(data.iceSplitCount, 1);
+	m_iceSplitCount = std::max(data.iceSplitCount, 2);
 	m_icePierceCount = std::max(data.icePierceCount, 1);
 	m_voltChainCount = std::max(data.voltChainCount, 0);
 	m_hasFire = data.hasFire;

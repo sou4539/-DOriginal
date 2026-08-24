@@ -1,4 +1,4 @@
-﻿#include "KdAmbientController.h"
+#include "KdAmbientController.h"
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 // シェーダーマネージャで設定したシェーダーの初期値を取得してくる
@@ -31,7 +31,7 @@ void KdAmbientController::Init()
 	}
 
 	// 影用深度バッファ生成情報の初期化
-	SetDirLightShadowArea({ 25.0f, 25.0f }, 30.0f);
+	SetDirLightShadowArea({ 160.0f, 160.0f }, 80.0f);
 
 	// 光のパラメータの反映
 	// ----- ----- ----- ----- ----- ----- ----- ----- ----- -----

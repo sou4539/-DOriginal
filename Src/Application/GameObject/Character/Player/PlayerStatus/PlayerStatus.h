@@ -15,7 +15,7 @@ public:
 		float exp = 0.0f;
 		float nextExp = 100.0f;
 		float fireExplosionRadius = 3.0f;
-		int iceSplitCount = 1;
+		int iceSplitCount = 2;
 		int icePierceCount = 1;
 		int voltChainCount = 1;
 		bool hasFire = false;
@@ -69,7 +69,7 @@ private:
 	float m_nextExp = 100.0f;
 
 	float m_fireExplosionRadius = 3.0f;
-	int m_iceSplitCount = 1;
+	int m_iceSplitCount = 2;
 	int m_icePierceCount = 1;
 	int m_voltChainCount = 1;
 	bool m_hasFire = false;

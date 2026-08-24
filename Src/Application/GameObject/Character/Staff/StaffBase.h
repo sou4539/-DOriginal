@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../CharaBase.h"
-#include "Magic/MagicBase.h"
+#include "../Magic/MagicBase.h"
 
 class Status;
 
@@ -27,7 +27,7 @@ public:
 
 protected:
 
-	// ñ‚²‚Æ‚Ì–‚–@«”\‚ğİ’è‚·‚éB
+	// ï¿½ñ‚²‚Æ‚Ì–ï¿½ï¿½@ï¿½ï¿½ï¿½\ï¿½ï¿½İ’è‚·ï¿½ï¿½B
 	void SetMagicParam(MagicType type, float damage, float speed, float coolTime)
 	{
 		m_magicType = type;
@@ -41,20 +41,20 @@ protected:
 	std::weak_ptr<Status> m_wpStatus;
 
 private:
-	// •\¦’†‚Ìñ‚¾‚¯‚ÅA©•ª‚ª‰½”Ô–Ú‚É•À‚Ô‚©‚ğ‚ÂB
+	// ï¿½\ï¿½ï¿½ï¿½ï¿½ï¿½Ìñ‚¾‚ï¿½ï¿½ÅAï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô–Ú‚É•ï¿½ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÂB
 	struct StaffLayoutInfo
 	{
 		int count = 0;
 		int index = -1;
 	};
 
-	// ƒvƒŒƒCƒ„[‚Ìü‚è‚ğ‰ñ‚éˆ—B
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½éˆï¿½ï¿½ï¿½B
 	void UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget);
 
-	// õ“G‚µ‚Ä–‚–@‚ğŒ‚‚Âˆ—B
+	// ï¿½ï¿½ï¿½Gï¿½ï¿½ï¿½Ä–ï¿½ï¿½@ï¿½ï¿½ï¿½ï¿½ï¿½Âï¿½ï¿½ï¿½ï¿½B
 	void UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer);
 
-	// ƒvƒŒƒCƒ„[‚Ì‹ß‚­‚É‚¢‚éˆê”Ô‹ß‚¢“G‚ğ’T‚·B
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‹ß‚ï¿½ï¿½É‚ï¿½ï¿½ï¿½ï¿½Ô‹ß‚ï¿½ï¿½Gï¿½ï¿½Tï¿½ï¿½ï¿½B
 	std::shared_ptr<KdGameObject> SearchEnemy(const std::shared_ptr<KdGameObject>& spPlayer);
 
 	bool IsMagicUnlocked() const;

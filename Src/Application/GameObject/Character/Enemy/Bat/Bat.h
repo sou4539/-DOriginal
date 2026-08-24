@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "../EnemyBase.h"
 
@@ -13,6 +13,8 @@ public:
 	void Init() override;
 	void Update() override;
 	void DrawLit() override;
+	void GenerateDepthMapFromLight() override;
+	void DrawEffect() override;
 
 	// 魔法などが当たった時に呼ぶ。
 	void OnHit() override;
