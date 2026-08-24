@@ -66,6 +66,7 @@ protected:
 	virtual const char* GetShotSoundPath() const { return ""; }
 	virtual const char* GetHitSoundPath() const { return ""; }
 	virtual float GetDirectionAngleOffset() const { return 0.0f; }
+	virtual Math::Vector3 GetEmissiveColor() const { return Math::Vector3::Zero; }
 
 	// 派生クラスから使う共通処理。
 	void StartFly();

@@ -38,10 +38,10 @@ protected:
 	// 派生弾や貫通中の弾を、命中後も飛ばし続けるか判定する.
 	bool ShouldKeepFlyingAfterHit(const std::shared_ptr<EnemyBase>& hitEnemy) override;
 
-	// 炎魔法の発射音を返す.
+	// 氷魔法の発射音を返す.
 	const char* GetShotSoundPath() const override;
 
-	// 炎魔法の命中音を返す.
+	// 氷魔法の命中音を返す.
 	const char* GetHitSoundPath() const override;
 
 private:

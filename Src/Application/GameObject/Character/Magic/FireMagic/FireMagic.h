@@ -48,6 +48,9 @@ protected:
 	// 炎画像の向きを進行方向に合わせるための補正角度を返す.
 	float GetDirectionAngleOffset() const override;
 
+	// 炎らしく少し赤く発光させる.
+	Math::Vector3 GetEmissiveColor() const override;
+
 private:
 	// 命中した敵を中心に、爆発範囲内の敵へ追加ダメージを与える.
 	void ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy);

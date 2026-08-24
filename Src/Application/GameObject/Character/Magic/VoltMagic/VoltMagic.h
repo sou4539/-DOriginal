@@ -34,8 +34,14 @@ protected:
 	// 命中後に、近くの別の敵へ連鎖弾を作る.
 	void OnAfterDamage(const std::shared_ptr<EnemyBase>& hitEnemy) override;
 
-	// 炎魔法の発射音を返す.
+	// 雷魔法の発射音を返す.
 	const char* GetShotSoundPath() const override;
+
+	// 雷魔法のヒット音を返す.
+	const char* GetHitSoundPath() const override;
+
+	// 雷らしく少し青白く発光させる.
+	Math::Vector3 GetEmissiveColor() const override;
 
 private:
 	// 命中した敵から次の敵へ飛ぶ連鎖弾を生成する.

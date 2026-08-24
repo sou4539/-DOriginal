@@ -93,7 +93,7 @@ bool IceMagic::ShouldKeepFlyingAfterHit(const std::shared_ptr<EnemyBase>&)
 
 const char* IceMagic::GetShotSoundPath() const
 {
-	return "Asset/Sounds/Magic/IceMagic/shot.wav";
+	return "Asset/Sounds/Magic/IceMagic/Ice_shot.wav";
 }
 
 const char* IceMagic::GetHitSoundPath() const

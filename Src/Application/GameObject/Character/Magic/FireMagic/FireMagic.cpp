@@ -128,6 +128,11 @@ float FireMagic::GetDirectionAngleOffset() const
 	return DirectX::XM_PI;
 }
 
+Math::Vector3 FireMagic::GetEmissiveColor() const
+{
+	return { 0.45f, 0.18f, 0.03f };
+}
+
 void FireMagic::ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
 	if (!hitEnemy) { return; }

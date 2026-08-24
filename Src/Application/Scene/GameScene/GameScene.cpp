@@ -124,7 +124,8 @@ void GameScene::Init()
 	player->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
 	ground->SetTarget(player);
 	village->SetTarget(player);
-	village->SetVisibleRadius(85.0f);
+	village->SetVisibleRadius(160.0f);
+	tree->SetTarget(player);
 	enemySpawner->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
 	enemySpawner->AddEnemiesToScene(m_objList, player);
 	status->SetVillageGuideRadius(village->GetVisibleRadius());

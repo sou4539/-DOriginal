@@ -8,6 +8,38 @@ namespace
 	constexpr float VoltScale = 4.0f;
 	constexpr float VoltFrameSpeed = 0.20f;
 	constexpr float VoltHitRadius = VoltScale * 0.5f;
+	constexpr int VoltSoundCount = 4;
+
+	int g_lastShotSoundIndex = -1;
+	int g_lastHitSoundIndex = -1;
+
+	const char* VoltShotSoundPathList[VoltSoundCount] =
+	{
+		"Asset/Sounds/Magic/VoltMagic/Elec_shot_01.wav",
+		"Asset/Sounds/Magic/VoltMagic/Elec_shot_02.wav",
+		"Asset/Sounds/Magic/VoltMagic/Elec_shot_03.wav",
+		"Asset/Sounds/Magic/VoltMagic/Elec_shot_04.wav"
+	};
+
+	const char* VoltHitSoundPathList[VoltSoundCount] =
+	{
+		"Asset/Sounds/Magic/VoltMagic/Elec_hit_01.wav",
+		"Asset/Sounds/Magic/VoltMagic/Elec_hit_02.wav",
+		"Asset/Sounds/Magic/VoltMagic/Elec_hit_03.wav",
+		"Asset/Sounds/Magic/VoltMagic/Elec_hit_04.wav"
+	};
+
+	const char* GetRandomSoundPath(const char* const soundPathList[VoltSoundCount], int& lastIndex)
+	{
+		int index = KdRandom::GetInt(0, VoltSoundCount - 2);
+		if (lastIndex >= 0 && index >= lastIndex)
+		{
+			++index;
+		}
+
+		lastIndex = index;
+		return soundPathList[index];
+	}
 }
 
 void VoltMagic::Shot(
@@ -91,7 +123,17 @@ void VoltMagic::OnAfterDamage(const std::shared_ptr<EnemyBase>& hitEnemy)
 
 const char* VoltMagic::GetShotSoundPath() const
 {
-	return "Asset/Sounds/Magic/VoltMagic/shot.wav";
+	return GetRandomSoundPath(VoltShotSoundPathList, g_lastShotSoundIndex);
+}
+
+const char* VoltMagic::GetHitSoundPath() const
+{
+	return GetRandomSoundPath(VoltHitSoundPathList, g_lastHitSoundIndex);
+}
+
+Math::Vector3 VoltMagic::GetEmissiveColor() const
+{
+	return { 0.12f, 0.30f, 0.75f };
 }
 
 void VoltMagic::CreateChain(const std::shared_ptr<EnemyBase>& hitEnemy)

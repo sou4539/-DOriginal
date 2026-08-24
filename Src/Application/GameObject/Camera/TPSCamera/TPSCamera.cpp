@@ -1,11 +1,16 @@
-#include "TPSCamera.h"
+ï»¿#include "TPSCamera.h"
+
+namespace
+{
+	constexpr float CameraLookAheadDistance = 5.0f;
+}
 
 void TPSCamera::Init()
 {
-	// eƒNƒ‰ƒX‚Ì‰Šú‰»ŒÄ‚Ño‚µ
+	// ï¿½eï¿½Nï¿½ï¿½ï¿½Xï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚Ñoï¿½ï¿½
 	CameraBase::Init();
 
-	// ƒvƒŒƒCƒ„[‚©‚çŒ©‚½ƒJƒƒ‰‚Ì‘Š‘ÎˆÊ’uB
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½çŒ©ï¿½ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ì‘ï¿½ï¿½ÎˆÊ’uï¿½B
 	m_mLocalPos = Math::Matrix::CreateTranslation(0, 15.0f, -15.0f);
 
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
@@ -13,56 +18,69 @@ void TPSCamera::Init()
 
 void TPSCamera::PostUpdate()
 {
-	// ƒ^[ƒQƒbƒg‚ÌÀ•W(—LŒø‚Èê‡—˜—p‚·‚é)
+	// ï¿½^ï¿½[ï¿½Qï¿½bï¿½gï¿½Ìï¿½ï¿½W(ï¿½Lï¿½ï¿½ï¿½Èê‡ï¿½ï¿½ï¿½pï¿½ï¿½ï¿½ï¿½)
 	Math::Vector3								_targetPos = Math::Vector3::Zero;
 	const std::shared_ptr<const KdGameObject>	_spTarget = m_wpTarget.lock();
 	if (_spTarget)
 	{
 		_targetPos = _spTarget->GetPos();
-		// ‘«Œ³‚Å‚Í‚È‚­AƒvƒŒƒCƒ„[‚Ì‘Ì‚Ì’†S‚ ‚½‚è‚ğŒ©‚éB
+		// ï¿½ï¿½ï¿½ï¿½ï¿½Å‚Í‚È‚ï¿½ï¿½Aï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ì‘Ì‚Ì’ï¿½ï¿½Sï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 		_targetPos.y += 1.0f;
 	}
 
-	// ƒJƒƒ‰‚Ì‰ñ“]
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ì‰ï¿½]
 	UpdateRotateByMouse();
 
-	// ƒ}ƒEƒX¶‰E‚Ì‰ñ“]‚¾‚¯‚ğg‚Á‚ÄAƒvƒŒƒCƒ„[‚ÌüˆÍ‚ğ‰ñ‚è‚ŞB
+	// ï¿½}ï¿½Eï¿½Xï¿½ï¿½ï¿½Eï¿½Ì‰ï¿½]ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ÄAï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½Í‚ï¿½ï¿½ï¿½èï¿½ŞB
 	m_mRotation = GetRotationYMatrix();
 
-	// ƒvƒŒƒCƒ„[‚©‚çŒ©‚½ƒJƒƒ‰‚Ü‚Å‚Ì‹——£B
+	Math::Vector3 _lookTargetPos = _targetPos;
+	if (_spTarget)
+	{
+		// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚ˆã‚Šå°‘ã—å‰ã‚’è¦‹ã‚‹ã“ã¨ã§ã€é€²è¡Œæ–¹å‘ã‚’åºƒã‚ã«æ˜ ã™ã€‚
+		Math::Vector3 _lookAheadDir = Math::Vector3::TransformNormal(Math::Vector3(0.0f, 0.0f, 1.0f), m_mRotation);
+		_lookAheadDir.y = 0.0f;
+		if (_lookAheadDir.LengthSquared() > 0.0f)
+		{
+			_lookAheadDir.Normalize();
+			_lookTargetPos += _lookAheadDir * CameraLookAheadDistance;
+		}
+	}
+
+	// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½çŒ©ï¿½ï¿½ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Å‚Ì‹ï¿½ï¿½ï¿½ï¿½B
 	Math::Vector3 _cameraDistance = Math::Vector3(0, 15.0f, -15.0f);
 
-	// ƒJƒƒ‰‚Ü‚Å‚Ì‹——£‚ğAƒ}ƒEƒX¶‰E‚Ì‰ñ“]‚É‡‚í‚¹‚Ä‰ñ‚·B
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ü‚Å‚Ì‹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Aï¿½}ï¿½Eï¿½Xï¿½ï¿½ï¿½Eï¿½Ì‰ï¿½]ï¿½Éï¿½ï¿½í‚¹ï¿½Ä‰ñ‚·B
 	Math::Vector3 _cameraOffset = Math::Vector3::TransformNormal(_cameraDistance, m_mRotation);
 	Math::Vector3 _cameraPos = _targetPos + _cameraOffset;
 
-	// ƒJƒƒ‰‚©‚çƒvƒŒƒCƒ„[‚ÖŒü‚©‚¤•ûŒüB
-	Math::Vector3 _toTarget = _targetPos - _cameraPos;
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ÖŒï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
+	Math::Vector3 _toTarget = _lookTargetPos - _cameraPos;
 	_toTarget.Normalize();
 
-	// ƒJƒƒ‰‚Ìƒ[ƒ‹ƒhs—ñ‚ğuÀ•Wv‚ÆuŒü‚«v‚©‚çì‚éB
+	// ï¿½Jï¿½ï¿½ï¿½ï¿½ï¿½Ìƒï¿½ï¿½[ï¿½ï¿½ï¿½hï¿½sï¿½ï¿½ï¿½ï¿½uï¿½ï¿½ï¿½Wï¿½vï¿½Æuï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 	m_mWorld = Math::Matrix::CreateWorld(_cameraPos, -_toTarget, Math::Vector3::Up);
 
-	// «‚ß‚è‚İ–h~‚Ìˆ×‚ÌÀ•W•â³ŒvZ«
+	// ï¿½ï¿½ï¿½ß‚èï¿½İ–hï¿½~ï¿½Ìˆ×‚Ìï¿½ï¿½Wï¿½â³ï¿½vï¿½Zï¿½ï¿½
 	KdCollider::RayInfo rayInfo;
-	// ƒŒƒC‚Ì”­ËˆÊ’u‚ğİ’è
+	// ï¿½ï¿½ï¿½Cï¿½Ì”ï¿½ï¿½ËˆÊ’uï¿½ï¿½İ’ï¿½
 	rayInfo.m_pos = GetPos();
 
-	// ƒŒƒC‚Ì”­Ë•ûŒü‚ğİ’è
+	// ï¿½ï¿½ï¿½Cï¿½Ì”ï¿½ï¿½Ë•ï¿½ï¿½ï¿½ï¿½ï¿½İ’ï¿½
 	rayInfo.m_dir = Math::Vector3::Down;
-	// ƒŒƒC‚Ì’·‚³‚ğİ’è
+	// ï¿½ï¿½ï¿½Cï¿½Ì’ï¿½ï¿½ï¿½ï¿½ï¿½İ’ï¿½
 	rayInfo.m_range = 1000.f;
 	if (_spTarget)
 	{
-		rayInfo.m_dir = _targetPos - GetPos();
+		rayInfo.m_dir = _lookTargetPos - GetPos();
 		rayInfo.m_range = rayInfo.m_dir.Length();
 		rayInfo.m_dir.Normalize();
 	}
 
-	// “–‚½‚è”»’è‚ğ‚µ‚½‚¢ƒ^ƒCƒv‚ğİ’è
+	// ï¿½ï¿½ï¿½ï¿½ï¿½è”»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½^ï¿½Cï¿½vï¿½ï¿½İ’ï¿½
 	rayInfo.m_type = KdCollider::TypeGround;
 
-	// ‡AHIT”»’è‘ÎÛƒIƒuƒWƒFƒNƒg‚É‘“–‚½‚è
+	// ï¿½AHITï¿½ï¿½ï¿½ï¿½ÎÛƒIï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½É‘ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	for (std::weak_ptr<KdGameObject> wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
@@ -71,13 +89,13 @@ void TPSCamera::PostUpdate()
 			std::list<KdCollider::CollisionResult> retRayList;
 			spGameObj->Intersects(rayInfo, &retRayList);
 
-			// ‡B Œ‹‰Ê‚ğg‚Á‚ÄÀ•W‚ğ•âŠ®‚·‚é
+			// ï¿½B ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½gï¿½ï¿½ï¿½Äï¿½ï¿½Wï¿½ï¿½âŠ®ï¿½ï¿½ï¿½ï¿½
 			float maxOverLap = 0;
 			Math::Vector3 hitPos = {};
 			bool hit = false;
 			for (auto& ret : retRayList)
 			{
-				// ƒŒƒC‚ğÕ’f‚µƒI[ƒo[‚µ‚½’·‚³‚ª
+				// ï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½Õ’fï¿½ï¿½ï¿½Iï¿½[ï¿½oï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 				if (maxOverLap < ret.m_overlapDistance)
 				{
 					maxOverLap = ret.m_overlapDistance;
@@ -87,7 +105,7 @@ void TPSCamera::PostUpdate()
 			}
 			if (hit)
 			{
-				// ‰½‚©‚µ‚ç‚ÌáŠQ•¨‚É“–‚½‚Á‚Ä‚¢‚é
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìï¿½Qï¿½ï¿½ï¿½É“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½
 				Math::Vector3 _hitPos = hitPos;
 				_hitPos += rayInfo.m_dir * 0.4f;
 				SetPos(_hitPos);

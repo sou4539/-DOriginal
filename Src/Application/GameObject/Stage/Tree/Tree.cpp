@@ -52,12 +52,27 @@ void Tree::LoadModels()
 
 void Tree::CreateRandomTrees()
 {
-	for (int i = 0; i < TreePlaceTryCount && static_cast<int>(m_trees.size()) < m_treeCount; ++i)
+	CreateRandomTreesInArea
+	(
+		TreeAreaMinX,
+		TreeAreaMaxX,
+		TreeAreaMinZ,
+		TreeAreaMaxZ,
+		m_treeCount,
+		TreePlaceTryCount
+	);
+}
+
+void Tree::CreateRandomTreesInArea(float minX, float maxX, float minZ, float maxZ, int addCount, int tryCount)
+{
+	const int targetTreeCount = std::min(static_cast<int>(m_trees.size()) + addCount, m_maxTreeCount);
+
+	for (int i = 0; i < tryCount && static_cast<int>(m_trees.size()) < targetTreeCount; ++i)
 	{
 		Math::Vector3 pos;
-		pos.x = KdRandom::GetFloat(TreeAreaMinX, TreeAreaMaxX);
+		pos.x = KdRandom::GetFloat(minX, maxX);
 		pos.y = 0.0f;
-		pos.z = KdRandom::GetFloat(TreeAreaMinZ, TreeAreaMaxZ);
+		pos.z = KdRandom::GetFloat(minZ, maxZ);
 
 		if (!CanPlaceTree(pos)) { continue; }
 
@@ -67,6 +82,39 @@ void Tree::CreateRandomTrees()
 
 		AddTree(pos, angle, scale, modelIndex);
 	}
+}
+
+void Tree::Update()
+{
+	MaintainTreesAroundTarget();
+}
+
+void Tree::MaintainTreesAroundTarget()
+{
+	if (static_cast<int>(m_trees.size()) >= m_maxTreeCount) { return; }
+
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return; }
+
+	Math::Vector3 targetPos = spTarget->GetPos();
+	targetPos.y = 0.0f;
+
+	Math::Vector3 toLastCenter = targetPos - m_lastAddTreeCenter;
+	toLastCenter.y = 0.0f;
+	if (toLastCenter.LengthSquared() < m_addTreeInterval * m_addTreeInterval) { return; }
+
+	m_lastAddTreeCenter = targetPos;
+
+	// プレイヤーが移動した先の周辺に木を補充して、草原が寂しくならないようにする。
+	CreateRandomTreesInArea
+	(
+		targetPos.x - m_addTreeAreaHalfSize,
+		targetPos.x + m_addTreeAreaHalfSize,
+		targetPos.z - m_addTreeAreaHalfSize,
+		targetPos.z + m_addTreeAreaHalfSize,
+		12,
+		180
+	);
 }
 
 void Tree::AddTree(const Math::Vector3& pos, float angle, float scale, int modelIndex)

@@ -200,7 +200,7 @@ void MagicBase::DrawLit()
 		KdShaderManager::Instance().m_StandardShader.SetDissolve(m_chant, &range, &color);
 	}
 
-	KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld);
+	KdShaderManager::Instance().m_StandardShader.DrawPolygon(*m_spPoly, m_mWorld, kWhiteColor, GetEmissiveColor());
 	KdShaderManager::Instance().m_StandardShader.SetDissolve(0.0f);
 }
 
