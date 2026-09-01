@@ -9,7 +9,7 @@ class TitleScene : public BaseScene
 public :
 
 	TitleScene()  { Init(); }
-	~TitleScene() {}
+	~TitleScene() override;
 
 private :
 
@@ -21,6 +21,7 @@ private :
 	std::shared_ptr<KdTexture> m_exitButtonTex = nullptr;
 	std::shared_ptr<KdTexture> m_titleLogoTex = nullptr;
 	std::shared_ptr<KdTexture> m_cursorTex = nullptr;
+	std::shared_ptr<KdSoundInstance> m_titleBgm = nullptr;
 	std::shared_ptr<KdSoundInstance> m_exitClickSound = nullptr;
 
 	bool m_prevLeftClick = false;

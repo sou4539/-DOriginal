@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../CharaBase.h"
 #include "../Magic/MagicBase.h"
@@ -27,7 +27,7 @@ public:
 
 protected:
 
-	// �񂲂Ƃ̖��@���\��ݒ肷��B
+	// 杖ごとの魔法性能を設定する。
 	void SetMagicParam(MagicType type, float damage, float speed, float coolTime)
 	{
 		m_magicType = type;
@@ -41,20 +41,20 @@ protected:
 	std::weak_ptr<Status> m_wpStatus;
 
 private:
-	// �\�����̏񂾂��ŁA���������Ԗڂɕ��Ԃ������B
+	// 表示中の杖が全部で何本あり、自分が何番目かを持つ。
 	struct StaffLayoutInfo
 	{
 		int count = 0;
 		int index = -1;
 	};
 
-	// �v���C���[�̎������鏈���B
+	// プレイヤーの周りを回る処理。
 	void UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget);
 
-	// ���G���Ė��@���������B
+	// 敵を探して魔法を撃つ処理。
 	void UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer);
 
-	// �v���C���[�̋߂��ɂ����ԋ߂��G��T���B
+	// プレイヤーの近くにいる一番近い敵を探す。
 	std::shared_ptr<KdGameObject> SearchEnemy(const std::shared_ptr<KdGameObject>& spPlayer);
 
 	bool IsMagicUnlocked() const;
@@ -72,7 +72,7 @@ private:
 	float m_magicSpeed = 0.0f;
 	float m_magicCoolTime = 0.0f;
 	float m_magicCoolTimeMax = 60.0f;
-	float m_searchRadius = 8.0f;
+	float m_searchRadius = 14.0f;
 
 };
 

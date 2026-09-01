@@ -47,6 +47,7 @@ private:
 
 	void UpdateMaxEnemyCountByDistance();
 	void MaintainEnemyCount();
+	void UpdateActiveEnemies();
 
 	Math::Vector3 MakeRandomPos(int spawnAreaIndex) const;
 	bool IsInSafeArea(const Math::Vector3& pos) const;
@@ -74,8 +75,9 @@ private:
 
 	bool m_isSpawnOnePerFrame = true;
 
-	int m_nowMaxEnemyCount = 30;
-	int m_minEnemyCount = 30;
+	int m_nowMaxEnemyCount = 1;
+	int m_minEnemyCount = 1;
 	int m_maxEnemyCount = 100;
 	float m_maxEnemyCountDistance = 250.0f;
+	float m_activeEnemyRadius = 100.0f;
 };

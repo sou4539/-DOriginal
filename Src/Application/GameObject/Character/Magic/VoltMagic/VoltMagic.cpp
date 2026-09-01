@@ -15,18 +15,18 @@ namespace
 
 	const char* VoltShotSoundPathList[VoltSoundCount] =
 	{
-		"Asset/Sounds/Magic/VoltMagic/Elec_shot_01.wav",
-		"Asset/Sounds/Magic/VoltMagic/Elec_shot_02.wav",
-		"Asset/Sounds/Magic/VoltMagic/Elec_shot_03.wav",
-		"Asset/Sounds/Magic/VoltMagic/Elec_shot_04.wav"
+		"Asset/Sounds/Magic/VoltMagic/Shot/Elec_shot_01.wav",
+		"Asset/Sounds/Magic/VoltMagic/Shot/Elec_shot_02.wav",
+		"Asset/Sounds/Magic/VoltMagic/Shot/Elec_shot_03.wav",
+		"Asset/Sounds/Magic/VoltMagic/Shot/Elec_shot_04.wav"
 	};
 
 	const char* VoltHitSoundPathList[VoltSoundCount] =
 	{
-		"Asset/Sounds/Magic/VoltMagic/Elec_hit_01.wav",
-		"Asset/Sounds/Magic/VoltMagic/Elec_hit_02.wav",
-		"Asset/Sounds/Magic/VoltMagic/Elec_hit_03.wav",
-		"Asset/Sounds/Magic/VoltMagic/Elec_hit_04.wav"
+		"Asset/Sounds/Magic/VoltMagic/Hit/Elec_hit_01.wav",
+		"Asset/Sounds/Magic/VoltMagic/Hit/Elec_hit_02.wav",
+		"Asset/Sounds/Magic/VoltMagic/Hit/Elec_hit_03.wav",
+		"Asset/Sounds/Magic/VoltMagic/Hit/Elec_hit_04.wav"
 	};
 
 	const char* GetRandomSoundPath(const char* const soundPathList[VoltSoundCount], int& lastIndex)
@@ -118,6 +118,7 @@ void VoltMagic::UpdateFlyMagic()
 void VoltMagic::OnAfterDamage(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
 	// 命中後に残り連鎖回数があれば、次の敵へ雷をつなげる.
+	AddChainHitObject(hitEnemy);
 	CreateChain(hitEnemy);
 }
 
@@ -153,6 +154,7 @@ void VoltMagic::CreateChain(const std::shared_ptr<EnemyBase>& hitEnemy)
 	startPos += dir * (m_radius + 0.2f);
 
 	std::shared_ptr<VoltMagic> spChainMagic = std::make_shared<VoltMagic>();
+	spChainMagic->m_chainHitList = m_chainHitList;
 	spChainMagic->Shot
 	(
 		startPos,
@@ -178,14 +180,13 @@ std::shared_ptr<EnemyBase> VoltMagic::SearchChainTarget(const std::shared_ptr<En
 	const Math::Vector3 hitPos = hitEnemy->GetPos();
 	float minDistanceSqr = m_chainRadius * m_chainRadius;
 
-	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
+	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
-		if (!spObj) { continue; }
-
-		std::shared_ptr<EnemyBase> spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		std::shared_ptr<EnemyBase> spEnemy = wpEnemy.lock();
 		if (!spEnemy) { continue; }
 		if (spEnemy == hitEnemy) { continue; }
 		if (spEnemy == m_wpIgnoreTarget.lock()) { continue; }
+		if (HasChainHitObject(spEnemy)) { continue; }
 		if (spEnemy->IsExpired()) { continue; }
 
 		const Math::Vector3 toEnemy = spEnemy->GetPos() - hitPos;
@@ -198,4 +199,27 @@ std::shared_ptr<EnemyBase> VoltMagic::SearchChainTarget(const std::shared_ptr<En
 	}
 
 	return spTarget;
+}
+
+bool VoltMagic::HasChainHitObject(const std::shared_ptr<KdGameObject>& obj) const
+{
+	if (!obj) { return false; }
+
+	for (const std::weak_ptr<KdGameObject>& wpHitObj : m_chainHitList)
+	{
+		if (wpHitObj.lock() == obj)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void VoltMagic::AddChainHitObject(const std::shared_ptr<KdGameObject>& obj)
+{
+	if (!obj) { return; }
+	if (HasChainHitObject(obj)) { return; }
+
+	m_chainHitList.push_back(obj);
 }

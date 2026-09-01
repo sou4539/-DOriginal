@@ -2,6 +2,7 @@
 
 #include "../Bat/Bat.h"
 #include "../../Player/Player.h"
+#include "../../../../Scene/SceneManager.h"
 #include <algorithm>
 
 void EnemySpawner::Init()
@@ -25,6 +26,7 @@ void EnemySpawner::Update()
 
 	UpdateMaxEnemyCountByDistance();
 	MaintainEnemyCount();
+	UpdateActiveEnemies();
 }
 
 void EnemySpawner::SetTarget(const std::shared_ptr<KdGameObject>& target)
@@ -200,6 +202,36 @@ void EnemySpawner::MaintainEnemyCount()
 			}
 		}
 	}
+}
+
+void EnemySpawner::UpdateActiveEnemies()
+{
+	std::vector<std::weak_ptr<EnemyBase>> activeEnemies;
+
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget)
+	{
+		SceneManager::Instance().SetActiveEnemies(activeEnemies);
+		return;
+	}
+
+	const float activeRadiusSqr = m_activeEnemyRadius * m_activeEnemyRadius;
+	const Math::Vector3 targetPos = spTarget->GetPos();
+
+	for (const EnemyInfo& enemyInfo : m_enemies)
+	{
+		std::shared_ptr<EnemyBase> spEnemy = enemyInfo.enemy.lock();
+		if (!spEnemy) { continue; }
+		if (spEnemy->IsExpired()) { continue; }
+
+		Math::Vector3 toEnemy = spEnemy->GetPos() - targetPos;
+		toEnemy.y = 0.0f;
+		if (toEnemy.LengthSquared() > activeRadiusSqr) { continue; }
+
+		activeEnemies.push_back(spEnemy);
+	}
+
+	SceneManager::Instance().SetActiveEnemies(activeEnemies);
 }
 
 void EnemySpawner::AddEnemyToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target, int spawnAreaIndex)

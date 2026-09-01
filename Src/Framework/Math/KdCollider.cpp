@@ -227,6 +227,11 @@ void KdCollider::SetEnableAll(bool flag)
 	}
 }
 
+void KdCollider::RemoveCollisionShape(std::string_view name)
+{
+	m_collisionShapes.erase(std::string(name));
+}
+
 
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
 // SphereCollision

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../CharaBase.h"
 
 class Status;
@@ -7,13 +7,13 @@ class CameraBase;
 class Player : public CharaBase
 {
 public:
-	// Player���쐬�������ɁA������Init()���Ă�ŏ���������B
+	// 生成時にInitを呼び、プレイヤーを初期化する。
 	Player() { Init(); }
 
-	// Player�j�����̏����B
+	// プレイヤー破棄時の処理。
 	~Player() override {}
 
-	// ���t���[���̒ʏ�X�V�B
+	// 毎フレームの通常更新。
 	void Update() override;
 
 	// 影を落とすため、ライト視点の深度マップへプレイヤーモデルを描画する。
@@ -22,28 +22,28 @@ public:
 	// 地面に接地感を出すため、簡易的な黒い影を描画する。
 	void DrawEffect() override;
 
-	// Update��ɌĂ΂��X�V�B
+	// Update後に呼ばれる補正・判定処理。
 	void PostUpdate() override;
 
-	// Player���_���[�W���󂯂����ɑ��삷��Status��o�^����B
+	// プレイヤーがダメージを受けた時に操作するStatusを登録する。
 	void SetStatus(const std::shared_ptr<Status>& status)
 	{
 		m_status = status;
 	}
 
-	// �J������ňړ����邽�߂ɁA���ݎg���Ă���J������o�^����B
+	// カメラ基準で移動するため、現在使っているカメラを登録する。
 	void SetCamera(const std::shared_ptr<CameraBase>& camera)
 	{
 		m_wpCamera = camera;
 	}
 
-	// HP��0�ɂȂ������ɖ߂���W���O����ݒ肷��B
+	// HPが0になった時に戻る復活座標を設定する。
 	void SetRespawnPos(const Math::Vector3& respawnPos)
 	{
 		m_respawnPos = respawnPos;
 	}
 
-	// ���̈��S�n�уX�t�B�A��ݒ肷��B
+	// 村の安全地帯スフィアを設定する。
 	void SetSafeArea(const Math::Vector3& center, float radius)
 	{
 		m_safeAreaCenter = center;
@@ -54,67 +54,67 @@ public:
 		m_isInSafeArea = toPlayer.LengthSquared() <= m_safeAreaRadius * m_safeAreaRadius;
 	}
 
-	// �v���C���[�����S�n�тɂ��邩��Ԃ��B
+	// プレイヤーが安全地帯にいるか返す。
 	bool IsInSafeArea() const { return m_isInSafeArea; }
 
-	// �v���C���[����̗L��/������؂�ւ���B
+	// プレイヤー操作の有効/無効を切り替える。
 	void SetControlEnable(bool enable) { m_isControlEnable = enable; }
 
-	// �O������\���ʒu��ݒ肷��B
+	// 外部から表示位置を設定する。
 	void SetPos(const Math::Vector3& pos) override
 	{
 		m_pos = pos;
 		KdGameObject::SetPos(pos);
 	}
 
-	// �^�C�g����ʂȂǂŁA�v���C���[�̌����������w�肵�������Ɏg���B
+	// タイトル画面などで、プレイヤーの向きを指定したい時に使う。
 	void SetAngle(float angle) { m_angle = angle; }
 
 private:
-	// Player�̏����������B
+	// プレイヤーの初期設定。
 	void Init() override;
 
-	// ���G���Ԃ��X�V����B
+	// 無敵時間を更新する。
 	void UpdateInvincible();
 
-	// ���͂ƃJ������������ړ����������A�v���C���[���ړ�������B
+	// 入力とカメラ方向から移動方向を作り、プレイヤーを移動させる。
 	void UpdateMove();
 
-	// m_pos��m_angle����A�`��p�̃��[���h�s������B
+	// m_posとm_angleから描画用のワールド行列を作る。
 	void UpdateWorldMatrix();
 
-	// �v���C���[�̗̑p�X�t�B�A���ATypeDamage�̓����蔻��ɐG��Ă��邩�m�F����B
+	// プレイヤーの体用スフィアが、TypeDamage判定に触れているか確認する。
 	void UpdateDamageCollision();
 
-	// HP��0�ɂȂ��Ă��邩�m�F���A0�Ȃ瑺�̕����n�_�֖߂��B
+	// HPが0なら村の復活地点へ戻す。
 	void RespawnIfDead();
 
-	// �v���C���[�����̈��S�n�ѓ��ɂ��邩�m�F����B
+	// プレイヤーが村の安全地帯内にいるか確認する。
 	void UpdateSafeAreaFlag();
 
-	// �v���C���[HP��Status���Ǘ����Ă���B
+	// プレイヤーHPはStatusが管理している。
 	std::weak_ptr<Status> m_status;
 
-	// WASD���͂��J������̈ړ������֕ϊ����邽�߂Ɏg���B
+	// WASD入力をカメラ基準の移動方向へ変換するために使う。
 	std::weak_ptr<CameraBase> m_wpCamera;
 
-	// �v���C���[��Y����]�p�x�B
+	// プレイヤーのY軸回転角度。
 	float m_angle = 0.0f;
 
-	// �_���[�W���󂯂���̖��G���ԁB
+	// ダメージを受けた後の無敵時間。
 	float m_damageCoolTime = 0.0f;
 
-	// HP��0�ɂȂ������ɖ߂鑺�̒��̍��W�B
+	// HPが0になった時に戻る村の中の座標。
 	Math::Vector3 m_respawnPos = Math::Vector3::Zero;
 
-	// ���̈��S�n�тɂ��邩�ǂ����B
+	// 村の安全地帯にいるかどうか。
 	bool m_isInSafeArea = false;
 
-	// ���𕢂����S�n�уX�t�B�A�B
+	// 村を覆う安全地帯スフィア。
 	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 0.0f;
 
-	// true�Ȃ�WASD���͂ňړ�����B
+	// trueならWASD入力で移動できる。
 	bool m_isControlEnable = true;
 };
 

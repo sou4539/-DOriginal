@@ -50,6 +50,9 @@ private:
 	// 連鎖範囲内で一番近い次の敵を探す.
 	std::shared_ptr<EnemyBase> SearchChainTarget(const std::shared_ptr<EnemyBase>& hitEnemy);
 
+	bool HasChainHitObject(const std::shared_ptr<KdGameObject>& obj) const;
+	void AddChainHitObject(const std::shared_ptr<KdGameObject>& obj);
+
 	// あと何回連鎖できるか.
 	int m_chainCount = 0;
 
@@ -58,4 +61,6 @@ private:
 
 	// 次の連鎖対象を探す範囲.
 	float m_chainRadius = 8.0f;
+
+	std::vector<std::weak_ptr<KdGameObject>> m_chainHitList;
 };

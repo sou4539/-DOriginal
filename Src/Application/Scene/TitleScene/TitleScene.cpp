@@ -1,4 +1,4 @@
-#include "TitleScene.h"
+ï»¿#include "TitleScene.h"
 #include "../SceneManager.h"
 #include "../../GameObject/Stage/Ground/Ground.h"
 #include "../../GameObject/Stage/Village/Village.h"
@@ -16,6 +16,7 @@ namespace
 {
 	const char* ProgressSavePath = "Save/Progress.txt";
 	const char* UIClickSoundPath = "Asset/Sounds/UI/Click.wav";
+	const char* TitleBgmPath = "Asset/Sounds/BGM/Title/Title_BGM.wav";
 
 	struct MagicUnlockSave
 	{
@@ -54,26 +55,26 @@ namespace
 		}
 	};
 
-	//ƒXƒ^[ƒgƒ{ƒ^ƒ“
+	//ï¿½Xï¿½^ï¿½[ï¿½gï¿½{ï¿½^ï¿½ï¿½
 	constexpr int StartButtonX = 400;
 	constexpr int StartButtonY = -200;
 
-	//Exitƒ{ƒ^ƒ“
+	//Exitï¿½{ï¿½^ï¿½ï¿½
 	constexpr int ExitButtonX = 400;
 	constexpr int ExitButtonY = -300;
 
-	//ƒ^ƒCƒgƒ‹ƒƒS
+	//ï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½ï¿½ï¿½S
 	constexpr int TitleLogoX = -345;
 	constexpr int TitleLogoY = 235;
 
-	//ƒTƒCƒY
-	//ƒ{ƒ^ƒ“
+	//ï¿½Tï¿½Cï¿½Y
+	//ï¿½{ï¿½^ï¿½ï¿½
 	constexpr int ButtonW = 220;
 	constexpr int ButtonH = 70;
-	//ƒ^ƒCƒgƒ‹
+	//ï¿½^ï¿½Cï¿½gï¿½ï¿½
 	constexpr int TitleLogoW = 520;
 	constexpr int TitleLogoH = 170;
-	//ƒJ[ƒ\ƒ‹
+	//ï¿½Jï¿½[ï¿½\ï¿½ï¿½
 	constexpr int CursorDrawW = 32;
 	constexpr int CursorDrawH = 32;
 
@@ -192,6 +193,15 @@ namespace
 	}
 }
 
+
+TitleScene::~TitleScene()
+{
+	if (m_titleBgm)
+	{
+		m_titleBgm->Stop();
+		m_titleBgm = nullptr;
+	}
+}
 void TitleScene::Event()
 {
 	if (m_isExitRequested)
@@ -208,7 +218,7 @@ void TitleScene::Event()
 	{
 		ResetProgressSave();
 
-		// •Û‘¶ó‘Ô‚ğ‰Šú‰»‚µ‚½‚Ì‚ÅAƒ^ƒCƒgƒ‹‚É•\¦‚µ‚Ä‚¢‚éæ“¾Ï‚İ‚Ìñ‚àÁ‚·B
+		// ï¿½Û‘ï¿½ï¿½ï¿½Ô‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚ÅAï¿½^ï¿½Cï¿½gï¿½ï¿½ï¿½É•\ï¿½ï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½æ“¾ï¿½Ï‚İ‚Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
 		m_objList.remove_if
 		(
 			[](const std::shared_ptr<KdGameObject>& obj)
@@ -230,6 +240,11 @@ void TitleScene::Event()
 	{
 		PlayUIClickSound();
 
+		if (m_titleBgm)
+		{
+			m_titleBgm->Stop();
+		}
+
 		SceneManager::Instance().SetNextScene
 		(
 			SceneManager::SceneType::Game
@@ -248,6 +263,12 @@ void TitleScene::Event()
 void TitleScene::Init()
 {
 	SetCursorVisible(false);
+	m_titleBgm = KdAudioManager::Instance().Play(TitleBgmPath, true);
+	if (m_titleBgm)
+	{
+		// ã‚¿ã‚¤ãƒˆãƒ«BGMã¯ä¸»å¼µã—ã™ããªã„ã‚ˆã†ã€é€šå¸¸éŸ³é‡ã®åŠåˆ†ã§æµã™ã€‚
+		m_titleBgm->SetVolume(0.5f);
+	}
 
 	std::shared_ptr<TitleCamera> camera = std::make_shared<TitleCamera>();
 	camera->Init();

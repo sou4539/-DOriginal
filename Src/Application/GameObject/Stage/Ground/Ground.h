@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "../StageBase.h"
 
@@ -11,7 +11,7 @@ public:
 	void Update() override;
 	void DrawLit() override;
 
-	// ’n–Ê•\¦‚ÌŠî€‚É‚È‚é‘ÎÛ‚ğİ’è‚·‚éB
+	// åœ°é¢è¡¨ç¤ºã®åŸºæº–ã«ãªã‚‹å¯¾è±¡ã‚’è¨­å®šã™ã‚‹ã€‚
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{
 		m_wpTarget = target;
@@ -20,20 +20,18 @@ public:
 private:
 	void Init() override;
 
-	// ’n–Ê‚Ì•\¦ƒTƒCƒYB
+	// åœ°é¢ã®è¡¨ç¤ºã‚µã‚¤ã‚ºã€‚
 	float m_groundScale = 100.0f;
 
-	// ’n–Ê‰æ‘œ‚ÌŒJ‚è•Ô‚µ‰ñ”B
+	// åœ°é¢ç”»åƒã®ç¹°ã‚Šè¿”ã—å›æ•°ã€‚
 	Math::Vector2 m_textureTiling = { 100.0f, 100.0f };
 
-	// ’n–Ê1–‡•ª‚Ì”z’uŠÔŠuB
+	// åœ°é¢1æšã”ã¨ã®é…ç½®é–“éš”ã€‚
 	float m_tileLength = 200.0f;
 
-	// 3~3’n–Ê‚Ì’†SÀ•WB
+	// 3Ã—3åœ°é¢ã®ä¸­å¿ƒåº§æ¨™ã€‚
 	Math::Vector3 m_basePos = Math::Vector3::Zero;
 
-	// ’n–Ê•\¦‚ÌŠî€‘ÎÛB
+	// åœ°é¢è¡¨ç¤ºã®åŸºæº–å¯¾è±¡ã€‚
 	std::weak_ptr<KdGameObject> m_wpTarget;
 };
-
-

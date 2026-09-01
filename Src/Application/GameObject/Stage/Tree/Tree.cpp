@@ -1,5 +1,6 @@
 ﻿#include "Tree.h"
 
+#include <algorithm>
 #include <string>
 
 namespace
@@ -16,8 +17,6 @@ namespace
 	constexpr float TreeAreaMinZ = -95.0f;
 	constexpr float TreeAreaMaxZ = 95.0f;
 	constexpr int TreePlaceTryCount = 400;
-	constexpr float TreeShadowHeight = 0.025f;
-	const Math::Color TreeShadowColor = { 0.0f, 0.0f, 0.0f, 0.18f };
 }
 
 void Tree::Init()
@@ -87,33 +86,30 @@ void Tree::CreateRandomTreesInArea(float minX, float maxX, float minZ, float max
 void Tree::Update()
 {
 	MaintainTreesAroundTarget();
+	UpdateTreeColliders();
 }
 
 void Tree::MaintainTreesAroundTarget()
 {
-	if (static_cast<int>(m_trees.size()) >= m_maxTreeCount) { return; }
+	const int removedTreeCount = RemoveTreesOutsideActiveRange();
 
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (!spTarget) { return; }
+	if (removedTreeCount <= 0) { return; }
+	if (static_cast<int>(m_trees.size()) >= m_maxTreeCount) { return; }
 
 	Math::Vector3 targetPos = spTarget->GetPos();
 	targetPos.y = 0.0f;
 
-	Math::Vector3 toLastCenter = targetPos - m_lastAddTreeCenter;
-	toLastCenter.y = 0.0f;
-	if (toLastCenter.LengthSquared() < m_addTreeInterval * m_addTreeInterval) { return; }
-
-	m_lastAddTreeCenter = targetPos;
-
-	// プレイヤーが移動した先の周辺に木を補充して、草原が寂しくならないようにする。
+	// 消えた本数だけ補充し、移動距離ではなく削除を基準に木の数を保つ。
 	CreateRandomTreesInArea
 	(
 		targetPos.x - m_addTreeAreaHalfSize,
 		targetPos.x + m_addTreeAreaHalfSize,
 		targetPos.z - m_addTreeAreaHalfSize,
 		targetPos.z + m_addTreeAreaHalfSize,
-		12,
-		180
+		removedTreeCount,
+		removedTreeCount * 30
 	);
 }
 
@@ -124,28 +120,42 @@ void Tree::AddTree(const Math::Vector3& pos, float angle, float scale, int model
 	tree.angle = angle;
 	tree.scale = scale;
 	tree.modelIndex = modelIndex;
+	tree.colliderName = "Tree_" + std::to_string(m_nextTreeId++);
 	tree.world =
 		Math::Matrix::CreateScale(scale) *
 		Math::Matrix::CreateRotationY(angle) *
 		Math::Matrix::CreateTranslation(pos);
 
 	m_trees.push_back(tree);
+}
 
-	if (m_pCollider)
-	{
-		const std::string name = "Tree_" + std::to_string(m_trees.size());
-		m_pCollider->RegisterCollisionShape
-		(
-			name,
-			Math::Vector3(pos.x, pos.y + 1.0f, pos.z),
-			m_treeRadius * scale,
-			KdCollider::TypeGround
-		);
-	}
+void Tree::RegisterTreeCollider(TreeData& tree)
+{
+	if (!m_pCollider || tree.hasCollider) { return; }
+
+	m_pCollider->RegisterCollisionShape
+	(
+		tree.colliderName,
+		Math::Vector3(tree.pos.x, tree.pos.y + 1.0f, tree.pos.z),
+		m_treeRadius * tree.scale,
+		KdCollider::TypeGround
+	);
+
+	tree.hasCollider = true;
+}
+
+void Tree::RemoveTreeCollider(TreeData& tree)
+{
+	if (!m_pCollider || !tree.hasCollider) { return; }
+
+	m_pCollider->RemoveCollisionShape(tree.colliderName);
+	tree.hasCollider = false;
 }
 
 bool Tree::CanPlaceTree(const Math::Vector3& pos) const
 {
+	if (IsTooCloseToTarget(pos)) { return false; }
+
 	for (const AvoidCircle& circle : m_avoidCircles)
 	{
 		if (IsInCircle(pos, circle)) { return false; }
@@ -173,6 +183,81 @@ bool Tree::IsInCircle(const Math::Vector3& pos, const AvoidCircle& circle) const
 	return toPos.LengthSquared() <= circle.radius * circle.radius;
 }
 
+bool Tree::IsNearTarget(const Math::Vector3& pos, float radius) const
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return true; }
+
+	Math::Vector3 toPos = pos - spTarget->GetPos();
+	toPos.y = 0.0f;
+
+	return toPos.LengthSquared() <= radius * radius;
+}
+
+bool Tree::IsTooCloseToTarget(const Math::Vector3& pos) const
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return false; }
+
+	// プレイヤーの近くには新しく木を出さず、画面内で突然生える違和感を減らす。
+	return IsNearTarget(pos, m_minCreateDistanceFromTarget);
+}
+
+int Tree::RemoveTreesOutsideActiveRange()
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return 0; }
+	if (!m_pCollider) { return 0; }
+
+	int removedTreeCount = 0;
+
+	m_trees.erase
+	(
+		std::remove_if(m_trees.begin(), m_trees.end(), [this, &removedTreeCount](const TreeData& tree)
+		{
+			if (!IsOutsideActiveRange(tree.pos)) { return false; }
+
+			// 表示範囲外の木は描画リストと当たり判定の両方から削除する。
+			if (tree.hasCollider)
+			{
+				m_pCollider->RemoveCollisionShape(tree.colliderName);
+			}
+
+			++removedTreeCount;
+			return true;
+		}),
+		m_trees.end()
+	);
+
+	return removedTreeCount;
+}
+
+void Tree::UpdateTreeColliders()
+{
+	for (TreeData& tree : m_trees)
+	{
+		if (IsNearTarget(tree.pos, m_colliderActiveRadius))
+		{
+			RegisterTreeCollider(tree);
+		}
+		else
+		{
+			RemoveTreeCollider(tree);
+		}
+	}
+}
+
+bool Tree::IsOutsideActiveRange(const Math::Vector3& pos) const
+{
+	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
+	if (!spTarget) { return false; }
+
+	Math::Vector3 toPos = pos - spTarget->GetPos();
+	toPos.y = 0.0f;
+
+	return toPos.LengthSquared() > m_activeRadius * m_activeRadius;
+}
+
 void Tree::DrawLit()
 {
 	for (const TreeData& tree : m_trees)
@@ -184,27 +269,13 @@ void Tree::DrawLit()
 	}
 }
 
-void Tree::DrawEffect()
-{
-	for (const TreeData& tree : m_trees)
-	{
-		if (tree.modelIndex < 0 || tree.modelIndex >= static_cast<int>(m_treeModels.size())) { continue; }
-		if (!m_treeModels[tree.modelIndex]) { continue; }
-
-		// 木モデルを地面に薄く潰して、足元に見える簡易影として描く。
-		Math::Matrix shadowMat = tree.world * Math::Matrix::CreateScale(1.0f, 0.0f, 1.0f);
-		shadowMat.Translation({ tree.pos.x, TreeShadowHeight, tree.pos.z });
-
-		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_treeModels[tree.modelIndex], shadowMat, TreeShadowColor);
-	}
-}
-
 void Tree::GenerateDepthMapFromLight()
 {
 	for (const TreeData& tree : m_trees)
 	{
 		if (tree.modelIndex < 0 || tree.modelIndex >= static_cast<int>(m_treeModels.size())) { continue; }
 		if (!m_treeModels[tree.modelIndex]) { continue; }
+		if (!IsNearTarget(tree.pos, m_shadowDrawRadius)) { continue; }
 
 		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_treeModels[tree.modelIndex], tree.world);
 	}

@@ -1,4 +1,4 @@
-#include "StaffBase.h"
+﻿#include "StaffBase.h"
 
 #include "../../../Scene/SceneManager.h"
 #include "../Enemy/EnemyBase.h"
@@ -12,10 +12,10 @@
 
 namespace
 {
-	// ���@����̒��S�ł͂Ȃ��A������ɏo�����߂̍����B
+	// 魔法を杖の中心ではなく、少し上から出すための高さ。
 	constexpr float MagicChantHeight = 1.5f;
 
-	// �S�Ă̏񂪓�����]�ʒu���g�����߂̊�p�x�B
+	// すべての杖が同じ回転基準を使うための基準角度。
 	float StaffOrbitBaseAngle = 0.0f;
 }
 
@@ -59,7 +59,7 @@ void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget
 		return;
 	}
 
-	// �S�Ă̏�œ�����p�x���g���A�擾�����ς���Ă��K�����Ԋu�ɕ��ׂ�B
+	// すべての杖で同じ基準角度を使い、取得済みの杖を等間隔に並べる。
 	if (layoutInfo.index == 0)
 	{
 		StaffOrbitBaseAngle += m_rotateSpeed;
@@ -77,16 +77,16 @@ void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget
 
 void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 {
-	// ���@�^�C�v�����ݒ�̏�͍U�����Ȃ��B
+	// 魔法タイプが未設定なら攻撃しない。
 	if (m_magicType == MagicType::None)
 	{
 		return;
 	}
 
-	// ���@�̃N�[���^�C�������炷�B
+	// 魔法のクールタイムを減らす。
 	m_magicCoolTime--;
 
-	// �N�[���^�C�����c���Ă���Ȃ�A�܂������Ȃ��B
+	// クールタイムが残っているなら、まだ撃たない。
 	if (m_magicCoolTime > 0.0f)
 	{
 		return;
@@ -94,13 +94,13 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 
 	std::shared_ptr<KdGameObject> spTargetEnemy = SearchEnemy(spPlayer);
 
-	// �͈͓��ɓG�����Ȃ���Ό����Ȃ��B
+	// 範囲内に敵がいなければ撃たない。
 	if (!spTargetEnemy)
 	{
 		return;
 	}
 
-	// �񂩂�G�֌��������������B
+	// 杖から敵へ向かう発射方向を作る。
 	Math::Vector3 shotDir = spTargetEnemy->GetPos() - GetPos();
 	if (shotDir.LengthSquared() <= 0.0001f)
 	{
@@ -108,7 +108,7 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 	}
 	shotDir.Normalize();
 
-	// ���@������āA�G�̕����֔�΂��B
+	// 魔法を生成して、敵の方向へ飛ばす。
 	Math::Vector3 chantPos = GetPos() + Math::Vector3(0.0f, MagicChantHeight, 0.0f);
 	std::shared_ptr<KdGameObject> spStaff = shared_from_this();
 
@@ -144,7 +144,7 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 		return;
 	}
 
-	// �񂲂Ƃɐݒ肳�ꂽ�N�[���^�C���֖߂��B
+	// 杖ごとに設定されたクールタイムへ戻す。
 	m_magicCoolTime = m_magicCoolTimeMax;
 }
 
@@ -153,10 +153,9 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 	std::shared_ptr<KdGameObject> spTargetEnemy = nullptr;
 	float minDistanceSqr = m_searchRadius * m_searchRadius;
 
-	for (auto& spObj : SceneManager::Instance().GetObjList())
+	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
-		// ���͓G��Bat�����Ȃ̂ŁAEnemyBase�ɕϊ��ł������̂��U���Ώۂɂ���B
-		auto spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		auto spEnemy = wpEnemy.lock();
 		if (!spEnemy)
 		{
 			continue;
@@ -181,7 +180,7 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 
 StaffBase::StaffLayoutInfo StaffBase::GetLayoutInfo() const
 {
-	// �V�[�����̉���ς݂̏񂾂����W�߁A���@�̎�ޏ��ɕ��ׂ�B
+	// シーン内の取得済みの杖だけを集め、魔法の種類順に並べる。
 	std::vector<const StaffBase*> unlockedStaffs;
 
 	for (auto& spObj : SceneManager::Instance().GetObjList())
@@ -218,7 +217,7 @@ float StaffBase::GetLayoutOffset(int index, int count) const
 {
 	if (count <= 0) { return 0.0f; }
 
-	// �����тɌ����ɂ����悤�ɁA�S�Ă̖{���őO���������ɓ��Ԋu�z�u����B
+	// 横並びに見えないよう、すべての本数で前方向を基準に等間隔配置する。
 	const float startAngle = DirectX::XM_PIDIV2;
 	const float angleStep = DirectX::XM_2PI / static_cast<float>(count);
 

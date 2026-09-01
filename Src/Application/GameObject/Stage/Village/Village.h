@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../StageBase.h"
 
@@ -13,41 +13,41 @@ public:
 	void GenerateDepthMapFromLight() override;
 	void DrawEffect() override;
 
-	// ���͕ǔ���ɂ��g���B
+	// 壁判定にも使うため、球判定を有効にする。
 	bool EnableSphereCollision() const override { return true; }
 
-	// ���S�n�т̒��S���W�B
+	// 安全地帯の中心座標。
 	const Math::Vector3& GetSafeAreaCenter() const { return m_safeAreaCenter; }
 
-	// ���S�n�т̔��a�B
+	// 安全地帯の半径。
 	float GetSafeAreaRadius() const { return m_safeAreaRadius; }
 
-	// �����f�����\������Ă���Ԃ͖����������߂Ɏg���B
+	// 村モデルが表示されている距離を返す。
 	float GetVisibleRadius() const { return m_visibleRadius; }
 
-	// ���̕\������Ɏg���Ώۂ�ݒ肷��B
+	// 村の表示距離判定に使う対象を設定する。
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{
 		m_wpTarget = target;
 	}
 
-	// ����\�����鋗����ݒ肷��B
+	// 村を表示する距離を設定する。
 	void SetVisibleRadius(float radius) { m_visibleRadius = radius; }
 
 private:
 	void Init() override;
 
-	// �����\���͈͓����m�F����B
+	// 村を表示する範囲内か確認する。
 	bool IsInVisibleRange() const;
 
-	// ���S�̂𕢂����S�n�сB
+	// 村を覆う安全地帯。
 	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 46.0f;
 
-	// �\���������m�F����ΏہB
+	// 表示距離を確認する対象。
 	std::weak_ptr<KdGameObject> m_wpTarget;
 
-	// ����\�����锼�a�B
+	// 村を表示する半径。
 	float m_visibleRadius = 85.0f;
 };
 

@@ -7,10 +7,10 @@ namespace
 
 void TPSCamera::Init()
 {
-	// �e�N���X�̏������Ăяo��
+	// カメラ共通の初期化を呼ぶ。
 	CameraBase::Init();
 
-	// �v���C���[���猩���J�����̑��Έʒu�B
+	// プレイヤーから見たカメラの相対位置。
 	m_mLocalPos = Math::Matrix::CreateTranslation(0, 15.0f, -15.0f);
 
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
@@ -18,20 +18,20 @@ void TPSCamera::Init()
 
 void TPSCamera::PostUpdate()
 {
-	// �^�[�Q�b�g�̍��W(�L���ȏꍇ���p����)
+	// ターゲットの座標を取得する。
 	Math::Vector3								_targetPos = Math::Vector3::Zero;
 	const std::shared_ptr<const KdGameObject>	_spTarget = m_wpTarget.lock();
 	if (_spTarget)
 	{
 		_targetPos = _spTarget->GetPos();
-		// �����ł͂Ȃ��A�v���C���[�̑̂̒��S�����������B
+		// 足元ではなく、プレイヤーの体の中心あたりを見る。
 		_targetPos.y += 1.0f;
 	}
 
-	// �J�����̉�]
+	// マウス入力でカメラを回転させる。
 	UpdateRotateByMouse();
 
-	// �}�E�X���E�̉�]�������g���āA�v���C���[�̎��͂���荞�ށB
+	// マウス左右の回転を使い、プレイヤーの周囲を回り込む。
 	m_mRotation = GetRotationYMatrix();
 
 	Math::Vector3 _lookTargetPos = _targetPos;
@@ -47,28 +47,28 @@ void TPSCamera::PostUpdate()
 		}
 	}
 
-	// �v���C���[���猩���J�����܂ł̋����B
+	// プレイヤーからカメラまでの距離。
 	Math::Vector3 _cameraDistance = Math::Vector3(0, 15.0f, -15.0f);
 
-	// �J�����܂ł̋������A�}�E�X���E�̉�]�ɍ��킹�ĉ񂷁B
+	// カメラまでの距離を、マウス左右の回転に合わせて回す。
 	Math::Vector3 _cameraOffset = Math::Vector3::TransformNormal(_cameraDistance, m_mRotation);
 	Math::Vector3 _cameraPos = _targetPos + _cameraOffset;
 
-	// �J��������v���C���[�֌����������B
+	// カメラを前方寄りの注視点へ向ける。
 	Math::Vector3 _toTarget = _lookTargetPos - _cameraPos;
 	_toTarget.Normalize();
 
-	// �J�����̃��[���h�s����u���W�v�Ɓu�����v������B
+	// カメラのワールド行列を座標と向きから作る。
 	m_mWorld = Math::Matrix::CreateWorld(_cameraPos, -_toTarget, Math::Vector3::Up);
 
-	// ���߂荞�ݖh�~�ׂ̈̍��W�␳�v�Z��
+	// カメラが地形にめり込まないように補正する。
 	KdCollider::RayInfo rayInfo;
-	// ���C�̔��ˈʒu��ݒ�
+	// レイの開始位置を設定する。
 	rayInfo.m_pos = GetPos();
 
-	// ���C�̔��˕�����ݒ�
+	// レイの方向を設定する。
 	rayInfo.m_dir = Math::Vector3::Down;
-	// ���C�̒�����ݒ�
+	// レイの長さを設定する。
 	rayInfo.m_range = 1000.f;
 	if (_spTarget)
 	{
@@ -77,10 +77,10 @@ void TPSCamera::PostUpdate()
 		rayInfo.m_dir.Normalize();
 	}
 
-	// �����蔻����������^�C�v��ݒ�
+	// 地形判定を対象にする。
 	rayInfo.m_type = KdCollider::TypeGround;
 
-	// �AHIT����ΏۃI�u�W�F�N�g�ɑ�������
+	// 登録された地形オブジェクトとレイ判定する。
 	for (std::weak_ptr<KdGameObject> wpGameObj : m_wpHitObjectList)
 	{
 		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
@@ -89,13 +89,13 @@ void TPSCamera::PostUpdate()
 			std::list<KdCollider::CollisionResult> retRayList;
 			spGameObj->Intersects(rayInfo, &retRayList);
 
-			// �B ���ʂ��g���č��W��⊮����
+			// 一番大きく重なった結果を使って座標を補正する。
 			float maxOverLap = 0;
 			Math::Vector3 hitPos = {};
 			bool hit = false;
 			for (auto& ret : retRayList)
 			{
-				// ���C���Ւf���I�[�o�[����������
+				// レイとの重なりが一番大きい結果を採用する。
 				if (maxOverLap < ret.m_overlapDistance)
 				{
 					maxOverLap = ret.m_overlapDistance;
@@ -105,7 +105,7 @@ void TPSCamera::PostUpdate()
 			}
 			if (hit)
 			{
-				// ��������̏�Q���ɓ������Ă���
+				// 地形にめり込まない位置へカメラを戻す。
 				Math::Vector3 _hitPos = hitPos;
 				_hitPos += rayInfo.m_dir * 0.4f;
 				SetPos(_hitPos);

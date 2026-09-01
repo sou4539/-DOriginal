@@ -9,6 +9,7 @@ namespace
 {
 	// 2.5DOriginalのdと同じ考え方。
 	constexpr float MagicChantSpeed = 0.05f;
+	constexpr float MagicHitCheckMargin = 3.0f;
 }
 
 void MagicBase::Init()
@@ -154,16 +155,18 @@ void MagicBase::PostUpdate()
 
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
 
-	// シーン内の敵を調べ、魔法が当たった相手にダメージを与える。
-	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
+	// プレイヤー周辺の敵だけを調べ、全オブジェクト走査を避ける。
+	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
-		if (!spObj) { continue; }
-
-		std::shared_ptr<EnemyBase> spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		std::shared_ptr<EnemyBase> spEnemy = wpEnemy.lock();
 		if (!spEnemy) { continue; }
 		if (spEnemy->IsExpired()) { continue; }
 		if (spEnemy == m_wpIgnoreTarget.lock()) { continue; }
 		if (HasHitObject(spEnemy)) { continue; }
+
+		const float checkRadius = m_radius + MagicHitCheckMargin;
+		Math::Vector3 toEnemy = spEnemy->GetPos() - m_pos;
+		if (toEnemy.LengthSquared() > checkRadius * checkRadius) { continue; }
 
 		std::list<KdCollider::CollisionResult> retList;
 		if (spEnemy->Intersects(sphereInfo, &retList))

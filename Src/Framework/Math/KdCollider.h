@@ -170,6 +170,7 @@ public:
 	void SetEnable(std::string_view name, bool flag);
 	void SetEnable(int type, bool flag);
 	void SetEnableAll(bool flag);
+	void RemoveCollisionShape(std::string_view name);
 
 private:
 	std::unordered_map<std::string, std::unique_ptr<KdCollisionShape>> m_collisionShapes;

@@ -61,21 +61,20 @@ private:
 	float m_angle = 0.0f;
 
 	// プレイヤーをまだ見つけていない時の発見範囲。
-	float m_searchRadius = 8.0f;
+	float m_searchRadius = 12.0f;
 
 	// 一度プレイヤーを見つけた後の追跡継続範囲。
-	float m_chaseRadius = 16.0f;
+	float m_chaseRadius = 24.0f;
 
 	// trueなら、現在プレイヤーを追跡中。
 	bool m_isChasing = false;
+	int m_hitFlashFrame = 0;
+	int m_animUpdateFrame = 0;
 
 	float m_damageRadius = 0.7f;
-	float m_moveSpeed = 0.08f;
+	float m_moveSpeed = 0.11f;
 	float m_hp = 30.0f;
 	float m_exp = 20.0f;
-
-	// 被弾した瞬間だけ赤く表示するための残りフレーム。
-	int m_hitFlashFrame = 0;
 };
 
 

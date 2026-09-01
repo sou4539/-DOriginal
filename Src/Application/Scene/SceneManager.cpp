@@ -1,4 +1,4 @@
-#include "SceneManager.h"
+ï»¿#include "SceneManager.h"
 
 #include "BaseScene/BaseScene.h"
 #include "TitleScene/TitleScene.h"
@@ -6,7 +6,7 @@
 
 void SceneManager::PreUpdate()
 {
-	// ƒV[ƒ“Ø‘Ö
+	// ï¿½Vï¿½[ï¿½ï¿½ï¿½Ø‘ï¿½
 	if (m_currentSceneType != m_nextSceneType)
 	{
 		ChangeScene(m_nextSceneType);
@@ -50,6 +50,11 @@ const std::list<std::shared_ptr<KdGameObject>>& SceneManager::GetObjList()
 	return m_currentScene->GetObjList();
 }
 
+void SceneManager::SetActiveEnemies(const std::vector<std::weak_ptr<EnemyBase>>& enemies)
+{
+	m_activeEnemies = enemies;
+}
+
 void SceneManager::AddObject(const std::shared_ptr<KdGameObject>& _obj)
 {
 	m_currentScene->AddObject(_obj);
@@ -57,7 +62,7 @@ void SceneManager::AddObject(const std::shared_ptr<KdGameObject>& _obj)
 
 void SceneManager::ChangeScene(SceneType _sceneType)
 {
-	// Ÿ‚ÌƒV[ƒ“‚ğì¬‚µAŒ»İ‚ÌƒV[ƒ“‚É‚·‚é
+	// ï¿½ï¿½ï¿½ÌƒVï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ì¬ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½É‚ï¿½ï¿½ï¿½
 	switch (_sceneType)
 	{
 	case SceneType::Title:
@@ -68,6 +73,7 @@ void SceneManager::ChangeScene(SceneType _sceneType)
 		break;
 	}
 
-	// Œ»İ‚ÌƒV[ƒ“î•ñ‚ğXV
+	// ï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Xï¿½V
 	m_currentSceneType = _sceneType;
+	m_activeEnemies.clear();
 }

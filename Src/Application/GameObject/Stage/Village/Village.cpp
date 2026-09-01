@@ -1,8 +1,8 @@
-#include "Village.h"
+﻿#include "Village.h"
 
 void Village::Init()
 {
-	// �����f���Ɠ����蔻�����������B
+	// 村モデルと同じ形の当たり判定を作る。
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/Stage/World/village.gltf");
 
@@ -23,7 +23,7 @@ void Village::Update()
 {
 	if (!IsInVisibleRange()) { return; }
 
-	// ���̈��S�n�т���X�t�B�A�ŕ\������B
+	// 村の安全地帯を青いデバッグスフィアで表示する。
 	if (m_pDebugWire)
 	{
 		m_pDebugWire->AddDebugSphere(m_safeAreaCenter, m_safeAreaRadius, kBlueColor);

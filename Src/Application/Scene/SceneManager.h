@@ -1,12 +1,13 @@
-#pragma once
+ï»¿#pragma once
 
 class BaseScene;
+class EnemyBase;
 
 class SceneManager
 {
 public :
 
-	// ƒV[ƒ“î•ñ
+	// ï¿½Vï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½
 	enum class SceneType
 	{
 		Title,
@@ -22,38 +23,43 @@ public :
 	void DrawSprite();
 	void DrawDebug();
 
-	// Ÿ‚ÌƒV[ƒ“‚ğƒZƒbƒg (Ÿ‚ÌƒtƒŒ[ƒ€‚©‚çØ‚è‘Ö‚í‚é)
+	// ï¿½ï¿½ï¿½ÌƒVï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½bï¿½g (ï¿½ï¿½ï¿½Ìƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½)
 	void SetNextScene(SceneType _nextScene)
 	{
 		m_nextSceneType = _nextScene;
 	}
 
-	// Œ»İ‚ÌƒV[ƒ“‚ÌƒIƒuƒWƒFƒNƒgƒŠƒXƒg‚ğæ“¾
+	// ï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½ÌƒIï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½ï¿½Xï¿½gï¿½ï¿½ï¿½æ“¾
 	const std::list<std::shared_ptr<KdGameObject>>& GetObjList();
 
-	// Œ»İ‚ÌƒV[ƒ“‚ÉƒIƒuƒWƒFƒNƒg‚ğ’Ç‰Á
+	void SetActiveEnemies(const std::vector<std::weak_ptr<EnemyBase>>& enemies);
+	const std::vector<std::weak_ptr<EnemyBase>>& GetActiveEnemies() const { return m_activeEnemies; }
+
+	// ï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½ÉƒIï¿½uï¿½Wï¿½Fï¿½Nï¿½gï¿½ï¿½Ç‰ï¿½
 	void AddObject(const std::shared_ptr<KdGameObject>& _obj);
 
 private :
 
-	// ƒ}ƒl[ƒWƒƒ[‚Ì‰Šú‰»
+	// ï¿½}ï¿½lï¿½[ï¿½Wï¿½ï¿½ï¿½[ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
 	void Init()
 	{
-		// ŠJnƒV[ƒ“‚ÉØ‚è‘Ö‚¦
+		// ï¿½Jï¿½nï¿½Vï¿½[ï¿½ï¿½ï¿½ÉØ‚ï¿½Ö‚ï¿½
 		ChangeScene(m_currentSceneType);
 	}
 
-	// ƒV[ƒ“Ø‚è‘Ö‚¦ŠÖ”
+	// ï¿½Vï¿½[ï¿½ï¿½ï¿½Ø‚ï¿½Ö‚ï¿½ï¿½Öï¿½
 	void ChangeScene(SceneType _sceneType);
 
-	// Œ»İ‚ÌƒV[ƒ“‚ÌƒCƒ“ƒXƒ^ƒ“ƒX‚ğ•Û‚µ‚Ä‚¢‚éƒ|ƒCƒ“ƒ^
+	// ï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½ÌƒCï¿½ï¿½ï¿½Xï¿½^ï¿½ï¿½ï¿½Xï¿½ï¿½Ûï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½|ï¿½Cï¿½ï¿½ï¿½^
 	std::shared_ptr<BaseScene> m_currentScene = nullptr;
 
-	// Œ»İ‚ÌƒV[ƒ“‚Ìí—Ş‚ğ•Û‚µ‚Ä‚¢‚é•Ï”
+	// ï¿½ï¿½ï¿½İ‚ÌƒVï¿½[ï¿½ï¿½ï¿½Ìï¿½Ş‚ï¿½Ûï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Ïï¿½
 	SceneType m_currentSceneType = SceneType::Title;
 	
-	// Ÿ‚ÌƒV[ƒ“‚Ìí—Ş‚ğ•Û‚µ‚Ä‚¢‚é•Ï”
+	// ï¿½ï¿½ï¿½ÌƒVï¿½[ï¿½ï¿½ï¿½Ìï¿½Ş‚ï¿½Ûï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½Ïï¿½
 	SceneType m_nextSceneType = m_currentSceneType;
+
+	std::vector<std::weak_ptr<EnemyBase>> m_activeEnemies;
 
 private:
 
@@ -62,7 +68,7 @@ private:
 
 public:
 
-	// ƒVƒ“ƒOƒ‹ƒgƒ“ƒpƒ^[ƒ“
+	// ï¿½Vï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½gï¿½ï¿½ï¿½pï¿½^ï¿½[ï¿½ï¿½
 	static SceneManager& Instance()
 	{
 		static SceneManager instance;

@@ -11,6 +11,38 @@ namespace
 	constexpr float FireFrameSpeed = 0.25f;
 	constexpr float FireBaseExplosionRadius = 3.0f;
 	constexpr float FireHitRadius = FireScale * 0.5f;
+	constexpr int FireSoundCount = 4;
+
+	int g_lastFireShotSoundIndex = -1;
+	int g_lastFireHitSoundIndex = -1;
+
+	const char* FireShotSoundPathList[FireSoundCount] =
+	{
+		"Asset/Sounds/Magic/FireMagic/Shot/Fire_shot_01.wav",
+		"Asset/Sounds/Magic/FireMagic/Shot/Fire_shot_02.wav",
+		"Asset/Sounds/Magic/FireMagic/Shot/Fire_shot_03.wav",
+		"Asset/Sounds/Magic/FireMagic/Shot/Fire_shot_04.wav"
+	};
+
+	const char* FireHitSoundPathList[FireSoundCount] =
+	{
+		"Asset/Sounds/Magic/FireMagic/Hit/Fire_hit_01.wav",
+		"Asset/Sounds/Magic/FireMagic/Hit/Fire_hit_02.wav",
+		"Asset/Sounds/Magic/FireMagic/Hit/Fire_hit_03.wav",
+		"Asset/Sounds/Magic/FireMagic/Hit/Fire_hit_04.wav"
+	};
+
+	const char* GetRandomSoundPath(const char* const soundPathList[FireSoundCount], int& lastIndex)
+	{
+		int index = KdRandom::GetInt(0, FireSoundCount - 2);
+		if (lastIndex >= 0 && index >= lastIndex)
+		{
+			++index;
+		}
+
+		lastIndex = index;
+		return soundPathList[index];
+	}
 }
 
 void FireMagic::Shot(
@@ -115,12 +147,12 @@ bool FireMagic::StartHitAnimation()
 
 const char* FireMagic::GetShotSoundPath() const
 {
-	return "Asset/Sounds/Magic/FireMagic/shot.wav";
+	return GetRandomSoundPath(FireShotSoundPathList, g_lastFireShotSoundIndex);
 }
 
 const char* FireMagic::GetHitSoundPath() const
 {
-	return "Asset/Sounds/Magic/FireMagic/explosion.wav";
+	return GetRandomSoundPath(FireHitSoundPathList, g_lastFireHitSoundIndex);
 }
 
 float FireMagic::GetDirectionAngleOffset() const
@@ -141,11 +173,9 @@ void FireMagic::ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 	const Math::Vector3 explosionCenter = hitEnemy->GetPos();
 	const float explosionRadiusSqr = m_explosionRadius * m_explosionRadius;
 
-	for (const std::shared_ptr<KdGameObject>& spObj : SceneManager::Instance().GetObjList())
+	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
-		if (!spObj) { continue; }
-
-		std::shared_ptr<EnemyBase> spEnemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+		std::shared_ptr<EnemyBase> spEnemy = wpEnemy.lock();
 		if (!spEnemy) { continue; }
 		if (spEnemy == hitEnemy) { continue; }
 		if (spEnemy->IsExpired()) { continue; }

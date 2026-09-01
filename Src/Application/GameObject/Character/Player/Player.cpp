@@ -1,4 +1,4 @@
-#include "Player.h"
+﻿#include "Player.h"
 
 #include "../../Camera/CameraBase.h"
 #include "../Status/Status.h"
@@ -16,21 +16,21 @@ namespace
 	const Math::Vector3 DefaultRespawnPos = { -30.0f, 0.0f, 0.0f };
 }
 
-// Player�̏����������B
+// プレイヤーの初期設定。
 void Player::Init()
 {
-	// �v���C���[���f����ǂݍ��ށB
+	// プレイヤーモデルを読み込む。
 	if (!m_spModel)
 	{
 		m_spModel = std::make_shared<KdModelWork>();
 		m_spModel->SetModelData("Asset/Models/Objects/Character/Witch/Witch.gltf");
 	}
 
-	// �v���C���[�̏����ʒu�B
+	// 村の中を初期位置にする。
 	m_respawnPos = DefaultRespawnPos;
 	m_pos = m_respawnPos;
 
-	// KdGameObject���̃��[���h�s��ɂ������ʒu�𔽉f����B
+	// 当たり判定などで使う基底クラス側の座標にも反映する。
 	SetPos(m_pos);
 }
 
@@ -52,10 +52,10 @@ void Player::DrawEffect()
 	const Math::Color shadowColor = { 0.0f, 0.0f, 0.0f, 0.35f };
 	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, shadowMat, shadowColor);
 }
-// Player�̖��t���[���X�V�B
+// 毎フレームのプレイヤー更新。
 void Player::Update()
 {
-	// CharaBase���̊�{�X�V���ĂԁB
+	// キャラクター共通の更新を行う。
 	CharaBase::Update();
 
 	UpdateInvincible();
@@ -66,19 +66,19 @@ void Player::Update()
 	UpdateWorldMatrix();
 }
 
-// ���G���Ԃ̍X�V�����B
+// 無敵時間を更新する。
 void Player::UpdateInvincible()
 {
 	if (m_damageCoolTime <= 0.0f) { return; }
 
-	// ���G���Ԃ�1�t���[�������炷�B
+	// 無敵時間を1フレームずつ減らす。
 	m_damageCoolTime -= 1.0f;
 }
 
-// �v���C���[�̈ړ������B
+// プレイヤーの移動処理。
 void Player::UpdateMove()
 {
-	// WASD���͂���ړ����������������B
+	// WASD入力から移動方向を作る。
 	Math::Vector3 moveDir = Math::Vector3::Zero;
 
 	if (GetAsyncKeyState('W') & 0x8000)
@@ -100,138 +100,138 @@ void Player::UpdateMove()
 
 	if (moveDir.LengthSquared() > 0.0f)
 	{
-		// �΂߈ړ����ɑ��x�������Ȃ�Ȃ��悤�A�����x�N�g���𐳋K������B
+		// 斜め移動で速度が上がらないよう正規化する。
 		moveDir.Normalize();
 
-		// �J�������Ȃ��ꍇ�́A���͕��������̂܂܈ړ������Ƃ��Ďg���B
+		// カメラがない場合は入力方向をそのまま使う。
 		m_dir = moveDir;
 
 		std::shared_ptr<CameraBase> spCamera = m_wpCamera.lock();
 		if (spCamera)
 		{
-			// �J������Y��]�������g���A���͕������J������̕����֕ϊ�����B
+			// カメラのY回転を使い、入力方向をカメラ基準へ変換する。
 			m_dir = Math::Vector3::TransformNormal(moveDir, spCamera->GetRotationYMatrix());
 			m_dir.Normalize();
 		}
 
-		// ���ۂɃv���C���[���W���ړ�������B
+		// 実際にプレイヤー座標を移動させる。
 		m_pos += m_dir * PlayerMoveSpeed;
 
-		// �ړ���������Y����]�p�x�����B
+		// 移動方向に合わせてプレイヤーの向きを変える。
 		m_angle = atan2(m_dir.x, m_dir.z);
 	}
 }
 
-// �v���C���[�̃��[���h�s�����鏈���B
+// プレイヤーのワールド行列を更新する。
 void Player::UpdateWorldMatrix()
 {
-	// �v���C���[�̃��[���h�s������B
+	// 座標と向きを描画用の行列へ反映する。
 	Math::Matrix m_scale = Math::Matrix::CreateScale(1);
 	Math::Matrix m_rot = Math::Matrix::CreateRotationY(m_angle);
 	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = m_scale * m_rot * m_trans;
 }
 
-// Update��̕␳�E���菈���B
+// Update後の補正と当たり判定。
 void Player::PostUpdate()
 {
-	// CharaBase���Œn�ʂ�ǂƂ̓����蔻����s���B
+	// キャラ共通の地形当たり判定を行う。
 	CharaBase::PostUpdate();
 
-	// CharaBase�̓����蔻��ŕ␳���ꂽ���W���APlayer����m_pos�ɂ����f����B
+	// 当たり判定で補正された座標をPlayer側のm_posにも反映する。
 	m_pos = GetPos();
 
-	// ���݈ʒu�����̈��S�n�ѓ����ǂ������X�V����B
+	// 現在位置が村の安全地帯内か確認する。
 	UpdateSafeAreaFlag();
 
-	// �ړ��ƒn�`�␳���I�������̐��������W�ŁA
+	// 移動と地形補正後の正しい座標でダメージ判定する。
 	UpdateDamageCollision();
 
-	// �_���[�W����̌���HP��0�ɂȂ����ꍇ�́A�^�C�g���֖߂炸���̒��ŕ�������B
+	// HPが0ならタイトルへ戻さず、村の中で復活させる。
 	RespawnIfDead();
 }
 
-// �G�Ƃ̐ڐG�_���[�W����B
+// 敵との接触ダメージ判定。
 void Player::UpdateDamageCollision()
 {
-	// ���S�n�ѓ��ł͓G�Ƃ̐ڐG�_���[�W���󂯂Ȃ��B
+	// 安全地帯内では敵との接触ダメージを受けない。
 	if (m_isInSafeArea) { return; }
 
-	// ���G���Ԓ��̓_���[�W���󂯂Ȃ��B
+	// 無敵時間中はダメージを受けない。
 	if (m_damageCoolTime > 0.0f) { return; }
 
-	// HP��Status�������Ă��邽�߁A�܂�Status���擾����B
+	// HPはStatusが管理しているので、まずStatusを取得する。
 	std::shared_ptr<Status> spStatus = m_status.lock();
 	if (!spStatus) { return; }
 
-	// �v���C���[�̑̂����Ƃ��Ĉ����B
+	// プレイヤーの体を球として扱う。
 	DirectX::BoundingSphere playerSphere;
 	playerSphere.Center = GetPos() + Math::Vector3(0.0f, PlayerDamageSphereHeight, 0.0f);
 	playerSphere.Radius = PlayerDamageRadius;
 
-	// TypeDamage����������SphereInfo�����B
+	// TypeDamageを対象にする球判定を作る。
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, playerSphere);
 
-	// ���݂̃V�[���ɑ��݂���S�I�u�W�F�N�g�𒲂ׂ�B
+	// 現在のシーンにある全オブジェクトを調べる。
 	const std::list<std::shared_ptr<KdGameObject>>& objList = SceneManager::Instance().GetObjList();
 	for (const std::shared_ptr<KdGameObject>& spObj : objList)
 	{
-		// ��̃|�C���^�͖�������B
+		// 空のポインタは無視する。
 		if (!spObj) { continue; }
 
-		// �������g�Ƃ͔��肵�Ȃ��B
+		// 自分自身とは判定しない。
 		if (spObj.get() == this) { continue; }
 
-		// �ΏۃI�u�W�F�N�g��TypeDamage�̃R���C�_�[�������Ă��āA
+		// TypeDamageのコライダーに触れているか確認する。
 		std::list<KdCollider::CollisionResult> retList;
 		if (spObj->Intersects(sphereInfo, &retList))
 		{
-			// �_���[�W����ɐG�ꂽ�̂ŁA�v���C���[HP��5���炷�B
+			// 敵に触れたのでプレイヤーHPを減らす。
 			spStatus->DamagePlayer(BatContactDamage);
 
-			// ���̃_���[�W�܂Ŗ�1�b�҂B
+			// 次のダメージまで少し待つ。
 			m_damageCoolTime = DamageCoolTimeFrame;
 
-			// 1�̂ł��������Ă���΁A����̃_���[�W�����͏I���B
+			// 1体でも触れていたら今回の判定は終わる。
 			break;
 		}
 	}
 }
 
-// HP��0�ɂȂ������̕��������B
+// HPが0になった時の復活処理。
 void Player::RespawnIfDead()
 {
-	// HP��Status���ŊǗ����Ă��邽�߁A�܂�Status���擾����B
+	// HPはStatusが管理しているので、まずStatusを取得する。
 	std::shared_ptr<Status> spStatus = m_status.lock();
 	if (!spStatus) { return; }
 
-	// HP���܂��c���Ă���Ȃ畜�������͕s�v�B
+	// HPが残っているなら復活処理は不要。
 	if (!spStatus->IsPlayerDead()) { return; }
 
-	// �v���C���[�𑺂̕����n�_�֖߂��B
+	// プレイヤーを村の復活地点へ戻す。
 	m_pos = m_respawnPos;
 	SetPos(m_respawnPos);
 
-	// ��������̃��[���h�s��������������ʒu�ɂ��Ă����B
+	// 復活後の座標を描画にも反映する。
 	UpdateWorldMatrix();
 
-	// HP���ő�܂ŉ񕜂���B
+	// HPを最大まで回復する。
 	spStatus->ResetPlayerHp();
 
-	// ��������ɃR�E�����֐G��Ă��Ă��A�����ă_���[�W���󂯂Ȃ��悤�ɂ���B
+	// 復活直後に敵へ触れていても、すぐダメージを受けないようにする。
 	m_damageCoolTime = RespawnInvincibleFrame;
 }
 
 void Player::UpdateSafeAreaFlag()
 {
-	// ���a��0�ȉ��Ȃ�A���S�n�т����ݒ�Ȃ̂�false�ɂ���B
+	// 半径が0以下なら安全地帯は未設定として扱う。
 	if (m_safeAreaRadius <= 0.0f)
 	{
 		m_isInSafeArea = false;
 		return;
 	}
 
-	// XZ���ʏ�ŁA�v���C���[�����̈��S�n�уX�t�B�A���ɂ��邩�m�F����B
+	// XZ平面上で、プレイヤーが安全地帯の球範囲内にいるか確認する。
 	Math::Vector3 toPlayer = GetPos() - m_safeAreaCenter;
 	toPlayer.y = 0.0f;
 
