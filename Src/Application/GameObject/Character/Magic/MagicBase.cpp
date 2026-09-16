@@ -155,7 +155,7 @@ void MagicBase::PostUpdate()
 
 	KdCollider::SphereInfo sphereInfo(KdCollider::TypeDamage, magicSphere);
 
-	// プレイヤー周辺の敵だけを調べ、全オブジェクト走査を避ける。
+	// プレイヤー周辺の敵だけを調べ、全オブジェクト検索を避ける。
 	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
 		std::shared_ptr<EnemyBase> spEnemy = wpEnemy.lock();

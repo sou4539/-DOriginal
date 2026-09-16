@@ -1,4 +1,4 @@
-﻿{
+{
 	"asset":{
 		"generator":"Khronos glTF Blender I/O v5.1.19",
 		"version":"2.0"
@@ -22,9 +22,12 @@
 		{
 			"doubleSided":true,
 			"name":"\u30de\u30c6\u30ea\u30a2\u30eb",
+			"normalTexture":{
+				"index":0
+			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":0
+					"index":1
 				},
 				"metallicFactor":0
 			}
@@ -50,13 +53,22 @@
 		{
 			"sampler":0,
 			"source":0
+		},
+		{
+			"sampler":0,
+			"source":1
 		}
 	],
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"Ground",
-			"uri":"Ground.png"
+			"name":"Grass_04_normal",
+			"uri":"Grass_04_normal.png"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"Grass_04_basecolor",
+			"uri":"Grass_04_basecolor.png"
 		}
 	],
 	"accessors":[
@@ -134,4 +146,3 @@
 		}
 	]
 }
-

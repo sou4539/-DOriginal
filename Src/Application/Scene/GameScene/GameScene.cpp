@@ -12,6 +12,11 @@
 #include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
 #include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
 
+namespace
+{
+	bool g_prevDebugCursorKey = false;
+}
+
 GameScene::~GameScene()
 {
 	SetCursorVisible(false);
@@ -33,10 +38,25 @@ void GameScene::SetCursorVisible(bool isVisible)
 	}
 }
 
-// Tキーを押した瞬間にタイトルへ戻る。
+// F1キーでカーソル固定を切り替え、Tキーでタイトルへ戻る。
 void GameScene::Event()
 {
-	SetCursorVisible(false);
+	const bool isDebugCursorKey = (GetAsyncKeyState(VK_F1) & 0x8000);
+	if (isDebugCursorKey && !g_prevDebugCursorKey)
+	{
+		const bool isCursorUnlocked = !m_isCursorVisible;
+		SetCursorVisible(isCursorUnlocked);
+
+		for (const std::shared_ptr<KdGameObject>& obj : m_objList)
+		{
+			std::shared_ptr<TPSCamera> camera = std::dynamic_pointer_cast<TPSCamera>(obj);
+			if (!camera) { continue; }
+
+			camera->SetMouseLocked(!isCursorUnlocked);
+			break;
+		}
+	}
+	g_prevDebugCursorKey = isDebugCursorKey;
 
 	const bool isBackTitleKey = (GetAsyncKeyState('T') & 0x8000);
 	if (isBackTitleKey && !m_prevBackTitleKey)
@@ -144,6 +164,7 @@ void GameScene::Init()
 
 	status->SetPlayer(player);
 
+	g_prevDebugCursorKey = (GetAsyncKeyState(VK_F1) & 0x8000);
 	SetCursorVisible(false);
 }
 

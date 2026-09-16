@@ -16,6 +16,7 @@ public:
 
 	// UI操作後に、次のカメラ更新でマウス移動量を使わないようにする。
 	void ResetMouseMove();
+	void SetMouseLocked(bool isLocked);
 
 	// UIなどがカメラ基準の方向を計算する時に使う。
 	float GetYawDeg() const { return m_DegAng.y; }
@@ -67,4 +68,5 @@ protected:
 	// カメラ回転用マウス座標の差分
 	POINT										m_FixMousePos{};
 	bool										m_skipMouseMove = false;
+	bool										m_isMouseLocked = true;
 };

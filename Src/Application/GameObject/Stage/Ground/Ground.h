@@ -24,7 +24,7 @@ private:
 	float m_groundScale = 100.0f;
 
 	// 地面画像の繰り返し回数。
-	Math::Vector2 m_textureTiling = { 100.0f, 100.0f };
+	Math::Vector2 m_textureTiling = { 10.0f, 10.0f };
 
 	// 地面1枚ごとの配置間隔。
 	float m_tileLength = 200.0f;
