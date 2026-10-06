@@ -7,6 +7,9 @@
 // 汎用性のため検索・読込命令は文字列を使用
 // メモリ・処理効率を考えデザインパターンのFlyWeightパターンを利用
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
+#include <filesystem>
+#include <fstream>
+
 template<class DataType>
 class KdDataStorage
 {
@@ -23,6 +26,23 @@ public:
 
 		if (!newData->Load(fileName))
 		{
+			// ダイアログを閉じても失敗したファイルを確認できるよう記録する。
+			std::error_code pathError;
+			const auto workingDirectory = std::filesystem::current_path(pathError);
+			std::ofstream errorLog("AssetLoadErrors.log", std::ios::app);
+			if (errorLog)
+			{
+				errorLog << "Asset load failed: " << fileName << '\n';
+				if (!pathError)
+				{
+					// 日本語を含む作業ディレクトリはUTF-8で保存する。
+					const auto utf8Directory = workingDirectory.u8string();
+					errorLog << "Working directory: "
+						<< std::string(utf8Directory.begin(), utf8Directory.end()) << '\n';
+				}
+				// assertで停止する前にディスクへ書き出す。
+				errorLog.flush();
+			}
 			const std::string message = "Asset load failed: " + std::string(fileName) + "\n";
 			OutputDebugStringA(message.c_str());
 			assert(0 && "KdDataStorage::LoadData ファイルが存在しません。ファイルパスを確認してください");
