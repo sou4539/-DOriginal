@@ -40,7 +40,7 @@ public:
 		float			DissolveThreshold = 0.0f;	// 0 ～ 1
 		float			DissolveEdgeRange = 0.03f;	// 0 ～ 1
 
-		Math::Vector3	DissolveEmissive = { 0.0f, 1.0f, 1.0f };
+		Math::Vector3	DissolveEmissive = { 1.0f, 0.0f, 0.0f };
 	};
 
 	// 定数バッファ(メッシュ単位更新)

@@ -13,7 +13,7 @@ namespace
 	constexpr float BatMoveSpeed = 0.11f;
 	constexpr int BatHitFlashFrame = 5;
 	constexpr int BatNearAnimInterval = 2;
-	const Math::Color BatHitColor = Math::Color(2.0f, 0.05f, 0.05f, 1.0f);
+	const Math::Color BatHitColor = Math::Color(5.0f, 0.05f, 0.05f, 1.0f);
 	const Math::Vector3 BatHitEmissive = Math::Vector3(1.2f, 0.0f, 0.0f);
 
 }
@@ -66,6 +66,19 @@ void Bat::Init()
 
 void Bat::Update()
 {
+	// ディゾルブ処理
+	if (m_hp <= 0.0f)
+	{
+		d = std::min(d + 0.01f, 1.0f);
+
+		if (d >= 1.0f)
+		{
+			m_isExpired = true;
+		}
+
+		return; // 移動処理を実行しない
+	}
+
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 
 	if (m_hitFlashFrame > 0)
@@ -161,6 +174,7 @@ void Bat::Update()
 		}
 	}
 
+
 	// コウモリ全体のワールド行列を作る。
 
 	Math::Matrix scaleMat = Math::Matrix::CreateScale(0.5);
@@ -176,11 +190,16 @@ void Bat::DrawLit()
 
 	if (m_hitFlashFrame > 0)
 	{
-		KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld, BatHitColor, BatHitEmissive);
+		KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld, BatHitColor, BatHitEmissive, d);
 		return;
 	}
+	float range = 0.05;
+	Math::Vector3 color = { 1,0.3,0.3 };
+	KdShaderManager::Instance().m_StandardShader.SetDissolve(d, &range, &color);
 
-	KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld, kWhiteColor);
+	KdModelInstanceBatcher::Instance().SubmitLit(
+		m_spModel, m_mWorld,
+		kWhiteColor, Math::Vector3::Zero, d);
 
 }
 
@@ -217,7 +236,7 @@ void Bat::OnHit()
 void Bat::OnHit(float damage)
 {
 	// すでに死亡処理中なら、経験値が重複しないよう何もしない。
-	if (m_isExpired) { return; }
+	if (!CanBeTargeted()) { return; }
 
 	// 0以下のダメージは無効にする。
 	if (damage <= 0.0f) { return; }
@@ -229,7 +248,13 @@ void Bat::OnHit(float damage)
 	// HPが0以下なら、BaseScene::PreUpdateで削除されるようにする。
 	if (m_hp <= 0.0f)
 	{
-		m_isExpired = true;
+		m_isChasing = false;
+		m_hitFlashFrame = 0;
+
+		if (m_pCollider)
+		{
+			m_pCollider->SetEnableAll(false);
+		}
 
 		// コウモリを倒した報酬として、プレイヤーのStatusへ経験値を渡す。
 		std::shared_ptr<Status> spStatus = m_wpStatus.lock();

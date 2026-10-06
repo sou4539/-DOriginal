@@ -167,7 +167,7 @@ void FireMagic::ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 		std::shared_ptr<EnemyBase> spEnemy = wpEnemy.lock();
 		if (!spEnemy) { continue; }
 		if (spEnemy == hitEnemy) { continue; }
-		if (spEnemy->IsExpired()) { continue; }
+		if (!spEnemy->CanBeTargeted()) { continue; }
 
 		const Math::Vector3 toEnemy = spEnemy->GetPos() - explosionCenter;
 		if (toEnemy.LengthSquared() <= blastRadiusSq)

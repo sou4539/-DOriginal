@@ -23,6 +23,8 @@ public:
 
 		if (!newData->Load(fileName))
 		{
+			const std::string message = "Asset load failed: " + std::string(fileName) + "\n";
+			OutputDebugStringA(message.c_str());
 			assert(0 && "KdDataStorage::LoadData ファイルが存在しません。ファイルパスを確認してください");
 
 			return nullptr;

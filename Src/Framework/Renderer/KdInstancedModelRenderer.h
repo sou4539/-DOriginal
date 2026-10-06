@@ -16,11 +16,13 @@ public:
 
 	void SubmitLit(const std::shared_ptr<KdModelData>& model, const Math::Matrix& world,
 		const Math::Color& color = kWhiteColor,
-		const Math::Vector3& emissive = Math::Vector3::Zero);
+		const Math::Vector3& emissive = Math::Vector3::Zero,
+		const float dissolve = 0.0f);
 
 	void SubmitLit(const std::shared_ptr<KdModelWork>& model, const Math::Matrix& world,
 		const Math::Color& color = kWhiteColor,
-		const Math::Vector3& emissive = Math::Vector3::Zero);
+		const Math::Vector3& emissive = Math::Vector3::Zero,
+		const float dissolve = 0.0f);
 
 	void SubmitDepth(const std::shared_ptr<KdModelData>& model, const Math::Matrix& world);
 	void SubmitDepth(const std::shared_ptr<KdModelWork>& model, const Math::Matrix& world);
@@ -36,6 +38,7 @@ private:
 		Math::Color Color = kWhiteColor;
 		Math::Vector3 Emissive = Math::Vector3::Zero;
 		std::vector<Math::Matrix> Worlds;
+		float Dissolve = 0.0f;
 	};
 
 	struct SkinnedBatch
@@ -45,6 +48,7 @@ private:
 		Math::Color Color = kWhiteColor;
 		Math::Vector3 Emissive = Math::Vector3::Zero;
 		std::vector<Math::Matrix> Worlds;
+		float Dissolve = 0.0f;
 	};
 
 	std::vector<StaticBatch> m_litStaticBatches;

@@ -1,4 +1,4 @@
-#include "Framework/KdFramework.h"
+﻿#include "Framework/KdFramework.h"
 
 #include "KdInstancedModelRenderer.h"
 
@@ -38,7 +38,8 @@ void KdModelInstanceBatcher::SubmitLit(
 	const std::shared_ptr<KdModelData>& model,
 	const Math::Matrix& world,
 	const Math::Color& color,
-	const Math::Vector3& emissive)
+	const Math::Vector3& emissive,
+	const float dissolve)
 {
 	if (!model) { return; }
 
@@ -46,7 +47,8 @@ void KdModelInstanceBatcher::SubmitLit(
 	{
 		if (batch.Model.get() == model.get() &&
 			IsSameColor(batch.Color, color) &&
-			IsSameVector(batch.Emissive, emissive))
+			IsSameVector(batch.Emissive, emissive)&&
+			batch.Dissolve == dissolve)
 		{
 			batch.Worlds.push_back(world);
 			return;
@@ -58,6 +60,7 @@ void KdModelInstanceBatcher::SubmitLit(
 	batch.Color = color;
 	batch.Emissive = emissive;
 	batch.Worlds.push_back(world);
+	batch.Dissolve = dissolve;
 	m_litStaticBatches.push_back(std::move(batch));
 }
 
@@ -65,7 +68,9 @@ void KdModelInstanceBatcher::SubmitLit(
 	const std::shared_ptr<KdModelWork>& model,
 	const Math::Matrix& world,
 	const Math::Color& color,
-	const Math::Vector3& emissive)
+	const Math::Vector3& emissive,
+	const float dissolve
+)
 {
 	if (!model || !model->IsEnable()) { return; }
 
@@ -73,7 +78,8 @@ void KdModelInstanceBatcher::SubmitLit(
 	{
 		if (batch.Model.get() == model.get() &&
 			IsSameColor(batch.Color, color) &&
-			IsSameVector(batch.Emissive, emissive))
+			IsSameVector(batch.Emissive, emissive)&&
+			batch.Dissolve == dissolve)
 		{
 			batch.Worlds.push_back(world);
 			return;
@@ -85,6 +91,7 @@ void KdModelInstanceBatcher::SubmitLit(
 	batch.Color = color;
 	batch.Emissive = emissive;
 	batch.Worlds.push_back(world);
+	batch.Dissolve = dissolve;
 	m_litSkinnedBatches.push_back(std::move(batch));
 }
 
@@ -143,6 +150,7 @@ void KdModelInstanceBatcher::FlushLit()
 		{
 			const size_t count = std::min<size_t>(KdStandardShader::MaxInstanceCount, batch.Worlds.size() - begin);
 			const auto instances = MakeInstanceData(batch.Worlds, begin, count);
+			shader.SetDissolve(batch.Dissolve);
 			shader.DrawModelInstanced(*batch.Model, instances, batch.Color, batch.Emissive);
 		}
 	}
@@ -153,6 +161,7 @@ void KdModelInstanceBatcher::FlushLit()
 		{
 			const size_t count = std::min<size_t>(KdStandardShader::MaxInstanceCount, batch.Worlds.size() - begin);
 			const auto instances = MakeInstanceData(batch.Worlds, begin, count);
+			shader.SetDissolve(batch.Dissolve);
 			shader.DrawModelInstanced(*batch.Model, instances, batch.Color, batch.Emissive);
 		}
 	}

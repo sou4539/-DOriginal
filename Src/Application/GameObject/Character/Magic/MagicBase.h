@@ -104,6 +104,15 @@ protected:
 	// 現在位置・向きから描画用ワールド行列を作る。
 	void UpdateWorldMatrix();
 
+	// 生存中・除外対象でない・この弾が未命中、の条件を満たす敵ならtrue。
+	bool CanHitEnemy(const std::shared_ptr<EnemyBase>& enemy) const;
+	// 前フレームから現在までの移動区間で、敵の位置に最も近い点を返す。
+	Math::Vector3 GetClosestTravelPosition(const Math::Vector3& enemyPos) const;
+	// 現在位置と移動区間を球で調べ、敵のコライダーに接触したらtrue。
+	bool IntersectsEnemy(const std::shared_ptr<EnemyBase>& enemy) const;
+	// ダメージと魔法固有の効果を実行。trueなら今回の敵検索を終了する。
+	bool HandleEnemyHit(const std::shared_ptr<EnemyBase>& enemy);
+
 	// 音再生の共通入口。
 	void PlayShotSound();
 	void PlayHitSound();
@@ -127,6 +136,8 @@ protected:
 	float m_speed = 0.0f;
 	float m_lifeFrames = 0.0f;
 	float m_radius = 0.0f;
+	// 弾が敵を通り越しても判定できるよう、飛行更新前の位置を保存する。
+	Math::Vector3 m_previousPos = Math::Vector3::Zero;
 
 	// 2.5DOriginalと同じく、1.0から0.0へ減らして詠唱完了を表す。
 	float m_chant = 1.0f;

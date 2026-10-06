@@ -16,4 +16,10 @@ public:
 
 	// スポナーなどから敵を消す時に使う。
 	void Expire() { m_isExpired = true; }
+
+	// 敵の生存確認
+	virtual bool CanBeTargeted() const
+	{
+		return !m_isExpired;
+	}
 };

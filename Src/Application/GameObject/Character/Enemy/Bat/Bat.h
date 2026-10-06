@@ -50,6 +50,12 @@ public:
 	// EnemySpawner側から、出現範囲外に出たコウモリを消す時に使う。
 	void Expire() { m_isExpired = true; }
 
+	// コウモリの生存確認
+	bool CanBeTargeted() const override
+	{
+		return !m_isExpired && m_hp > 0.0f;
+	}
+
 private:
 	static std::shared_ptr<KdModelWork> s_spSharedModel;
 	static KdAnimator s_sharedAnimator;

@@ -2,9 +2,45 @@
 
 #include "Scene/SceneManager.h"
 
+#include <filesystem>
+
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
+namespace
+{
+	// exeから親フォルダーをたどり、Assetがある場所を作業ディレクトリにする。
+	void SetAssetWorkingDirectory()
+	{
+		// 起動方法によらずAssetとSaveの基準位置を固定する。
+		wchar_t executablePath[32768] = {};
+		// 日本語を含むexeの絶対パスを取得する。32768はこの配列の文字数。
+		const DWORD pathLength = GetModuleFileNameW(nullptr, executablePath, 32768);
+		if (pathLength > 0 && pathLength < 32768)
+		{
+			// まずexeのあるフォルダーから探し始める。
+			auto directory = std::filesystem::path(executablePath).parent_path();
+			// フォルダー操作の失敗はerrorで受け取り、例外で終了しないようにする。
+			std::error_code error;
+			while (!directory.empty())
+			{
+				if (std::filesystem::is_directory(directory / L"Asset", error))
+				{
+					// Asset/...とSave/...の相対パスが、このフォルダー基準になる。
+					std::filesystem::current_path(directory, error);
+					break;
+				}
+				const auto parent = directory.parent_path();
+				// ドライブの最上位では親も同じになるため、検索を終了する。
+				if (parent == directory) { break; }
+				directory = parent;
+			}
+		}
+	}
+}
+
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_  HINSTANCE, _In_ LPSTR , _In_ int)
 {
+	SetAssetWorkingDirectory();
+
 	// メモリリークを知らせる
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 

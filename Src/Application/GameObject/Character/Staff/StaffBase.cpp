@@ -170,9 +170,9 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 		{
 			continue;
 		}
-		if (spEnemy->IsExpired())
-		{
-			continue;
+		if (!spEnemy->CanBeTargeted())
+		{ 
+			continue; 
 		}
 
 		Math::Vector3 toEnemy = spEnemy->GetPos() - spPlayer->GetPos();

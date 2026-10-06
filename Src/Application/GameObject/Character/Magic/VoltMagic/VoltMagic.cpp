@@ -167,7 +167,7 @@ std::shared_ptr<EnemyBase> VoltMagic::SearchChainTarget(const std::shared_ptr<En
 		if (spEnemy == hitEnemy) { continue; }
 		if (spEnemy == m_wpIgnoreTarget.lock()) { continue; }
 		if (HasChainHitObject(spEnemy)) { continue; }
-		if (spEnemy->IsExpired()) { continue; }
+		if (!spEnemy->CanBeTargeted()) { continue; }
 
 		const Math::Vector3 toEnemy = spEnemy->GetPos() - hitPos;
 		const float distSq = toEnemy.LengthSquared();
