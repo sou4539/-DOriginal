@@ -1,4 +1,4 @@
-#include "PlayerStatus.h"
+﻿#include "PlayerStatus.h"
 
 #include <algorithm>
 
@@ -20,6 +20,7 @@ void PlayerStatus::ResetHp()
 
 void PlayerStatus::Reset()
 {
+	// 初期値
 	m_hp = 100.0f;
 	m_maxHp = 100.0f;
 	m_mp = 100.0f;
@@ -30,7 +31,7 @@ void PlayerStatus::Reset()
 	m_exp = 0.0f;
 	m_nextExp = 100.0f;
 	m_fireExplosionRadius = 3.0f;
-	m_iceSplitCount = 2;
+	m_iceSplitCount = 0;
 	m_icePierceCount = 1;
 	m_voltChainCount = 1;
 	m_hasFire = false;
@@ -57,13 +58,19 @@ int PlayerStatus::AddExp(float exp)
 
 void PlayerStatus::LevelUp()
 {
+	// levelアップ
 	++m_level;
 
+	// 体力
 	m_maxHp += 10.0f;
-	m_attack += 2.0f;
+	// 全回復
 	m_hp = m_maxHp;
 
-	m_nextExp *= 1.25f;
+	// 攻撃力
+	m_attack += 2.0f;
+
+	// 次のレベルに必要な経験値量を1.15倍にする
+	m_nextExp *= 1.15f;
 }
 
 void PlayerStatus::UnlockFire()

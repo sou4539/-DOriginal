@@ -99,6 +99,10 @@ public:
 	// 指定サブセットを描画
 	void DrawSubset(int subsetNo) const;
 
+	// インスタンシング描画1
+	// 指定サブセットを複数インスタンスまとめて描画
+	void DrawSubsetInstanced(int subsetNo, UINT instanceCount) const;
+
 	// 
 	KdMesh() {}
 

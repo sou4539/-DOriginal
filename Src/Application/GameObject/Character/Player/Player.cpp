@@ -10,8 +10,8 @@ namespace
 	constexpr float PlayerDamageRadius = 1.2f;
 	constexpr float PlayerDamageSphereHeight = 1.5f;
 	constexpr float BatContactDamage = 5.0f;
-	constexpr float DamageCoolTimeFrame = 60.0f;
-	constexpr float RespawnInvincibleFrame = 120.0f;
+	constexpr float HitInvincibleFrames = 60.0f;
+	constexpr float RespawnInvincibleFrames = 120.0f;
 
 	const Math::Vector3 DefaultRespawnPos = { -30.0f, 0.0f, 0.0f };
 }
@@ -59,7 +59,7 @@ void Player::Update()
 	CharaBase::Update();
 
 	UpdateInvincible();
-	if (m_isControlEnable)
+	if (m_canMove)
 	{
 		UpdateMove();
 	}
@@ -69,10 +69,10 @@ void Player::Update()
 // 無敵時間を更新する。
 void Player::UpdateInvincible()
 {
-	if (m_damageCoolTime <= 0.0f) { return; }
+	if (m_invincibleFrames <= 0.0f) { return; }
 
 	// 無敵時間を1フレームずつ減らす。
-	m_damageCoolTime -= 1.0f;
+	m_invincibleFrames -= 1.0f;
 }
 
 // プレイヤーの移動処理。
@@ -126,10 +126,10 @@ void Player::UpdateMove()
 void Player::UpdateWorldMatrix()
 {
 	// 座標と向きを描画用の行列へ反映する。
-	Math::Matrix m_scale = Math::Matrix::CreateScale(1);
-	Math::Matrix m_rot = Math::Matrix::CreateRotationY(m_angle);
-	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
-	m_mWorld = m_scale * m_rot * m_trans;
+	Math::Matrix scaleMat = Math::Matrix::CreateScale(1);
+	Math::Matrix rotMat = Math::Matrix::CreateRotationY(m_angle);
+	Math::Matrix transMat = Math::Matrix::CreateTranslation(m_pos);
+	m_mWorld = scaleMat * rotMat * transMat;
 }
 
 // Update後の補正と当たり判定。
@@ -158,7 +158,7 @@ void Player::UpdateDamageCollision()
 	if (m_isInSafeArea) { return; }
 
 	// 無敵時間中はダメージを受けない。
-	if (m_damageCoolTime > 0.0f) { return; }
+	if (m_invincibleFrames > 0.0f) { return; }
 
 	// HPはStatusが管理しているので、まずStatusを取得する。
 	std::shared_ptr<Status> spStatus = m_status.lock();
@@ -183,14 +183,14 @@ void Player::UpdateDamageCollision()
 		if (spObj.get() == this) { continue; }
 
 		// TypeDamageのコライダーに触れているか確認する。
-		std::list<KdCollider::CollisionResult> retList;
-		if (spObj->Intersects(sphereInfo, &retList))
+		std::list<KdCollider::CollisionResult> hits;
+		if (spObj->Intersects(sphereInfo, &hits))
 		{
 			// 敵に触れたのでプレイヤーHPを減らす。
 			spStatus->DamagePlayer(BatContactDamage);
 
 			// 次のダメージまで少し待つ。
-			m_damageCoolTime = DamageCoolTimeFrame;
+			m_invincibleFrames = HitInvincibleFrames;
 
 			// 1体でも触れていたら今回の判定は終わる。
 			break;
@@ -219,7 +219,7 @@ void Player::RespawnIfDead()
 	spStatus->ResetPlayerHp();
 
 	// 復活直後に敵へ触れていても、すぐダメージを受けないようにする。
-	m_damageCoolTime = RespawnInvincibleFrame;
+	m_invincibleFrames = RespawnInvincibleFrames;
 }
 
 void Player::UpdateSafeAreaFlag()
@@ -235,8 +235,8 @@ void Player::UpdateSafeAreaFlag()
 	Math::Vector3 toPlayer = GetPos() - m_safeAreaCenter;
 	toPlayer.y = 0.0f;
 
-	float distanceSqr = toPlayer.LengthSquared();
-	m_isInSafeArea = distanceSqr <= m_safeAreaRadius * m_safeAreaRadius;
+	float distSq = toPlayer.LengthSquared();
+	m_isInSafeArea = distSq <= m_safeAreaRadius * m_safeAreaRadius;
 }
 
 

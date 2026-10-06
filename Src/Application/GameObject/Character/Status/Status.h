@@ -37,27 +37,28 @@ public:
 	void ResetPlayerHp();
 
 	// HPが0か確認する。
-	bool IsPlayerDead() const { return m_playerStatus.IsDead(); }
-	float GetPlayerHp() const { return m_playerStatus.GetHp(); }
+	bool IsPlayerDead() const { return m_stats.IsDead(); }
+	float GetPlayerHp() const { return m_stats.GetHp(); }
 
 	// 経験値を加算する。
 	void AddExp(float exp);
 
-	int GetLevel() const { return m_playerStatus.GetLevel(); }
-	float GetExp() const { return m_playerStatus.GetExp(); }
-	float GetNextExp() const { return m_playerStatus.GetNextExp(); }
+	int GetLevel() const { return m_stats.GetLevel(); }
+	float GetExp() const { return m_stats.GetExp(); }
+	float GetNextExp() const { return m_stats.GetNextExp(); }
+	float GetPlayerAttack() const { return m_stats.GetAttack(); }
 
 	// 魔法強化値を返す。
-	float GetFireExplosionRadius() const { return m_playerStatus.GetFireExplosionRadius(); }
-	int GetIceSplitCount() const { return m_playerStatus.GetIceSplitCount(); }
-	int GetIcePierceCount() const { return m_playerStatus.GetIcePierceCount(); }
-	int GetVoltChainCount() const { return m_playerStatus.GetVoltChainCount(); }
-	bool HasFire() const { return m_playerStatus.HasFire(); }
-	bool HasIce() const { return m_playerStatus.HasIce(); }
-	bool HasVolt() const { return m_playerStatus.HasVolt(); }
-	bool HasAnyMagic() const { return m_playerStatus.HasAnyMagic(); }
+	float GetFireExplosionRadius() const { return m_stats.GetFireExplosionRadius(); }
+	int GetIceSplitCount() const { return m_stats.GetIceSplitCount(); }
+	int GetIcePierceCount() const { return m_stats.GetIcePierceCount(); }
+	int GetVoltChainCount() const { return m_stats.GetVoltChainCount(); }
+	bool HasFire() const { return m_stats.HasFire(); }
+	bool HasIce() const { return m_stats.HasIce(); }
+	bool HasVolt() const { return m_stats.HasVolt(); }
+	bool HasAnyMagic() const { return m_stats.HasAnyMagic(); }
 	bool HasMagic(MagicType type) const;
-	bool IsLevelUpSelect() const { return m_isLevelUpSelect; }
+	bool IsLevelUpSelect() const { return m_isChoosingMagic; }
 
 private:
 	void SaveProgress();
@@ -104,16 +105,16 @@ private:
 	float m_villageGuideRadius = 0.0f;
 
 	// プレイヤーの数値管理。
-	PlayerStatus m_playerStatus;
+	PlayerStatus m_stats;
 
 	// レベルアップ選択UIの状態。
-	bool m_isLevelUpSelect = false;
-	int m_pendingLevelUpSelectCount = 0;
+	bool m_isChoosingMagic = false;
+	int m_pendingChoices = 0;
 
 	// 入力の押しっぱなし防止。
-	bool m_prevDebugLevelUpKey = false;
-	bool m_prevDebugSaveKey = false;
-	bool m_prevDebugResetKey = false;
-	bool m_prevDebugKillKey = false;
-	bool m_prevLeftClick = false;
+	bool m_prevLevelUpDown = false;
+	bool m_prevSaveDown = false;
+	bool m_prevResetDown = false;
+	bool m_prevKillDown = false;
+	bool m_prevLeftDown = false;
 };

@@ -8,19 +8,10 @@ public:
 	FireMagic() { Init(); }
 	~FireMagic() override {}
 
-	// 炎魔法専用の発射設定。強化で変わる爆発範囲をここで受け取る.
-	void Shot(
-		const Math::Vector3& startPos,
-		const Math::Vector3& dir,
-		MagicType type,
-		float damage,
-		float speed,
-		const std::shared_ptr<KdGameObject>& chantTarget,
-		const std::shared_ptr<KdGameObject>& flyTarget,
-		const std::shared_ptr<KdGameObject>& ignoreTarget,
-		float explosionRadius);
-
 protected:
+	// BaseのShotから呼ばれる専用設定。戻り値trueなら詠唱を省略する。
+	bool ConfigureShot(const MagicShotParams& params) override;
+
 	// 炎弾の画像、寿命、当たり判定サイズを設定する.
 	void SetupMagic() override;
 

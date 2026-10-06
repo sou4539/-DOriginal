@@ -51,8 +51,102 @@ void KdStandardShader::BeginLit()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::EndLit()
 {
+	// インスタンシング描画31
+	// 通常Litパスの終了直前に、全オブジェクトから登録されたモデルを一括描画する。
+	KdModelInstanceBatcher::Instance().FlushLit();
+
 	ID3D11ShaderResourceView* pNullSRV = nullptr;
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(10, 1, &pNullSRV);
+}
+
+// インスタンシング描画16
+void KdStandardShader::BeginLitInstanced()
+{
+	// インスタンシング用頂点シェーダーと入力レイアウトを設定
+	if
+		(
+			KdShaderManager::Instance().SetVertexShader
+			(
+				m_VS_LitInstanced
+			)
+			)
+	{
+		KdShaderManager::Instance().SetInputLayout
+		(
+			m_inputLayoutInstanced
+		);
+
+		KdShaderManager::Instance().SetVSConstantBuffer
+		(
+			0,
+			m_cb0_Obj.GetAddress()
+		);
+
+		KdShaderManager::Instance().SetVSConstantBuffer
+		(
+			1,
+			m_cb1_Mesh.GetAddress()
+		);
+	}
+
+	// ピクセルシェーダーは通常Lit描画と同じものを使用
+	if
+		(
+			KdShaderManager::Instance().SetPixelShader
+			(
+				m_PS_Lit
+			)
+			)
+	{
+		KdShaderManager::Instance().SetPSConstantBuffer
+		(
+			0,
+			m_cb0_Obj.GetAddress()
+		);
+
+		KdShaderManager::Instance().SetPSConstantBuffer
+		(
+			2,
+			m_cb2_Material.GetAddress()
+		);
+	}
+
+	// スキンメッシュ用ボーン情報
+	KdShaderManager::Instance().SetVSConstantBuffer
+	(
+		3,
+		m_cb3_Bone.GetAddress()
+	);
+
+	// 通常Lit描画と同じシャドウマップを設定
+	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources
+	(
+		10,
+		1,
+		m_depthMapFromLightRTPack
+		.m_RTTexture
+		->WorkSRViewAddress()
+	);
+
+	// 通常テクスチャ用サンプラー
+	KdShaderManager::Instance().ChangeSamplerState
+	(
+		KdSamplerState::Anisotropic_Wrap,
+		0
+	);
+
+	// 影比較用サンプラー
+	KdShaderManager::Instance().ChangeSamplerState
+	(
+		KdSamplerState::Linear_Clamp_Cmp,
+		1
+	);
+}
+
+void KdStandardShader::EndLitInstanced()
+{
+	// スロット1のインスタンスバッファを解除
+	ClearInstanceDataFromDevice();
 }
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
@@ -82,8 +176,7 @@ void KdStandardShader::BeginUnLit()
 // 陰影なしオブジェクトの描画終了
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::EndUnLit()
-{
-}
+{}
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 // 影を生み出すオブジェクトの情報描画（光を遮る物体）
@@ -114,6 +207,39 @@ void KdStandardShader::BeginGenerateDepthMapFromLight()
 	m_depthMapFromLightRTChanger.ChangeRenderTarget(m_depthMapFromLightRTPack);
 }
 
+// インスタンシング描画24
+void KdStandardShader::BeginGenerateDepthMapFromLightInstanced()
+{
+	if (KdShaderManager::Instance().SetVertexShader(m_VS_GenDepthFromLightInstanced))
+	{
+		KdShaderManager::Instance().SetInputLayout(m_inputLayoutInstanced);
+		KdShaderManager::Instance().SetVSConstantBuffer(0, m_cb0_Obj.GetAddress());
+		KdShaderManager::Instance().SetVSConstantBuffer(1, m_cb1_Mesh.GetAddress());
+	}
+
+	KdShaderManager::Instance().SetVSConstantBuffer(3, m_cb3_Bone.GetAddress());
+
+	if (KdShaderManager::Instance().SetPixelShader(m_PS_GenDepthFromLight))
+	{
+		KdShaderManager::Instance().SetPSConstantBuffer(0, m_cb0_Obj.GetAddress());
+	}
+}
+
+void KdStandardShader::EndGenerateDepthMapFromLightInstanced()
+{
+	ClearInstanceDataFromDevice();
+
+	// 深度テクスチャを消去せず、通常の影用パイプラインだけを復元する
+	if (KdShaderManager::Instance().SetVertexShader(m_VS_GenDepthFromLight))
+	{
+		KdShaderManager::Instance().SetInputLayout(m_inputLayout);
+		KdShaderManager::Instance().SetVSConstantBuffer(0, m_cb0_Obj.GetAddress());
+		KdShaderManager::Instance().SetVSConstantBuffer(1, m_cb1_Mesh.GetAddress());
+	}
+
+	KdShaderManager::Instance().SetVSConstantBuffer(3, m_cb3_Bone.GetAddress());
+}
+
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 // 影を生み出すオブジェクトの描画終了
 // ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
@@ -121,6 +247,7 @@ void KdStandardShader::BeginGenerateDepthMapFromLight()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::EndGenerateDepthMapFromLight()
 {
+	KdModelInstanceBatcher::Instance().FlushDepth();
 	m_depthMapFromLightRTChanger.UndoRenderTarget();
 }
 
@@ -184,12 +311,94 @@ void KdStandardShader::DrawModel(const KdModelData& rModel, const Math::Matrix& 
 	for (auto& nodeIdx : rModel.GetDrawMeshNodeIndices())
 	{
 		// 描画
-		DrawMesh(dataNodes[nodeIdx].m_spMesh.get(), dataNodes[nodeIdx].m_worldTransform * mWorld, 
+		DrawMesh(dataNodes[nodeIdx].m_spMesh.get(), dataNodes[nodeIdx].m_worldTransform * mWorld,
 			rModel.GetMaterials(), colRate, emissive);
 	}
 
 	// 定数に変更があった場合は自動的に初期状態に戻す
-	if(m_dirtyCBObj)
+	if (m_dirtyCBObj)
+	{
+		ResetCBObject();
+	}
+}
+
+// インスタンシング描画18
+void KdStandardShader::DrawModelInstanced(
+	const KdModelData& rModel,
+	const std::vector<InstanceData>& instances,
+	const Math::Color& colRate,
+	const Math::Vector3& emissive)
+{
+	// 描画する個体がなければ終了
+	if (instances.empty()) { return; }
+
+	// 全個体のワールド行列をGPUへ送る
+	if (!SetInstanceDataToDevice(instances)) { return; }
+
+	// 今回はアニメーションしないモデルとして描画する
+	SetIsSkinMeshObj(false);
+
+	if (m_dirtyCBObj)
+	{
+		m_cb0_Obj.Write();
+	}
+
+	const auto& dataNodes = rModel.GetOriginalNodes();
+	const auto& materials = rModel.GetMaterials();
+
+	const UINT instanceCount =
+		static_cast<UINT>(instances.size());
+
+	// モデル内のメッシュノードを順番に描画
+	for (const int nodeIdx : rModel.GetDrawMeshNodeIndices())
+	{
+		if (nodeIdx < 0 ||
+			nodeIdx >= static_cast<int>(dataNodes.size()))
+		{
+			continue;
+		}
+
+		const auto& node = dataNodes[nodeIdx];
+		const KdMesh* mesh = node.m_spMesh.get();
+
+		if (!mesh) { continue; }
+
+		// 頂点バッファとインデックスバッファをセット
+		mesh->SetToDevice();
+
+		// モデル内部のノード変換をセット
+		m_cb1_Mesh.Work().mW = node.m_worldTransform;
+		m_cb1_Mesh.Write();
+
+		const auto& subsets = mesh->GetSubsets();
+
+		for (UINT subsetIndex = 0;
+			subsetIndex < static_cast<UINT>(subsets.size());
+			++subsetIndex)
+		{
+			const auto& subset = subsets[subsetIndex];
+
+			if (subset.FaceCount == 0) { continue; }
+
+			if (subset.MaterialNo >= materials.size())
+			{
+				continue;
+			}
+
+			// サブセットに対応するマテリアルをセット
+			WriteMaterial(
+				materials[subset.MaterialNo],
+				colRate,
+				emissive);
+
+			// 同一メッシュを全個体分まとめて描画
+			mesh->DrawSubsetInstanced(
+				static_cast<int>(subsetIndex),
+				instanceCount);
+		}
+	}
+
+	if (m_dirtyCBObj)
 	{
 		ResetCBObject();
 	}
@@ -242,7 +451,7 @@ void KdStandardShader::DrawModel(KdModelWork& rModel, const Math::Matrix& mWorld
 			m_cb3_Bone.Write();
 		}
 	}
-	
+
 
 	// 全描画用メッシュノードを描画
 	for (auto& nodeIdx : data->GetDrawMeshNodeIndices())
@@ -253,6 +462,94 @@ void KdStandardShader::DrawModel(KdModelWork& rModel, const Math::Matrix& mWorld
 	}
 
 	// 定数に変更があった場合は自動的に初期状態に戻す
+	if (m_dirtyCBObj)
+	{
+		ResetCBObject();
+	}
+}
+
+// インスタンシング描画25
+void KdStandardShader::DrawModelInstanced(
+	KdModelWork& rModel,
+	const std::vector<InstanceData>& instances,
+	const Math::Color& colRate,
+	const Math::Vector3& emissive)
+{
+	if (!rModel.IsEnable() || instances.empty()) { return; }
+	if (!SetInstanceDataToDevice(instances)) { return; }
+
+	const std::shared_ptr<KdModelData> data = rModel.GetData();
+	if (!data) { return; }
+
+	if (rModel.NeedCalcNodeMatrices())
+	{
+		rModel.CalcNodeMatrices();
+	}
+
+	SetIsSkinMeshObj(data->IsSkinMesh());
+	if (m_dirtyCBObj)
+	{
+		m_cb0_Obj.Write();
+	}
+
+	const auto& dataNodes = data->GetOriginalNodes();
+	const auto& workNodes = rModel.GetNodes();
+
+	if (data->IsSkinMesh())
+	{
+		for (const int nodeIdx : data->GetBoneNodeIndices())
+		{
+			if (nodeIdx < 0 ||
+				nodeIdx >= static_cast<int>(dataNodes.size()) ||
+				nodeIdx >= static_cast<int>(workNodes.size()))
+			{
+				continue;
+			}
+
+			const auto& dataNode = dataNodes[nodeIdx];
+			if (dataNode.m_boneIndex < 0 || dataNode.m_boneIndex >= maxBoneBufferSize)
+			{
+				assert(0 && "転送できるボーンの上限数を超えました");
+				return;
+			}
+
+			m_cb3_Bone.Work().mBones[dataNode.m_boneIndex] =
+				dataNode.m_boneInverseWorldMatrix * workNodes[nodeIdx].m_worldTransform;
+		}
+
+		m_cb3_Bone.Write();
+	}
+
+	const UINT instanceCount = static_cast<UINT>(instances.size());
+	const auto& materials = data->GetMaterials();
+
+	for (const int nodeIdx : data->GetDrawMeshNodeIndices())
+	{
+		if (nodeIdx < 0 ||
+			nodeIdx >= static_cast<int>(dataNodes.size()) ||
+			nodeIdx >= static_cast<int>(workNodes.size()))
+		{
+			continue;
+		}
+
+		const KdMesh* mesh = dataNodes[nodeIdx].m_spMesh.get();
+		if (!mesh) { continue; }
+
+		mesh->SetToDevice();
+		m_cb1_Mesh.Work().mW = workNodes[nodeIdx].m_worldTransform;
+		m_cb1_Mesh.Write();
+
+		const auto& subsets = mesh->GetSubsets();
+		for (UINT subsetIndex = 0; subsetIndex < static_cast<UINT>(subsets.size()); ++subsetIndex)
+		{
+			const auto& subset = subsets[subsetIndex];
+			if (subset.FaceCount == 0 || subset.MaterialNo >= materials.size()) { continue; }
+
+			WriteMaterial(materials[subset.MaterialNo], colRate, emissive);
+			mesh->DrawSubsetInstanced(static_cast<int>(subsetIndex), instanceCount);
+		}
+	}
+
 	if (m_dirtyCBObj)
 	{
 		ResetCBObject();
@@ -442,12 +739,153 @@ bool KdStandardShader::Init()
 		}
 	}
 
+	// インスタンシング描画13
+	{
+		// インスタンシング用コンパイル済みシェーダー
+#include "KdStandardShader_VS_LitInstanced.shaderInc"
+
+		// インスタンシング用頂点シェーダーを作成
+		if (FAILED
+		(
+			KdDirect3D::Instance().WorkDev()->CreateVertexShader
+			(
+				compiledBuffer,
+				sizeof(compiledBuffer),
+				nullptr,
+				&m_VS_LitInstanced
+			)
+		))
+		{
+			assert
+			(
+				0 &&
+				"インスタンシング用頂点シェーダー作成失敗"
+			);
+
+			Release();
+			return false;
+		}
+
+		// スロット0はモデル頂点、スロット1はインスタンス行列
+		std::vector<D3D11_INPUT_ELEMENT_DESC> layout =
+		{
+			// モデル頂点：スロット0
+			{
+				"POSITION", 0,
+				DXGI_FORMAT_R32G32B32_FLOAT,
+				0, 0,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"TEXCOORD", 0,
+				DXGI_FORMAT_R32G32_FLOAT,
+				0, 12,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"COLOR", 0,
+				DXGI_FORMAT_R8G8B8A8_UNORM,
+				0, 20,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"NORMAL", 0,
+				DXGI_FORMAT_R32G32B32_FLOAT,
+				0, 24,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"TANGENT", 0,
+				DXGI_FORMAT_R32G32B32_FLOAT,
+				0, 36,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"SKININDEX", 0,
+				DXGI_FORMAT_R16G16B16A16_UINT,
+				0, 48,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+			{
+				"SKINWEIGHT", 0,
+				DXGI_FORMAT_R32G32B32A32_FLOAT,
+				0, 56,
+				D3D11_INPUT_PER_VERTEX_DATA, 0
+			},
+
+			// インスタンス行列：スロット1
+			{
+				"INSTANCEWORLD", 0,
+				DXGI_FORMAT_R32G32B32A32_FLOAT,
+				1, 0,
+				D3D11_INPUT_PER_INSTANCE_DATA, 1
+			},
+			{
+				"INSTANCEWORLD", 1,
+				DXGI_FORMAT_R32G32B32A32_FLOAT,
+				1, 16,
+				D3D11_INPUT_PER_INSTANCE_DATA, 1
+			},
+			{
+				"INSTANCEWORLD", 2,
+				DXGI_FORMAT_R32G32B32A32_FLOAT,
+				1, 32,
+				D3D11_INPUT_PER_INSTANCE_DATA, 1
+			},
+			{
+				"INSTANCEWORLD", 3,
+				DXGI_FORMAT_R32G32B32A32_FLOAT,
+				1, 48,
+				D3D11_INPUT_PER_INSTANCE_DATA, 1
+			}
+		};
+
+		// インスタンシング用入力レイアウトを作成
+		if (FAILED
+		(
+			KdDirect3D::Instance().WorkDev()->CreateInputLayout
+			(
+				layout.data(),
+				static_cast<UINT>(layout.size()),
+				compiledBuffer,
+				sizeof(compiledBuffer),
+				&m_inputLayoutInstanced
+			)
+		))
+		{
+			assert
+			(
+				0 &&
+				"インスタンシング用入力レイアウト作成失敗"
+			);
+
+			Release();
+			return false;
+		}
+	}
+
 	{
 #include "KdStandardShader_VS_GenDepthMapFromLight.shaderInc"
 
 		// 頂点シェーダー作成
 		if (FAILED(KdDirect3D::Instance().WorkDev()->CreateVertexShader(compiledBuffer, sizeof(compiledBuffer), nullptr, &m_VS_GenDepthFromLight))) {
 			assert(0 && "頂点シェーダー作成失敗");
+			Release();
+			return false;
+		}
+	}
+
+	// インスタンシング描画26
+	{
+#include "KdStandardShader_VS_GenDepthMapFromLightInstanced.shaderInc"
+
+		if (FAILED(KdDirect3D::Instance().WorkDev()->CreateVertexShader(
+			compiledBuffer,
+			sizeof(compiledBuffer),
+			nullptr,
+			&m_VS_GenDepthFromLightInstanced)))
+		{
+			assert(0 && "影生成用インスタンシング頂点シェーダー作成失敗");
 			Release();
 			return false;
 		}
@@ -485,8 +923,8 @@ bool KdStandardShader::Init()
 			Release();
 			return false;
 		}
-	} 
-	
+	}
+
 	{
 #include "KdStandardShader_PS_UnLit.shaderInc"
 
@@ -503,6 +941,24 @@ bool KdStandardShader::Init()
 	m_cb1_Mesh.Create();
 	m_cb2_Material.Create();
 	m_cb3_Bone.Create();
+
+	// インスタンシング描画5
+	// インスタンスごとのワールド行列を保存する動的頂点バッファを作成
+	const UINT bufferBytes =
+		static_cast<UINT>(sizeof(InstanceData) * MaxInstanceCount);
+
+	if (!m_instanceBuffer.Create
+	(
+		D3D11_BIND_VERTEX_BUFFER,
+		bufferBytes,
+		D3D11_USAGE_DYNAMIC,
+		nullptr
+	)
+		)
+	{
+		Release();
+		return false;
+	}
 
 	std::shared_ptr<KdTexture> ds = std::make_shared<KdTexture>();
 	ds->CreateDepthStencil(1024, 1024);
@@ -528,11 +984,19 @@ bool KdStandardShader::Init()
 void KdStandardShader::Release()
 {
 	KdSafeRelease(m_VS_Lit);
+
+	// インスタンシング描画14
+	KdSafeRelease(m_VS_LitInstanced);
+	KdSafeRelease(m_inputLayoutInstanced);
+
 	KdSafeRelease(m_VS_GenDepthFromLight);
+
+	// インスタンシング描画27
+	KdSafeRelease(m_VS_GenDepthFromLightInstanced);
 	KdSafeRelease(m_VS_UnLit);
 
 	KdSafeRelease(m_inputLayout);
-	
+
 	KdSafeRelease(m_PS_Lit);
 	KdSafeRelease(m_PS_GenDepthFromLight);
 	KdSafeRelease(m_PS_UnLit);
@@ -542,6 +1006,73 @@ void KdStandardShader::Release()
 	m_cb2_Material.Release();
 	// スキンメッシュ対応
 	m_cb3_Bone.Release();
+
+	// インスタンシング描画6
+	// インスタンスバッファ解放
+	m_instanceBuffer.Release();
+}
+
+// インスタンシング描画8
+bool KdStandardShader::SetInstanceDataToDevice
+(
+	const std::vector<InstanceData>& instances
+)
+{
+	// 描画するインスタンスがない場合は失敗
+	if (instances.empty())
+	{
+		return false;
+	}
+
+	// 作成済みバッファの最大数を超える場合は失敗
+	if (instances.size() > MaxInstanceCount)
+	{
+		return false;
+	}
+
+	// CPU側の行列一覧を動的インスタンスバッファへ書き込む
+	const UINT dataBytes = static_cast<UINT>
+		(
+			sizeof(InstanceData) * instances.size()
+			);
+
+	m_instanceBuffer.WriteData
+	(
+		instances.data(),
+		dataBytes
+	);
+
+	// スロット1へインスタンスバッファを設定する
+	UINT stride = sizeof(InstanceData);
+	UINT offset = 0;
+
+	KdDirect3D::Instance().WorkDevContext()->IASetVertexBuffers
+	(
+		1,
+		1,
+		m_instanceBuffer.GetAddress(),
+		&stride,
+		&offset
+	);
+
+	return true;
+}
+
+// インスタンシング描画9
+void KdStandardShader::ClearInstanceDataFromDevice()
+{
+	ID3D11Buffer* nullBuffer = nullptr;
+	UINT stride = 0;
+	UINT offset = 0;
+
+	KdDirect3D::Instance().WorkDevContext()->IASetVertexBuffers
+	(
+		1,
+		1,
+		&nullBuffer,
+		&stride,
+		&offset
+	);
 }
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////

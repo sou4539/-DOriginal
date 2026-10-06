@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "../EnemyBase.h"
 
@@ -15,6 +15,10 @@ public:
 	void DrawLit() override;
 	void GenerateDepthMapFromLight() override;
 	void DrawEffect() override;
+
+	// インスタンシング描画33
+	// 全蝙蝠で共有する羽ばたき姿勢を1フレームに1回だけ進める。
+	static void UpdateSharedAnimation();
 
 	// 魔法などが当たった時に呼ぶ。
 	void OnHit() override;
@@ -47,11 +51,9 @@ public:
 	void Expire() { m_isExpired = true; }
 
 private:
-	/*
-		Bat.gltfに入っているアニメーションを再生・更新するためのクラス。
-		今回は羽ばたき用の "flap_loop" を再生する。
-	*/
-	KdAnimator m_animator;
+	static std::shared_ptr<KdModelWork> s_spSharedModel;
+	static KdAnimator s_sharedAnimator;
+	static int s_sharedAnimUpdateFrame;
 
 	std::weak_ptr<KdGameObject> m_wpTarget;
 	std::weak_ptr<Status> m_wpStatus;
@@ -69,12 +71,13 @@ private:
 	// trueなら、現在プレイヤーを追跡中。
 	bool m_isChasing = false;
 	int m_hitFlashFrame = 0;
-	int m_animUpdateFrame = 0;
 
 	float m_damageRadius = 0.7f;
 	float m_moveSpeed = 0.11f;
 	float m_hp = 30.0f;
 	float m_exp = 20.0f;
+
+	float d = 0.0f; // ディゾルブ値
 };
 
 

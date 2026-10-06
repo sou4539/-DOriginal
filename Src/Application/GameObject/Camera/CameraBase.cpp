@@ -52,8 +52,8 @@ void CameraBase::UpdateRotateByMouse()
 	if (!m_isMouseLocked) { return; }
 
 	// マウスでカメラを横回転させる。
-	POINT _nowPos;
-	GetCursorPos(&_nowPos);
+	POINT mousePos;
+	GetCursorPos(&mousePos);
 
 	if (m_skipMouseMove)
 	{
@@ -62,12 +62,12 @@ void CameraBase::UpdateRotateByMouse()
 		return;
 	}
 
-	POINT _mouseMove{};
-	_mouseMove.x = _nowPos.x - m_FixMousePos.x;
-	_mouseMove.y = _nowPos.y - m_FixMousePos.y;
+	POINT mouseDelta{};
+	mouseDelta.x = mousePos.x - m_FixMousePos.x;
+	mouseDelta.y = mousePos.y - m_FixMousePos.y;
 
 	SetCursorPos(m_FixMousePos.x, m_FixMousePos.y);
 
 	// 上下方向は使わず、左右の移動量だけを反映する。
-	m_DegAng.y += _mouseMove.x * 0.15f;
+	m_anglesDeg.y += mouseDelta.x * 0.15f;
 }

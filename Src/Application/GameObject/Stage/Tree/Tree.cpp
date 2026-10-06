@@ -16,7 +16,7 @@ namespace
 	constexpr float TreeAreaMaxX = 80.0f;
 	constexpr float TreeAreaMinZ = -95.0f;
 	constexpr float TreeAreaMaxZ = 95.0f;
-	constexpr int TreePlaceTryCount = 400;
+	constexpr int TreePlaceAttempts = 400;
 }
 
 void Tree::Init()
@@ -58,15 +58,15 @@ void Tree::CreateRandomTrees()
 		TreeAreaMinZ,
 		TreeAreaMaxZ,
 		m_treeCount,
-		TreePlaceTryCount
+		TreePlaceAttempts
 	);
 }
 
-void Tree::CreateRandomTreesInArea(float minX, float maxX, float minZ, float maxZ, int addCount, int tryCount)
+void Tree::CreateRandomTreesInArea(float minX, float maxX, float minZ, float maxZ, int addCount, int maxAttempts)
 {
-	const int targetTreeCount = std::min(static_cast<int>(m_trees.size()) + addCount, m_maxTreeCount);
+	const int targetCount = std::min(static_cast<int>(m_trees.size()) + addCount, m_maxTreeCount);
 
-	for (int i = 0; i < tryCount && static_cast<int>(m_trees.size()) < targetTreeCount; ++i)
+	for (int i = 0; i < maxAttempts && static_cast<int>(m_trees.size()) < targetCount; ++i)
 	{
 		Math::Vector3 pos;
 		pos.x = KdRandom::GetFloat(minX, maxX);
@@ -91,11 +91,11 @@ void Tree::Update()
 
 void Tree::MaintainTreesAroundTarget()
 {
-	const int removedTreeCount = RemoveTreesOutsideActiveRange();
+	const int removedCount = RemoveTreesOutsideActiveRange();
 
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (!spTarget) { return; }
-	if (removedTreeCount <= 0) { return; }
+	if (removedCount <= 0) { return; }
 	if (static_cast<int>(m_trees.size()) >= m_maxTreeCount) { return; }
 
 	Math::Vector3 targetPos = spTarget->GetPos();
@@ -104,12 +104,12 @@ void Tree::MaintainTreesAroundTarget()
 	// 消えた本数だけ補充し、移動距離ではなく削除を基準に木の数を保つ。
 	CreateRandomTreesInArea
 	(
-		targetPos.x - m_addTreeAreaHalfSize,
-		targetPos.x + m_addTreeAreaHalfSize,
-		targetPos.z - m_addTreeAreaHalfSize,
-		targetPos.z + m_addTreeAreaHalfSize,
-		removedTreeCount,
-		removedTreeCount * 30
+		targetPos.x - m_spawnAreaHalfSize,
+		targetPos.x + m_spawnAreaHalfSize,
+		targetPos.z - m_spawnAreaHalfSize,
+		targetPos.z + m_spawnAreaHalfSize,
+		removedCount,
+		removedCount * 30
 	);
 }
 
@@ -161,12 +161,12 @@ bool Tree::CanPlaceTree(const Math::Vector3& pos) const
 		if (IsInCircle(pos, circle)) { return false; }
 	}
 
-	const float minDistanceSqr = m_minTreeDistance * m_minTreeDistance;
+	const float minDistSq = m_minTreeDistance * m_minTreeDistance;
 	for (const TreeData& tree : m_trees)
 	{
 		Math::Vector3 toTree = tree.pos - pos;
 		toTree.y = 0.0f;
-		if (toTree.LengthSquared() < minDistanceSqr)
+		if (toTree.LengthSquared() < minDistSq)
 		{
 			return false;
 		}
@@ -200,7 +200,7 @@ bool Tree::IsTooCloseToTarget(const Math::Vector3& pos) const
 	if (!spTarget) { return false; }
 
 	// プレイヤーの近くには新しく木を出さず、画面内で突然生える違和感を減らす。
-	return IsNearTarget(pos, m_minCreateDistanceFromTarget);
+	return IsNearTarget(pos, m_minSpawnDistance);
 }
 
 int Tree::RemoveTreesOutsideActiveRange()
@@ -209,11 +209,11 @@ int Tree::RemoveTreesOutsideActiveRange()
 	if (!spTarget) { return 0; }
 	if (!m_pCollider) { return 0; }
 
-	int removedTreeCount = 0;
+	int removedCount = 0;
 
 	m_trees.erase
 	(
-		std::remove_if(m_trees.begin(), m_trees.end(), [this, &removedTreeCount](const TreeData& tree)
+		std::remove_if(m_trees.begin(), m_trees.end(), [this, &removedCount](const TreeData& tree)
 		{
 			if (!IsOutsideActiveRange(tree.pos)) { return false; }
 
@@ -223,13 +223,13 @@ int Tree::RemoveTreesOutsideActiveRange()
 				m_pCollider->RemoveCollisionShape(tree.colliderName);
 			}
 
-			++removedTreeCount;
+			++removedCount;
 			return true;
 		}),
 		m_trees.end()
 	);
 
-	return removedTreeCount;
+	return removedCount;
 }
 
 void Tree::UpdateTreeColliders()
@@ -258,6 +258,7 @@ bool Tree::IsOutsideActiveRange(const Math::Vector3& pos) const
 	return toPos.LengthSquared() > m_activeRadius * m_activeRadius;
 }
 
+// インスタンシング描画32
 void Tree::DrawLit()
 {
 	for (const TreeData& tree : m_trees)
@@ -265,7 +266,9 @@ void Tree::DrawLit()
 		if (tree.modelIndex < 0 || tree.modelIndex >= static_cast<int>(m_treeModels.size())) { continue; }
 		if (!m_treeModels[tree.modelIndex]) { continue; }
 
-		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_treeModels[tree.modelIndex], tree.world);
+		KdModelInstanceBatcher::Instance().SubmitLit(
+			m_treeModels[tree.modelIndex]->GetData(),
+			tree.world);
 	}
 }
 
@@ -277,6 +280,8 @@ void Tree::GenerateDepthMapFromLight()
 		if (!m_treeModels[tree.modelIndex]) { continue; }
 		if (!IsNearTarget(tree.pos, m_shadowDrawRadius)) { continue; }
 
-		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_treeModels[tree.modelIndex], tree.world);
+		KdModelInstanceBatcher::Instance().SubmitDepth(
+			m_treeModels[tree.modelIndex]->GetData(),
+			tree.world);
 	}
 }

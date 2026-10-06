@@ -122,26 +122,26 @@ bool Application::Init(int w, int h)
 	}
 
 	//===================================================================
-	bool bFullScreen = false;
+	bool fullscreen = false;
 //	if (MessageBoxA(m_window.GetWndHandle(), "フルスクリーンにしますか？", "確認", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES) {
 
 	//===================================================================
 
 	// デバイスのデバッグモードを有効にする
-	bool deviceDebugMode = false;
+	bool debugDevice = false;
 #ifdef _DEBUG
-	deviceDebugMode = true;
+	debugDevice = true;
 #endif
 
 	// Direct3D初期化
 	std::string errorMsg;
-	if (KdDirect3D::Instance().Init(m_window.GetWndHandle(), w, h, deviceDebugMode, errorMsg) == false) {
+	if (KdDirect3D::Instance().Init(m_window.GetWndHandle(), w, h, debugDevice, errorMsg) == false) {
 		MessageBoxA(m_window.GetWndHandle(), errorMsg.c_str(), "Direct3D初期化失敗", MB_OK | MB_ICONSTOP);
 		return false;
 	}
 
 	// フルスクリーン設定
-	if (bFullScreen) {
+	if (fullscreen) {
 		HRESULT hr;
 
 		hr = KdDirect3D::Instance().SetFullscreenState(TRUE, 0);
@@ -246,8 +246,8 @@ void Application::Execute()
 
 		m_fpsController.Update();
 
-		std::string titleBar = "Spell Meadow  FPS:" + std::to_string(m_fpsController.m_nowfps);
-		SetWindowTextA(m_window.GetWndHandle(), titleBar.c_str());
+		std::string windowTitle = "Spell Meadow  FPS:" + std::to_string(m_fpsController.m_nowfps);
+		SetWindowTextA(m_window.GetWndHandle(), windowTitle.c_str());
 	}
 
 	//===================================================================

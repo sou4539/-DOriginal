@@ -42,7 +42,7 @@ private:
 	void Init() override;
 	void LoadModels();
 	void CreateRandomTrees();
-	void CreateRandomTreesInArea(float minX, float maxX, float minZ, float maxZ, int addCount, int tryCount);
+	void CreateRandomTreesInArea(float minX, float maxX, float minZ, float maxZ, int addCount, int maxAttempts);
 	void MaintainTreesAroundTarget();
 	int	 RemoveTreesOutsideActiveRange();
 	void UpdateTreeColliders();
@@ -65,9 +65,9 @@ private:
 	int m_nextTreeId = 0;
 	float m_treeRadius = 1.1f;
 	float m_minTreeDistance = 5.0f;
-	float m_minCreateDistanceFromTarget = 70.0f;
+	float m_minSpawnDistance = 70.0f;
 	float m_activeRadius = 120.0f;
 	float m_shadowDrawRadius = 55.0f;
 	float m_colliderActiveRadius = 45.0f;
-	float m_addTreeAreaHalfSize = 100.0f;
+	float m_spawnAreaHalfSize = 100.0f;
 };

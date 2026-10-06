@@ -23,6 +23,7 @@ void CharaBase::DrawLit()
 {
 	//if (m_spPoly)
 
+
 	if (m_spModel)
 	{
 		KdShaderManager::Instance().
@@ -33,77 +34,7 @@ void CharaBase::DrawLit()
 void CharaBase::UpdateCollision()
 {
 	// 当たり判定対象がないキャラは、レイやスフィアを作る必要がない。
-	if (m_wpHitObjectList.empty()) { return; }
-
-	// ============================================================
-
-	// ① レイ判定に必要な情報を作る。
-	KdCollider::RayInfo rayInfo;
-
-	// 現在のキャラクター位置をレイの開始位置にする。
-	rayInfo.m_pos = GetPos();
-
-	// キャラクター位置より少し高い場所からレイを飛ばす。
-	static float enableStepHigh = 0.2f;
-	rayInfo.m_pos.y += enableStepHigh;
-
-	// レイを真下へ飛ばす。
-	rayInfo.m_dir = Math::Vector3::Down;
-
-	// 落下量と段差許容高さを合わせた長さだけレイを伸ばす。
-	rayInfo.m_range = m_Gravity + enableStepHigh;
-
-	// Ground属性を持つコライダーだけを地面判定の対象にする。
-	rayInfo.m_type = KdCollider::TypeGround;
-
-	// 今フレームで乗っているオブジェクトを調べ直すため、一度解除する。
-	m_wpRiddenObject.reset();
-
-	// ② 登録されている当たり判定対象を1つずつ調べる。
-	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
-	{
-		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
-		if (spGameObj)
-		{
-			// 1つのオブジェクト内で複数箇所に当たる可能性があるため、
-			std::list<KdCollider::CollisionResult> retRayList;
-			spGameObj->Intersects(rayInfo, &retRayList);
-
-			// ③ レイの判定結果から、座標補正に使う地面を選ぶ。
-			float maxOverLap = 0;
-			Math::Vector3 hitPos = {};
-			bool hit = false;
-			for (auto& ret : retRayList)
-			{
-				// 現在までで最も補正量が大きい結果を保存する。
-				if (maxOverLap < ret.m_overlapDistance)
-				{
-					maxOverLap = ret.m_overlapDistance;
-					hitPos = ret.m_hitPos;
-					hit = true;
-				}
-			}
-			if (hit)
-			{
-				// 地面との交点へキャラクターを移動して、めり込みを解消する。
-				SetPos(hitPos);
-
-				// 着地したので落下量を0へ戻す。
-				m_Gravity = 0;
-
-				// 動く床など、乗ることができるオブジェクトだった場合の処理。
-				if (spGameObj->IsRideable())
-				{
-					// キャラクターのワールド行列を乗り物のローカル空間へ変換する。
-					Math::Matrix _mInvertRideObject;
-					spGameObj->GetMatrix().Invert(_mInvertRideObject);
-
-					m_mLocalFromRideObject = m_mWorld * _mInvertRideObject;
-					m_wpRiddenObject = spGameObj;
-				}
-			}
-		}
-	}
+	if (m_wpHitObjects.empty()) { return; }
 
 	// ============================================================
 
@@ -115,44 +46,45 @@ void CharaBase::UpdateCollision()
 	sphere.Radius = 0.5f;
 
 	// Ground属性を持つコライダーを壁・障害物としても判定する。
-	KdCollider::SphereInfo spherInfo(KdCollider::TypeGround, sphere);
+	KdCollider::SphereInfo sphereInfo(KdCollider::TypeGround, sphere);
 
 	// ② 登録されている当たり判定対象を1つずつ調べる。
-	for (const std::weak_ptr<KdGameObject>& wpGameObj : m_wpHitObjectList)
+	for (const std::weak_ptr<KdGameObject>& wpObject : m_wpHitObjects)
 	{
-		std::shared_ptr<KdGameObject> spGameObj = wpGameObj.lock();
-		if (spGameObj)
+		std::shared_ptr<KdGameObject> spObject = wpObject.lock();
+		if (spObject)
 		{
 			// StageBaseを継承しているオブジェクトは、
-			std::shared_ptr<StageBase> spStage = std::dynamic_pointer_cast<StageBase>(spGameObj);
+			std::shared_ptr<StageBase> spStage = std::dynamic_pointer_cast<StageBase>(spObject);
 			if (spStage && !spStage->EnableSphereCollision())
 			{
 				continue;
 			}
 
 			// 球と対象オブジェクトのすべての衝突結果を受け取る。
-			std::list<KdCollider::CollisionResult> retBumpList;
-			spGameObj->Intersects(spherInfo, &retBumpList);
+			std::list<KdCollider::CollisionResult> hits;
+			spObject->Intersects(sphereInfo, &hits);
 
 			// ③ 複数当たった場合は、一番深くめり込んでいる結果を使う。
-			float maxOverLap = 0.0f;
-			Math::Vector3 hitDir = Math::Vector3::Zero;
-			bool hit = false;
+			float maxDepth = 0.0f;
+			Math::Vector3 pushDir = Math::Vector3::Zero;
+			bool hasHit = false;
 
-			for (auto& ret : retBumpList)
+			for (auto& hit : hits)
 			{
-				if (maxOverLap < ret.m_overlapDistance)
+				if (maxDepth < hit.m_overlapDistance)
 				{
-					maxOverLap = ret.m_overlapDistance;
-					hitDir = ret.m_hitDir;
-					hit = true;
+					maxDepth = hit.m_overlapDistance;
+					pushDir = hit.m_hitDir;
+					hasHit = true;
 				}
 			}
 
-			if (hit)
+			if (hasHit)
 			{
 				// m_hitDirは押し戻す方向、m_overlapDistanceは重なった距離。
-				Math::Vector3 newPos = GetPos() + (hitDir * maxOverLap);
+				Math::Vector3 newPos = GetPos() + (pushDir * maxDepth);
+				newPos.y = GetPos().y;	// Y座標は変えない。
 				SetPos(newPos);
 			}
 		}

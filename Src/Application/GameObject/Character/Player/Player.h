@@ -58,7 +58,7 @@ public:
 	bool IsInSafeArea() const { return m_isInSafeArea; }
 
 	// プレイヤー操作の有効/無効を切り替える。
-	void SetControlEnable(bool enable) { m_isControlEnable = enable; }
+	void SetControlEnable(bool enable) { m_canMove = enable; }
 
 	// 外部から表示位置を設定する。
 	void SetPos(const Math::Vector3& pos) override
@@ -102,7 +102,7 @@ private:
 	float m_angle = 0.0f;
 
 	// ダメージを受けた後の無敵時間。
-	float m_damageCoolTime = 0.0f;
+	float m_invincibleFrames = 0.0f;
 
 	// HPが0になった時に戻る村の中の座標。
 	Math::Vector3 m_respawnPos = Math::Vector3::Zero;
@@ -115,7 +115,7 @@ private:
 	float m_safeAreaRadius = 0.0f;
 
 	// trueならWASD入力で移動できる。
-	bool m_isControlEnable = true;
+	bool m_canMove = true;
 };
 
 

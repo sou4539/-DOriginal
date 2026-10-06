@@ -45,35 +45,24 @@ namespace
 	}
 }
 
-void FireMagic::Shot(
-	const Math::Vector3& startPos,
-	const Math::Vector3& dir,
-	MagicType type,
-	float damage,
-	float speed,
-	const std::shared_ptr<KdGameObject>& chantTarget,
-	const std::shared_ptr<KdGameObject>& flyTarget,
-	const std::shared_ptr<KdGameObject>& ignoreTarget,
-	float explosionRadius)
+bool FireMagic::ConfigureShot(const MagicShotParams& params)
 {
-	m_explosionRadius = explosionRadius;
-
-	// 共通の発射初期化はBaseへ任せ、炎専用の爆発範囲だけこのクラスで持つ.
-	MagicBase::Shot(startPos, dir, type, damage, speed, chantTarget, flyTarget, ignoreTarget);
+	m_explosionRadius = params.explosionRadius;
+	return false; // 炎は通常どおり詠唱してから発射する。
 }
 
 void FireMagic::SetupMagic()
 {
 	MagicBase::SetupMagic();
 
-	m_lifeTime = 90.0f;
+	m_lifeFrames = 90.0f;
 	m_radius = FireHitRadius;
 	m_frameSpeed = FireFrameSpeed;
 	m_spPoly->SetMaterial("Asset/Textures/Magic/Fire/Fire.png");
 	m_spPoly->SetSplit(11, 1);
 	m_spPoly->SetUVRect(m_flyFrameStart);
 	m_spPoly->SetScale(FireScale);
-	m_nowFrame = m_flyFrameStart;
+	m_frameIndex = m_flyFrameStart;
 }
 
 void FireMagic::UpdateChantMagic()
@@ -88,13 +77,13 @@ void FireMagic::UpdateFlyMagic()
 {
 	if (!m_spPoly) { return; }
 
-	m_frame += m_frameSpeed;
+	m_animFrame += m_frameSpeed;
 	const int frameCount = m_flyFrameEnd - m_flyFrameStart + 1;
-	const int frameIndex = m_flyFrameStart + (static_cast<int>(m_frame) % frameCount);
+	const int frameIndex = m_flyFrameStart + (static_cast<int>(m_animFrame) % frameCount);
 
-	if (frameIndex != m_nowFrame)
+	if (frameIndex != m_frameIndex)
 	{
-		m_nowFrame = frameIndex;
+		m_frameIndex = frameIndex;
 		m_spPoly->SetUVRect(frameIndex);
 	}
 }
@@ -107,8 +96,8 @@ void FireMagic::UpdateHitMagic()
 		return;
 	}
 
-	m_frame += m_frameSpeed;
-	const int frameIndex = m_hitFrameStart + static_cast<int>(m_frame);
+	m_animFrame += m_frameSpeed;
+	const int frameIndex = m_hitFrameStart + static_cast<int>(m_animFrame);
 
 	if (frameIndex > m_hitFrameEnd)
 	{
@@ -116,9 +105,9 @@ void FireMagic::UpdateHitMagic()
 		return;
 	}
 
-	if (frameIndex != m_nowFrame)
+	if (frameIndex != m_frameIndex)
 	{
-		m_nowFrame = frameIndex;
+		m_frameIndex = frameIndex;
 		m_spPoly->SetUVRect(frameIndex);
 	}
 }
@@ -131,8 +120,8 @@ void FireMagic::OnAfterDamage(const std::shared_ptr<EnemyBase>& hitEnemy)
 
 bool FireMagic::StartHitAnimation()
 {
-	m_frame = 0.0f;
-	m_nowFrame = -1;
+	m_animFrame = 0.0f;
+	m_frameIndex = -1;
 
 	if (m_spPoly)
 	{
@@ -171,7 +160,7 @@ void FireMagic::ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 	if (m_explosionRadius <= 0.0f) { return; }
 
 	const Math::Vector3 explosionCenter = hitEnemy->GetPos();
-	const float explosionRadiusSqr = m_explosionRadius * m_explosionRadius;
+	const float blastRadiusSq = m_explosionRadius * m_explosionRadius;
 
 	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
@@ -181,7 +170,7 @@ void FireMagic::ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 		if (spEnemy->IsExpired()) { continue; }
 
 		const Math::Vector3 toEnemy = spEnemy->GetPos() - explosionCenter;
-		if (toEnemy.LengthSquared() <= explosionRadiusSqr)
+		if (toEnemy.LengthSquared() <= blastRadiusSq)
 		{
 			// 範囲内の敵にも同じ炎ダメージを与える.
 			spEnemy->OnHit(m_damage);

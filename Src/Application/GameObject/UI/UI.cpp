@@ -98,11 +98,11 @@ void UI::DrawLevelUpSelectUI(const LevelUpSelectUITextureSet& textures) const
 	for (int i = 0; i < 3; ++i)
 	{
 		const int cardX = LevelUpCardXList[i];
-		const bool isHover = IsMouseInSprite(mousePos, cardX, LevelUpCardY, LevelUpCardW, LevelUpCardH);
-		const Math::Color* drawColor = isHover ? &LevelUpHoverColor : &kWhiteColor;
-		const int cardW = LevelUpCardW + (isHover ? LevelUpHoverAddW : 0);
-		const int cardH = LevelUpCardH + (isHover ? LevelUpHoverAddH : 0);
-		const int iconSize = LevelUpIconSize + (isHover ? LevelUpHoverIconAdd : 0);
+		const bool hovered = IsMouseInSprite(mousePos, cardX, LevelUpCardY, LevelUpCardW, LevelUpCardH);
+		const Math::Color* drawColor = hovered ? &LevelUpHoverColor : &kWhiteColor;
+		const int cardW = LevelUpCardW + (hovered ? LevelUpHoverAddW : 0);
+		const int cardH = LevelUpCardH + (hovered ? LevelUpHoverAddH : 0);
+		const int iconSize = LevelUpIconSize + (hovered ? LevelUpHoverIconAdd : 0);
 
 		KdShaderManager::Instance().m_spriteShader.DrawTex
 		(
@@ -134,11 +134,11 @@ void UI::DrawLevelUpSelectUI(const LevelUpSelectUITextureSet& textures) const
 	}
 }
 
-int UI::GetClickedLevelUpSelectIndex(bool isLeftClick, bool& prevLeftClick) const
+int UI::GetClickedLevelUpSelectIndex(bool leftDown, bool& prevLeftDown) const
 {
-	if (!isLeftClick || prevLeftClick)
+	if (!leftDown || prevLeftDown)
 	{
-		prevLeftClick = isLeftClick;
+		prevLeftDown = leftDown;
 		return -1;
 	}
 
@@ -150,12 +150,12 @@ int UI::GetClickedLevelUpSelectIndex(bool isLeftClick, bool& prevLeftClick) cons
 	{
 		if (IsMouseInSprite(mousePos, LevelUpCardXList[i], LevelUpCardY, LevelUpCardW, LevelUpCardH))
 		{
-			prevLeftClick = isLeftClick;
+			prevLeftDown = leftDown;
 			return i;
 		}
 	}
 
-	prevLeftClick = isLeftClick;
+	prevLeftDown = leftDown;
 	return -1;
 }
 
@@ -169,10 +169,10 @@ void UI::DrawVillageGuideUI(KdTexture* arrowTex, const Math::Vector3& playerPos,
 	Math::Vector3 toVillage = Math::Vector3::Zero - playerPos;
 	toVillage.y = 0.0f;
 
-	const float distanceSqr = toVillage.LengthSquared();
-	const float hideRadiusSqr = hideRadius * hideRadius;
-	if (distanceSqr <= hideRadiusSqr) { return; }
-	if (distanceSqr <= 0.0001f) { return; }
+	const float distSq = toVillage.LengthSquared();
+	const float hideRadiusSq = hideRadius * hideRadius;
+	if (distSq <= hideRadiusSq) { return; }
+	if (distSq <= 0.0001f) { return; }
 
 	toVillage.Normalize();
 

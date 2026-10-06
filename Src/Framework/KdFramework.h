@@ -66,6 +66,9 @@
 #include "Shader/KdAmbientController.h"
 #include "Shader/KdShaderManager.h"
 
+// インスタンシング描画30
+#include "Renderer/KdInstancedModelRenderer.h"
+
 // デバッグ機能
 #include "Utility/KdDebug/KdDebugWireFrame.h"
 #include "Utility/KdDebug/KdDebugGUI.h"

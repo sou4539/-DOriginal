@@ -18,23 +18,22 @@ void MagicBase::Init()
 
 	m_pos = {};
 	m_dir = {};
-	m_magicType = MagicType::None;
 	m_state = MagicState::Chant;
 	m_damage = 0.0f;
 	m_speed = 0.0f;
-	m_lifeTime = 0.0f;
+	m_lifeFrames = 0.0f;
 	m_radius = 0.0f;
 	m_chant = 1.0f;
 	m_chantSpeed = MagicChantSpeed;
-	m_framePathList.clear();
-	m_frame = 0.0f;
+	m_framePaths.clear();
+	m_animFrame = 0.0f;
 	m_frameSpeed = 0.0f;
-	m_nowFrame = -1;
+	m_frameIndex = -1;
 	m_wpChantTarget.reset();
 	m_chantOffset = Math::Vector3::Zero;
 	m_wpFlyTarget.reset();
 	m_wpIgnoreTarget.reset();
-	m_hitObjectList.clear();
+	m_hitObjects.clear();
 
 	m_spPoly = std::make_shared<KdSquarePolygon>();
 }
@@ -86,8 +85,8 @@ void MagicBase::UpdateChant()
 void MagicBase::UpdateFly()
 {
 	// 飛行中だけ寿命を減らし、進行方向へ移動する。
-	m_lifeTime -= 1.0f;
-	if (m_lifeTime <= 0.0f)
+	m_lifeFrames -= 1.0f;
+	if (m_lifeFrames <= 0.0f)
 	{
 		m_isExpired = true;
 		return;
@@ -168,8 +167,8 @@ void MagicBase::PostUpdate()
 		Math::Vector3 toEnemy = spEnemy->GetPos() - m_pos;
 		if (toEnemy.LengthSquared() > checkRadius * checkRadius) { continue; }
 
-		std::list<KdCollider::CollisionResult> retList;
-		if (spEnemy->Intersects(sphereInfo, &retList))
+		std::list<KdCollider::CollisionResult> hits;
+		if (spEnemy->Intersects(sphereInfo, &hits))
 		{
 			AddHitObject(spEnemy);
 
@@ -207,47 +206,41 @@ void MagicBase::DrawLit()
 	KdShaderManager::Instance().m_StandardShader.SetDissolve(0.0f);
 }
 
-void MagicBase::Shot(
-	const Math::Vector3& startPos,
-	const Math::Vector3& dir,
-	MagicType type,
-	float damage,
-	float speed,
-	const std::shared_ptr<KdGameObject>& chantTarget,
-	const std::shared_ptr<KdGameObject>& flyTarget,
-	const std::shared_ptr<KdGameObject>& ignoreTarget)
+void MagicBase::Shot(const MagicShotParams& params)
 {
-	m_pos = startPos;
-	m_dir = dir;
-	m_magicType = type;
-	m_damage = damage;
-	m_speed = speed;
-	m_state = MagicState::Chant;
-	m_chant = 1.0f;
-	m_frame = 0.0f;
-	m_nowFrame = -1;
-	m_wpChantTarget = chantTarget;
-	m_wpFlyTarget = flyTarget;
-	m_wpIgnoreTarget = ignoreTarget;
-	m_hitObjectList.clear();
+	// 共通データを弾へ保存する。paramsへの参照そのものは保持しない。
+	m_pos = params.startPos;					// 発射位置
+	m_dir = params.dir;							// 発射方向
+	m_damage = params.damage;					// ダメージ倍率
+	m_speed = params.speed;						// 1フレームの移動量
+	m_state = MagicState::Chant;				// 初期状態は詠唱中
+	m_chant = 1.0f;								// 詠唱中は1.0から0.0へ減らす
+	m_animFrame = 0.0f;							// 画像アニメーションのフレーム位置
+	m_frameIndex = -1;							// 画像アニメーションのフレーム番号
+	m_wpChantTarget = params.chantTarget;		// 詠唱中の追従対象
+	m_wpFlyTarget = params.flyTarget;			// 発射時の照準対象
+	m_wpIgnoreTarget = params.ignoreTarget;		// 当たり判定から除外する対象
+	m_hitObjects.clear();						// すでに当たった敵の記録をクリアする
 
-	// 詠唱開始時点の「追従対象から見た魔法の位置差」を保存する。
-	if (chantTarget)
-	{
-		m_chantOffset = startPos - chantTarget->GetPos();
-	}
-	else
-	{
-		m_chantOffset = Math::Vector3::Zero;
-	}
-
+	// 杖との位置差を保存し、詠唱中も杖の少し上に表示する。
+	m_chantOffset = params.chantTarget
+		? params.startPos - params.chantTarget->GetPos()
+		: Math::Vector3::Zero;
 	if (m_dir.LengthSquared() > 0.0001f)
 	{
+		// 正規化
 		m_dir.Normalize();
 	}
 
+	// 専用設定を先に済ませる。雷は連鎖弾かどうかで画像が変わるため順序が重要。
+	const bool skipChant = ConfigureShot(params);
 	SetupMagic();
 
+	// 画像・寿命を準備してから即時発射する。通常弾は詠唱状態のまま待つ。
+	if (skipChant)
+	{
+		StartFly();
+	}
 	UpdateWorldMatrix();
 }
 
@@ -258,7 +251,7 @@ void MagicBase::SetupMagic()
 		m_spPoly = std::make_shared<KdSquarePolygon>();
 	}
 
-	m_framePathList.clear();
+	m_framePaths.clear();
 }
 
 void MagicBase::UpdateHitMagic()
@@ -268,38 +261,38 @@ void MagicBase::UpdateHitMagic()
 
 void MagicBase::UpdateFrameAnimation()
 {
-	if (m_framePathList.empty()) { return; }
+	if (m_framePaths.empty()) { return; }
 
-	m_frame += m_frameSpeed;
-	const int frameIndex = static_cast<int>(m_frame) % static_cast<int>(m_framePathList.size());
+	m_animFrame += m_frameSpeed;
+	const int frameIndex = static_cast<int>(m_animFrame) % static_cast<int>(m_framePaths.size());
 	SetFrameTexture(frameIndex);
 }
 
 void MagicBase::UpdateWorldMatrix()
 {
 	// 移動行列。
-	Math::Matrix m_trans = Math::Matrix::CreateTranslation(m_pos);
+	Math::Matrix translation = Math::Matrix::CreateTranslation(m_pos);
 
 	// 画像素材の向きに合わせるための補正回転。
-	Math::Matrix m_rotX = Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
-	Math::Matrix m_rotYBase = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
+	Math::Matrix tilt = Math::Matrix::CreateRotationX(DirectX::XMConvertToRadians(90.0f));
+	Math::Matrix baseRotation = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(90.0f));
 	float angle = atan2f(m_dir.x, m_dir.z) + GetDirectionAngleOffset();
 
-	Math::Matrix m_rotDir = Math::Matrix::CreateRotationY(angle);
+	Math::Matrix aimRotation = Math::Matrix::CreateRotationY(angle);
 
-	m_mWorld = m_rotX * m_rotYBase * m_rotDir * m_trans;
+	m_mWorld = tilt * baseRotation * aimRotation * translation;
 }
 
 void MagicBase::SetFrameTexture(int frameIndex)
 {
 	if (!m_spPoly) { return; }
-	if (m_framePathList.empty()) { return; }
+	if (m_framePaths.empty()) { return; }
 
-	frameIndex = std::clamp(frameIndex, 0, static_cast<int>(m_framePathList.size()) - 1);
-	if (frameIndex == m_nowFrame) { return; }
+	frameIndex = std::clamp(frameIndex, 0, static_cast<int>(m_framePaths.size()) - 1);
+	if (frameIndex == m_frameIndex) { return; }
 
-	m_nowFrame = frameIndex;
-	m_spPoly->SetMaterial(m_framePathList[frameIndex]);
+	m_frameIndex = frameIndex;
+	m_spPoly->SetMaterial(m_framePaths[frameIndex]);
 }
 
 void MagicBase::PlayShotSound()
@@ -332,7 +325,7 @@ bool MagicBase::HasHitObject(const std::shared_ptr<KdGameObject>& obj) const
 {
 	if (!obj) { return false; }
 
-	for (const std::weak_ptr<KdGameObject>& wpHitObj : m_hitObjectList)
+	for (const std::weak_ptr<KdGameObject>& wpHitObj : m_hitObjects)
 	{
 		if (wpHitObj.lock() == obj)
 		{
@@ -348,7 +341,7 @@ void MagicBase::AddHitObject(const std::shared_ptr<KdGameObject>& obj)
 	if (!obj) { return; }
 	if (HasHitObject(obj)) { return; }
 
-	m_hitObjectList.push_back(obj);
+	m_hitObjects.push_back(obj);
 }
 
 

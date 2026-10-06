@@ -42,14 +42,14 @@ private:
 	struct EnemyInfo
 	{
 		std::weak_ptr<EnemyBase> enemy;
-		int spawnAreaIndex = 0;
+		int areaIndex = 0;
 	};
 
 	void UpdateMaxEnemyCountByDistance();
 	void MaintainEnemyCount();
 	void UpdateActiveEnemies();
 
-	Math::Vector3 MakeRandomPos(int spawnAreaIndex) const;
+	Math::Vector3 MakeRandomPos(int areaIndex) const;
 	bool IsInSafeArea(const Math::Vector3& pos) const;
 	bool IsOutsideSpawnSphere(const Math::Vector3& pos) const;
 
@@ -58,7 +58,7 @@ private:
 		return static_cast<int>(m_enemies.size());
 	}
 
-	void AddEnemyToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target, int spawnAreaIndex);
+	void AddEnemyToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target, int areaIndex);
 
 	std::vector<SpawnArea> m_spawnAreas;
 	std::vector<EnemyInfo> m_enemies;
@@ -75,9 +75,9 @@ private:
 
 	bool m_isSpawnOnePerFrame = true;
 
-	int m_nowMaxEnemyCount = 1;
+	int m_enemyLimit = 1;
 	int m_minEnemyCount = 1;
 	int m_maxEnemyCount = 100;
-	float m_maxEnemyCountDistance = 250.0f;
+	float m_fullSpawnDistance = 250.0f;
 	float m_activeEnemyRadius = 100.0f;
 };

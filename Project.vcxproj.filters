@@ -148,6 +148,27 @@
     <Filter Include="Src\Application\GameObject\Stage\Tree">
       <UniqueIdentifier>{be1b5659-72de-4d3c-b628-fd79c7f6e6d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\Server">
+      <UniqueIdentifier>{2b70ad47-8929-474a-9fb5-c766601f82fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Framework\Renderer">
+      <UniqueIdentifier>{71db60ba-f472-41e2-8a19-a73c95a92d21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Stage\Castle">
+      <UniqueIdentifier>{0286f7e5-177a-47de-8607-f8a5576f2d92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\Scene\GameStageBase">
+      <UniqueIdentifier>{91e593cf-ea30-40c5-aad0-f888c20532a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\Scene\GameStageBase\GrassStage">
+      <UniqueIdentifier>{9aec5ebe-93a0-4408-bd81-aa81a6f3cc87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\Scene\GameStageBase\CastleStage">
+      <UniqueIdentifier>{378d6f31-aabe-4a51-b2f9-8aa2d84b8cd6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Application\GameObject\Character\Castle">
+      <UniqueIdentifier>{e7a2b0da-534b-4c01-9de6-d62ed339d8dd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -393,6 +414,27 @@
     <ClInclude Include="Src\Application\GameObject\Stage\Tree\Tree.h">
       <Filter>Src\Application\GameObject\Stage\Tree</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\Server\Server.h">
+      <Filter>Src\Application\Server</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Framework\Renderer\KdInstancedModelRenderer.h">
+      <Filter>Src\Framework\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Stage\Castle\Castle.h">
+      <Filter>Src\Application\GameObject\Stage\Castle</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\Scene\GameStageBase\GameStageBase.h">
+      <Filter>Src\Application\Scene\GameStageBase</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\Scene\GameStageBase\CastleStage\CastleStage.h">
+      <Filter>Src\Application\Scene\GameStageBase\CastleStage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\Scene\GameStageBase\GrassStage\GrassStage.h">
+      <Filter>Src\Application\Scene\GameStageBase\GrassStage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Castle\NoneCastle.h">
+      <Filter>Src\Application\GameObject\Character\Castle</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -608,6 +650,27 @@
     <ClCompile Include="Src\Application\GameObject\Stage\Tree\Tree.cpp">
       <Filter>Src\Application\GameObject\Stage\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Application\Server\Server.cpp">
+      <Filter>Src\Application\Server</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Framework\Renderer\KdInstancedModelRenderer.cpp">
+      <Filter>Src\Framework\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Stage\Castle\Castle.cpp">
+      <Filter>Src\Application\GameObject\Stage\Castle</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\Scene\GameStageBase\GameStageBase.cpp">
+      <Filter>Src\Application\Scene\GameStageBase</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\Scene\GameStageBase\CastleStage\CastleStage.cpp">
+      <Filter>Src\Application\Scene\GameStageBase\CastleStage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\Scene\GameStageBase\GrassStage\GrassStage.cpp">
+      <Filter>Src\Application\Scene\GameStageBase\GrassStage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\Character\Castle\NoneCastle.cpp">
+      <Filter>Src\Application\GameObject\Character\Castle</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Framework\Shader\inc_KdCommon.hlsli">
@@ -620,6 +683,15 @@
       <Filter>Src\Framework\Shader\PostProcessShader</Filter>
     </None>
     <None Include="Src\Framework\Shader\StandardShader\inc_KdStandardShader.hlsli">
+      <Filter>Src\Framework\Shader\StandardShader</Filter>
+    </None>
+    <None Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_UnLit.shaderInc">
+      <Filter>Src\Framework\Shader\StandardShader</Filter>
+    </None>
+    <None Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_LitInstanced.shaderInc">
+      <Filter>Src\Framework\Shader\StandardShader</Filter>
+    </None>
+    <None Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_GenDepthMapFromLightInstanced.shaderInc">
       <Filter>Src\Framework\Shader\StandardShader</Filter>
     </None>
   </ItemGroup>
@@ -658,6 +730,12 @@
       <Filter>Src\Framework\Shader\StandardShader</Filter>
     </FxCompile>
     <FxCompile Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_UnLit.hlsl">
+      <Filter>Src\Framework\Shader\StandardShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_LitInstanced.hlsl">
+      <Filter>Src\Framework\Shader\StandardShader</Filter>
+    </FxCompile>
+    <FxCompile Include="Src\Framework\Shader\StandardShader\KdStandardShader_VS_GenDepthMapFromLightInstanced.hlsl">
       <Filter>Src\Framework\Shader\StandardShader</Filter>
     </FxCompile>
   </ItemGroup>

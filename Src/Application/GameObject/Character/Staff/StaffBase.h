@@ -28,13 +28,13 @@ public:
 protected:
 
 	// 杖ごとの魔法性能を設定する。
-	void SetMagicParam(MagicType type, float damage, float speed, float coolTime)
+	void SetMagicParam(MagicType type, float damage, float speed, float cooldown)
 	{
 		m_magicType = type;
-		m_magicDamage = damage;
-		m_magicSpeed = speed;
-		m_magicCoolTimeMax = coolTime;
-		m_magicCoolTime = 0.0f;
+		m_damage = damage;
+		m_shotSpeed = speed;
+		m_cooldownMax = cooldown;
+		m_cooldown = 0.0f;
 	}
 
 	std::weak_ptr<KdGameObject> m_wpTarget;
@@ -62,16 +62,16 @@ private:
 	float GetLayoutOffset(int index, int count) const;
 	int GetMagicOrder() const;
 
-	float m_angle = 0.0f;
-	float m_radius = 1.5f;
-	float m_height = 2.0f;
-	float m_rotateSpeed = 0.03f;
+	float m_orbitAngle = 0.0f;
+	float m_orbitRadius = 1.5f;
+	float m_orbitHeight = 2.0f;
+	float m_orbitSpeed = 0.03f;
 
 	MagicType m_magicType = MagicType::None;
-	float m_magicDamage = 0.0f;
-	float m_magicSpeed = 0.0f;
-	float m_magicCoolTime = 0.0f;
-	float m_magicCoolTimeMax = 60.0f;
+	float m_damage = 0.0f;
+	float m_shotSpeed = 0.0f;
+	float m_cooldown = 0.0f;
+	float m_cooldownMax = 60.0f;
 	float m_searchRadius = 14.0f;
 
 };

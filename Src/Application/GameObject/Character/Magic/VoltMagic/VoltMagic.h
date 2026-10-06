@@ -8,20 +8,11 @@ public:
 	VoltMagic() { Init(); }
 	~VoltMagic() override {}
 
-	// 雷魔法専用の発射設定。連鎖回数と連鎖弾かどうかをここで受け取る.
-	void Shot(
-		const Math::Vector3& startPos,
-		const Math::Vector3& dir,
-		MagicType type,
-		float damage,
-		float speed,
-		const std::shared_ptr<KdGameObject>& chantTarget,
-		const std::shared_ptr<KdGameObject>& flyTarget,
-		const std::shared_ptr<KdGameObject>& ignoreTarget,
-		int chainCount,
-		bool isChainShot);
 
 protected:
+	// BaseのShotから呼ばれる専用設定。戻り値trueなら詠唱を省略する。
+	bool ConfigureShot(const MagicShotParams& params) override;
+
 	// 雷弾の画像、寿命、当たり判定サイズを設定する.
 	void SetupMagic() override;
 
@@ -54,7 +45,7 @@ private:
 	void AddChainHitObject(const std::shared_ptr<KdGameObject>& obj);
 
 	// あと何回連鎖できるか.
-	int m_chainCount = 0;
+	int m_chainLeft = 0;
 
 	// trueなら通常弾ではなく、連鎖で生まれた雷弾.
 	bool m_isChainShot = false;
@@ -62,5 +53,5 @@ private:
 	// 次の連鎖対象を探す範囲.
 	float m_chainRadius = 8.0f;
 
-	std::vector<std::weak_ptr<KdGameObject>> m_chainHitList;
+	std::vector<std::weak_ptr<KdGameObject>> m_chainHits;
 };

@@ -5,14 +5,20 @@
 
 namespace
 {
+	// サイズ
 	constexpr float IceScale = 4.0f;
+	// アニメーション速度
 	constexpr float IceFrameSpeed = 0.12f;
+	// 当たり判定サイズ
 	constexpr float IceHitRadius = IceScale * 0.5f;
-	constexpr int IceMinSplitCount = 2;
+	// 分散数の最小値
+	constexpr int IceMinSplitCount = 0;
+	// 分散数の最大値
 	constexpr int IceMaxSplitCount = 8;
-	constexpr float IceSplitTotalSpreadAngle = DirectX::XMConvertToRadians(90.0f);
+	constexpr float IceSpreadAngle = DirectX::XMConvertToRadians(90.0f);
 	constexpr float IceSplitForwardOffset = 1.5f;
 	constexpr float IceSplitSideOffset = 1.6f;
+	// 音の種類数
 	constexpr int IceSoundCount = 4;
 
 	int g_lastIceShotSoundIndex = -1;
@@ -47,43 +53,25 @@ namespace
 	}
 }
 
-void IceMagic::Shot(
-	const Math::Vector3& startPos,						// 発射位置
-	const Math::Vector3& dir,							// 発射方向
-	MagicType type,										// 魔法の種類
-	float damage,										// ダメージ量
-	float speed,										// 速度
-	const std::shared_ptr<KdGameObject>& chantTarget,	// 詠唱対象
-	const std::shared_ptr<KdGameObject>& flyTarget,		// 飛翔対象
-	const std::shared_ptr<KdGameObject>& ignoreTarget,	// 無視対象
-	int pierceCount,									// 貫通数
-	int splitCount,										// 分散数
-	bool isSplitShot)									// 派生弾かどうか
+bool IceMagic::ConfigureShot(const MagicShotParams& params)
 {
-	m_pierceCount = pierceCount;
-	m_isSplitShot = isSplitShot;
-	m_splitCount = m_isSplitShot ? 0 : std::clamp(splitCount, IceMinSplitCount, IceMaxSplitCount);
-	m_hasCreatedSplit = false;
-
-	// 共通の発射初期化はBaseへ任せ、氷専用の値だけこのクラスで持つ.
-	MagicBase::Shot(startPos, dir, type, damage, speed, chantTarget, flyTarget, ignoreTarget);
-
-	if (m_isSplitShot)
-	{
-		// 派生弾は詠唱せず、生成された瞬間から飛ばす.
-		StartFly();
-		UpdateWorldMatrix();
-	}
+	// 氷専用の値はIceMagic自身に保存する。
+	m_pierceLeft = params.pierceCount;
+	m_isSplitShot = params.isSplitShot;
+	// 分散弾からさらに分散しないよう、派生弾の分散数は0に固定する。
+	m_splitCount = m_isSplitShot ? 0 : std::clamp(params.splitCount, IceMinSplitCount, IceMaxSplitCount);
+	m_hasSplit = false;
+	return m_isSplitShot; // Baseが画像設定を終えた後に即時発射する。
 }
 
 void IceMagic::SetupMagic()
 {
 	MagicBase::SetupMagic();
 
-	m_lifeTime = 120.0f;
+	m_lifeFrames = 120.0f;
 	m_radius = IceHitRadius;
 	m_frameSpeed = IceFrameSpeed;
-	m_framePathList =
+	m_framePaths =
 	{
 		"Asset/Textures/Magic/Ice/Ice0.png",
 		"Asset/Textures/Magic/Ice/Ice1.png",
@@ -100,15 +88,15 @@ void IceMagic::UpdateChantMagic()
 
 bool IceMagic::IsReadyToFly() const
 {
-	return m_nowFrame >= 2;
+	return m_frameIndex >= 2;
 }
 
 void IceMagic::OnBeforeDamage(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
 	// 通常弾だけ、最初の命中時に1回だけ分散する.
-	if (!m_isSplitShot && !m_hasCreatedSplit)
+	if (!m_isSplitShot && !m_hasSplit)
 	{
-		m_hasCreatedSplit = CreateSplit(hitEnemy);
+		m_hasSplit = CreateSplit(hitEnemy);
 	}
 }
 
@@ -120,14 +108,14 @@ bool IceMagic::ShouldKeepFlyingAfterHit(const std::shared_ptr<EnemyBase>&)
 		return true;
 	}
 
-	if (m_hasCreatedSplit)
+	if (m_hasSplit)
 	{
 		// 通常弾が分散弾を作った後は、親弾を残さず消す.
 		return false;
 	}
 
-	--m_pierceCount;
-	return m_pierceCount > 0;
+	--m_pierceLeft;
+	return m_pierceLeft > 0;
 }
 
 const char* IceMagic::GetShotSoundPath() const
@@ -170,25 +158,20 @@ bool IceMagic::CreateSplit(const std::shared_ptr<EnemyBase>& hitEnemy)
 			? 0.5f
 			: static_cast<float>(i) / static_cast<float>(m_splitCount - 1);
 		const float sideRate = splitRate * 2.0f - 1.0f;
-		const float angle = (splitRate - 0.5f) * IceSplitTotalSpreadAngle;
+		const float angle = (splitRate - 0.5f) * IceSpreadAngle;
 		const Math::Vector3 splitDir = RotateDirY(baseDir, angle);
 		const Math::Vector3 startPos = m_pos + baseDir * IceSplitForwardOffset + sideDir * (sideRate * IceSplitSideOffset);
 
 		std::shared_ptr<IceMagic> spSplitMagic = std::make_shared<IceMagic>();
-		spSplitMagic->Shot
-		(
-			startPos,
-			splitDir,
-			MagicType::Ice,
-			m_damage * 0.5f,
-			m_speed,
-			nullptr,
-			nullptr,
-			hitEnemy,
-			1,
-			0,
-			true
-		);
+		// 分散弾も同じ入口を使用。照準先を指定せず、splitDir方向へ即時発射する。
+		MagicShotParams params;
+		params.startPos = startPos;
+		params.dir = splitDir;
+		params.damage = m_damage * 0.5f;
+		params.speed = m_speed;
+		params.ignoreTarget = hitEnemy;
+		params.isSplitShot = true;
+		spSplitMagic->Shot(params);
 
 		SceneManager::Instance().AddObject(spSplitMagic);
 	}
@@ -201,15 +184,15 @@ Math::Vector3 IceMagic::RotateDirY(const Math::Vector3& dir, float angle) const
 	const float cosAngle = cosf(angle);
 	const float sinAngle = sinf(angle);
 
-	Math::Vector3 ret;
-	ret.x = dir.x * cosAngle + dir.z * sinAngle;
-	ret.y = dir.y;
-	ret.z = -dir.x * sinAngle + dir.z * cosAngle;
+	Math::Vector3 rotatedDir;
+	rotatedDir.x = dir.x * cosAngle + dir.z * sinAngle;
+	rotatedDir.y = dir.y;
+	rotatedDir.z = -dir.x * sinAngle + dir.z * cosAngle;
 
-	if (ret.LengthSquared() > 0.0001f)
+	if (rotatedDir.LengthSquared() > 0.0001f)
 	{
-		ret.Normalize();
+		rotatedDir.Normalize();
 	}
 
-	return ret;
+	return rotatedDir;
 }

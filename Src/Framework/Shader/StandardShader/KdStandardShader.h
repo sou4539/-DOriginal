@@ -10,6 +10,16 @@ public:
 	// スキンメッシュ対応
 	static const int maxBoneBufferSize = 300;
 
+	// インスタンシング描画3
+	// 1回の描画で扱える最大インスタンス数
+	static constexpr UINT MaxInstanceCount = 2048;
+
+	// 同じモデルを描画する各個体の情報
+	struct InstanceData
+	{
+		Math::Matrix World = Math::Matrix::Identity;
+	};
+
 	// 定数バッファ(オブジェクト単位更新)
 	struct cbObject
 	{
@@ -147,6 +157,10 @@ public:
 	void BeginLit();
 	void EndLit();
 
+	// インスタンシング描画15
+	void BeginLitInstanced();
+	void EndLitInstanced();
+
 	// 陰影をつけないオブジェクト等を描画する前後に行う
 	void BeginUnLit();
 	void EndUnLit();
@@ -154,6 +168,11 @@ public:
 	// 最も初めに行う、光を遮るオブジェクトを描画する前後に行う
 	void BeginGenerateDepthMapFromLight();
 	void EndGenerateDepthMapFromLight();
+
+	// インスタンシング描画21
+	// 影マップの描画先を維持したまま、インスタンシング用パイプラインへ切り替える
+	void BeginGenerateDepthMapFromLightInstanced();
+	void EndGenerateDepthMapFromLightInstanced();
 
 	//================================================
 	// 描画関数
@@ -166,8 +185,17 @@ public:
 	void DrawModel(const KdModelData& rModel, const Math::Matrix& mWorld = Math::Matrix::Identity, 
 		const Math::Color& colRate = kWhiteColor, const Math::Vector3& emissive = Math::Vector3::Zero);
 
+	// インスタンシング描画17
+	void DrawModelInstanced(const KdModelData& rModel,const std::vector<InstanceData>& instances,
+		const Math::Color& colRate = kWhiteColor,const Math::Vector3& emissive = Math::Vector3::Zero);
+
 	// モデルワーク描画：アニメーションに対応
 	void DrawModel(KdModelWork& rModel, const Math::Matrix& mWorld = Math::Matrix::Identity,
+		const Math::Color& colRate = kWhiteColor, const Math::Vector3& emissive = Math::Vector3::Zero);
+
+	// インスタンシング描画22
+	// 同じアニメーション姿勢を共有するスキンメッシュをまとめて描画
+	void DrawModelInstanced(KdModelWork& rModel, const std::vector<InstanceData>& instances,
 		const Math::Color& colRate = kWhiteColor, const Math::Vector3& emissive = Math::Vector3::Zero);
 
 	// 任意の頂点群からなるポリゴン描画
@@ -195,6 +223,14 @@ public:
 	std::shared_ptr<KdTexture>& GetDepthTex() { return m_depthMapFromLightRTPack.m_RTTexture; }
 
 private:
+
+	// インスタンシング描画7
+	bool SetInstanceDataToDevice
+	(
+		const std::vector<InstanceData>& instances
+	);
+
+	void ClearInstanceDataFromDevice();
 
 	// マテリアルのセット
 	void WriteMaterial(const KdMaterial& material, const Math::Vector4& colRate, const Math::Vector3& emiRate);
@@ -227,12 +263,22 @@ private:
 	// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 
 	// 頂点シェーダー
-	ID3D11VertexShader* m_VS_Lit = nullptr;					// 陰影あり
+	ID3D11VertexShader* m_VS_Lit = nullptr;
+
+	// インスタンシング描画11
+	ID3D11VertexShader* m_VS_LitInstanced = nullptr;
+
 	ID3D11VertexShader* m_VS_UnLit = nullptr;				// 陰影なし
 	ID3D11VertexShader* m_VS_GenDepthFromLight = nullptr;	// 光からの深度
 
+	// インスタンシング描画23
+	ID3D11VertexShader* m_VS_GenDepthFromLightInstanced = nullptr;
+
 	// 頂点入力レイアウト
 	ID3D11InputLayout* m_inputLayout = nullptr;
+
+	// インスタンシング描画12
+	ID3D11InputLayout* m_inputLayoutInstanced = nullptr;
 	
 	// ピクセルシェーダー
 	ID3D11PixelShader* m_PS_Lit = nullptr;					// 陰影あり
@@ -247,6 +293,10 @@ private:
 	KdConstantBuffer<cbMesh>		m_cb1_Mesh;				// メッシュ毎に更新
 	KdConstantBuffer<cbMaterial>	m_cb2_Material;			// マテリアル毎に更新
 	KdConstantBuffer<cbBone>		m_cb3_Bone;				// ボーン事に更新(スキンメッシュ対応「)
+
+	// インスタンシング描画4
+	// 各インスタンスのワールド行列をGPUへ渡す頂点バッファ
+	KdBuffer m_instanceBuffer;
 
 	KdRenderTargetPack	m_depthMapFromLightRTPack;
 	KdRenderTargetChanger m_depthMapFromLightRTChanger;

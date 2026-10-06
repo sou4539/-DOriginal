@@ -1,182 +1,79 @@
 ﻿#include "GameScene.h"
 #include "../SceneManager.h"
-
-#include "../../GameObject/Camera/TPSCamera/TPSCamera.h"
-#include "../../GameObject/Character/Enemy/EnemySpawner/EnemySpawner.h"
-#include "../../GameObject/Character/Player/Player.h"
+#include "../GameStageBase/GameStageBase.h"
+#include "../GameStageBase/GrassStage/GrassStage.h"
 #include "../../GameObject/Character/Status/Status.h"
-#include "../../GameObject/Stage/Ground/Ground.h"
-#include "../../GameObject/Stage/Village/Village.h"
-#include "../../GameObject/Stage/Tree/Tree.h"
-#include "../../GameObject/Character/Staff/FireStaff/FireStaff.h"
-#include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
-#include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
 
-namespace
-{
-	bool g_prevDebugCursorKey = false;
-}
+GameScene::~GameScene() = default;
 
-GameScene::~GameScene()
-{
-	SetCursorVisible(false);
-}
-
-void GameScene::SetCursorVisible(bool isVisible)
-{
-	if (m_isCursorVisible == isVisible) { return; }
-
-	m_isCursorVisible = isVisible;
-
-	if (isVisible)
-	{
-		while (ShowCursor(TRUE) < 0) {}
-	}
-	else
-	{
-		while (ShowCursor(FALSE) >= 0) {}
-	}
-}
-
-// F1キーでカーソル固定を切り替え、Tキーでタイトルへ戻る。
-void GameScene::Event()
-{
-	const bool isDebugCursorKey = (GetAsyncKeyState(VK_F1) & 0x8000);
-	if (isDebugCursorKey && !g_prevDebugCursorKey)
-	{
-		const bool isCursorUnlocked = !m_isCursorVisible;
-		SetCursorVisible(isCursorUnlocked);
-
-		for (const std::shared_ptr<KdGameObject>& obj : m_objList)
-		{
-			std::shared_ptr<TPSCamera> camera = std::dynamic_pointer_cast<TPSCamera>(obj);
-			if (!camera) { continue; }
-
-			camera->SetMouseLocked(!isCursorUnlocked);
-			break;
-		}
-	}
-	g_prevDebugCursorKey = isDebugCursorKey;
-
-	const bool isBackTitleKey = (GetAsyncKeyState('T') & 0x8000);
-	if (isBackTitleKey && !m_prevBackTitleKey)
-	{
-		SceneManager::Instance().SetNextScene
-		(
-			SceneManager::SceneType::Title
-		);
-	}
-	m_prevBackTitleKey = isBackTitleKey;
-}
-
-// ゲームシーンで使うオブジェクトを作成し、参照関係をつなぐ。
 void GameScene::Init()
 {
-	// 村の中で復活する位置。
-	const Math::Vector3 playerRespawnPos = { -30.0f, 0.0f, 0.0f };
-
-	// カメラを作成する。
-	std::shared_ptr<TPSCamera> camera;
-	camera = std::make_shared<TPSCamera>();
-	camera->Init();
-	camera->SetYawDeg(-90.0f);
-	m_objList.push_back(camera);
-
-	// プレイヤーを作成する。
-	std::shared_ptr<Player> player;
-	player = std::make_shared<Player>();
-	player->SetAngle(DirectX::XMConvertToRadians(-90.0f));
-	m_objList.push_back(player);
-
-	// ステータスUIを作成する。
-	std::shared_ptr<Status> status;
-	status = std::make_shared<Status>();
-	m_status = status;
-	m_objList.push_back(status);
-
-	// 敵の生成管理を作成する。
-	std::shared_ptr<EnemySpawner> enemySpawner;
-	enemySpawner = std::make_shared<EnemySpawner>();
-	m_objList.push_back(enemySpawner);
-	enemySpawner->AddSpawnArea({ -70.0f, 3.0f,   0.0f }, 16.0f, 15);
-	enemySpawner->AddSpawnArea({ -30.0f, 3.0f,  55.0f }, 14.0f, 14);
-	enemySpawner->AddSpawnArea({ -30.0f, 3.0f, -75.0f }, 14.0f, 14);
-	enemySpawner->AddSpawnArea({  55.0f, 3.0f, -45.0f }, 14.0f, 14);
-	enemySpawner->AddSpawnArea({ -85.0f, 3.0f,  45.0f }, 14.0f, 14);
-	enemySpawner->AddSpawnArea({ -85.0f, 3.0f, -45.0f }, 14.0f, 14);
-	enemySpawner->AddSpawnArea({ -120.0f, 3.0f,  0.0f }, 16.0f, 15);
-	enemySpawner->SetStatus(status);
-
-	// 地面を作成する。
-	std::shared_ptr<Ground> ground;
-	ground = std::make_shared<Ground>();
-	m_objList.push_back(ground);
-
-	// 村を作成する。
-	std::shared_ptr<Village> village;
-	village = std::make_shared<Village>();
-	m_objList.push_back(village);
-
-	std::shared_ptr<Tree> tree;
-	tree = std::make_shared<Tree>();
-	m_objList.push_back(tree);
-
-	// 杖を作成する。
-	std::shared_ptr<FireStaff> fireStaff;
-	fireStaff = std::make_shared<FireStaff>();
-	m_objList.push_back(fireStaff);
-
-	std::shared_ptr<IceStaff> iceStaff;
-	iceStaff = std::make_shared<IceStaff>();
-	m_objList.push_back(iceStaff);
-
-	std::shared_ptr<VoltStaff> voltStaff;
-	voltStaff = std::make_shared<VoltStaff>();
-	m_objList.push_back(voltStaff);
-
-	// 各オブジェクト同士の参照をつなぐ。
-	camera->SetTarget(player);
-	// 最初の魔法選択でゲーム更新が止まっても、カメラだけは正しい位置にしておく。
-	camera->PostUpdate();
-	player->SetStatus(status);
-	player->SetCamera(camera);
-	player->SetRespawnPos(playerRespawnPos);
-	player->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
-	ground->SetTarget(player);
-	village->SetTarget(player);
-	village->SetVisibleRadius(160.0f);
-	tree->SetTarget(player);
-	enemySpawner->SetSafeArea(village->GetSafeAreaCenter(), village->GetSafeAreaRadius());
-	enemySpawner->AddEnemiesToScene(m_objList, player);
-	status->SetVillageGuideRadius(village->GetVisibleRadius());
-	status->SetCamera(camera);
-	fireStaff->SetTarget(player);
-	iceStaff->SetTarget(player);
-	voltStaff->SetTarget(player);
-	fireStaff->SetStatus(status);
-	iceStaff->SetStatus(status);
-	voltStaff->SetStatus(status);
-
-	// プレイヤーの地形判定対象を登録する。
-	player->RegistHitObject(ground);
-	player->RegistHitObject(village);
-	player->RegistHitObject(tree);
-
-	status->SetPlayer(player);
-
-	g_prevDebugCursorKey = (GetAsyncKeyState(VK_F1) & 0x8000);
-	SetCursorVisible(false);
+	m_status = std::make_shared<Status>();
+	m_nextStage = std::make_shared<GrassStage>();
 }
 
-bool GameScene::IsUpdatePaused() const
+void GameScene::SetNextStage(const std::shared_ptr<GameStageBase>& stage)
 {
-	std::shared_ptr<Status> spStatus = m_status.lock();
-	if (!spStatus) { return false; }
-
-	return spStatus->IsLevelUpSelect();
+	if (!stage || stage == m_stage) { return; }
+	m_nextStage = stage;
 }
 
-bool GameScene::CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj) const
+void GameScene::ChangeStage()
 {
-	return std::dynamic_pointer_cast<Status>(obj) != nullptr;
+	if (!m_nextStage) { return; }
+	// 旧ステージを先に破棄し、その後で新しいカメラ・プレイヤーを作る。
+	m_stage.reset();
+	SceneManager::Instance().SetActiveEnemies({});
+	m_stage = std::move(m_nextStage);
+	m_status->SetEnemy({});
+	m_status->SetVillageGuideRadius(0.0f);
+	m_stage->Start(m_status);
+}
+
+void GameScene::PreUpdate()
+{
+	// オブジェクト更新中にステージを破棄しない。
+	ChangeStage();
+	if (m_stage) { m_stage->PreUpdate(); }
+}
+
+void GameScene::Update()
+{
+	if (m_stage) { m_stage->Update(); }
+}
+
+void GameScene::PostUpdate()
+{
+	if (m_stage) { m_stage->PostUpdate(); }
+}
+
+void GameScene::PreDraw()
+{
+	if (m_stage) { m_stage->PreDraw(); }
+}
+
+void GameScene::Draw()
+{
+	if (m_stage) { m_stage->Draw(); }
+}
+
+void GameScene::DrawSprite()
+{
+	if (m_stage) { m_stage->DrawSprite(); }
+}
+
+void GameScene::DrawDebug()
+{
+	if (m_stage) { m_stage->DrawDebug(); }
+}
+
+const std::list<std::shared_ptr<KdGameObject>>& GameScene::GetObjList()
+{
+	return m_stage ? m_stage->GetObjList() : m_objList;
+}
+
+void GameScene::AddObject(const std::shared_ptr<KdGameObject>& obj)
+{
+	// 魔法などの追加先も現在のステージへ転送する。
+	if (m_stage) { m_stage->AddObject(obj); }
 }

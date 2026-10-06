@@ -129,17 +129,17 @@ namespace
 		const float exitDx = cursorPos.x - static_cast<float>(ExitButtonX);
 		const float exitDy = cursorPos.y - static_cast<float>(ExitButtonY);
 
-		const float startDistanceSqr = (startDx * startDx) + (startDy * startDy);
-		const float exitDistanceSqr = (exitDx * exitDx) + (exitDy * exitDy);
+		const float startDistSq = (startDx * startDx) + (startDy * startDy);
+		const float exitDistSq = (exitDx * exitDx) + (exitDy * exitDy);
 
-		return startDistanceSqr <= exitDistanceSqr ? 0 : 1;
+		return startDistSq <= exitDistSq ? 0 : 1;
 	}
 
-	const Math::Color* GetButtonDrawColor(bool isHover, bool isLeftClick)
+	const Math::Color* GetButtonDrawColor(bool isHover, bool leftDown)
 	{
 		if (!isHover) { return &kWhiteColor; }
 
-		return isLeftClick ? &ButtonPressColor : &ButtonHoverColor;
+		return leftDown ? &ButtonPressColor : &ButtonHoverColor;
 	}
 
 	std::shared_ptr<KdSoundInstance> PlayUIClickSound()
@@ -213,8 +213,8 @@ void TitleScene::Event()
 		return;
 	}
 
-	const bool isDebugResetKey = (GetAsyncKeyState(VK_F9) & 0x8000);
-	if (isDebugResetKey && !m_prevDebugResetKey)
+	const bool resetDown = (GetAsyncKeyState(VK_F9) & 0x8000);
+	if (resetDown && !m_prevResetDown)
 	{
 		ResetProgressSave();
 
@@ -227,16 +227,16 @@ void TitleScene::Event()
 			}
 		);
 	}
-	m_prevDebugResetKey = isDebugResetKey;
+	m_prevResetDown = resetDown;
 
 	POINT mousePos;
 	GetCursorPos(&mousePos);
 	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
 
-	const bool isLeftClick = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
-	const int hoverButtonIndex = GetHoverButtonIndex(mousePos);
+	const bool leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
+	const int hoverButton = GetHoverButtonIndex(mousePos);
 
-	if (isLeftClick && !m_prevLeftClick && hoverButtonIndex == 0)
+	if (leftDown && !m_prevLeftDown && hoverButton == 0)
 	{
 		PlayUIClickSound();
 
@@ -251,13 +251,13 @@ void TitleScene::Event()
 		);
 	}
 
-	if (isLeftClick && !m_prevLeftClick && hoverButtonIndex == 1)
+	if (leftDown && !m_prevLeftDown && hoverButton == 1)
 	{
 		m_exitClickSound = PlayUIClickSound();
 		m_isExitRequested = true;
 	}
 
-	m_prevLeftClick = isLeftClick;
+	m_prevLeftDown = leftDown;
 }
 
 void TitleScene::Init()
@@ -274,11 +274,11 @@ void TitleScene::Init()
 	camera->Init();
 	m_objList.push_back(camera);
 
-	std::shared_ptr<Ground> spGround = std::make_shared<Ground>();
-	m_objList.push_back(spGround);
+	std::shared_ptr<Ground> ground = std::make_shared<Ground>();
+	m_objList.push_back(ground);
 
-	std::shared_ptr<Village> spVillage = std::make_shared<Village>();
-	m_objList.push_back(spVillage);
+	std::shared_ptr<Village> village = std::make_shared<Village>();
+	m_objList.push_back(village);
 
 	std::shared_ptr<Player> player = std::make_shared<Player>();
 	player->SetControlEnable(false);
@@ -289,21 +289,21 @@ void TitleScene::Init()
 	std::shared_ptr<FireStaff> fireStaff = std::make_shared<FireStaff>();
 	std::shared_ptr<IceStaff> iceStaff = std::make_shared<IceStaff>();
 	std::shared_ptr<VoltStaff> voltStaff = std::make_shared<VoltStaff>();
-	const MagicUnlockSave magicUnlockSave = LoadMagicUnlockSave();
+	const MagicUnlockSave unlocks = LoadMagicUnlockSave();
 
 	fireStaff->SetTarget(player);
 	iceStaff->SetTarget(player);
 	voltStaff->SetTarget(player);
 
-	if (magicUnlockSave.hasFire)
+	if (unlocks.hasFire)
 	{
 		m_objList.push_back(fireStaff);
 	}
-	if (magicUnlockSave.hasIce)
+	if (unlocks.hasIce)
 	{
 		m_objList.push_back(iceStaff);
 	}
-	if (magicUnlockSave.hasVolt)
+	if (unlocks.hasVolt)
 	{
 		m_objList.push_back(voltStaff);
 	}
@@ -339,10 +339,10 @@ void TitleScene::DrawSprite()
 	GetCursorPos(&mousePos);
 	ScreenToClient(Application::Instance().GetWindowHandle(), &mousePos);
 
-	const bool isLeftClick = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
-	const int hoverButtonIndex = GetHoverButtonIndex(mousePos);
-	const bool isHoverStart = hoverButtonIndex == 0;
-	const bool isHoverExit = hoverButtonIndex == 1;
+	const bool leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
+	const int hoverButton = GetHoverButtonIndex(mousePos);
+	const bool isHoverStart = hoverButton == 0;
+	const bool isHoverExit = hoverButton == 1;
 	const Math::Vector2 cursorPos = GetMouseSpritePos(mousePos);
 
 	KdShaderManager::Instance().m_spriteShader.Begin();
@@ -372,7 +372,7 @@ void TitleScene::DrawSprite()
 				ButtonW,
 				ButtonH,
 				nullptr,
-				GetButtonDrawColor(isHoverStart, isLeftClick),
+				GetButtonDrawColor(isHoverStart, leftDown),
 				{ 0.5f, 0.5f }
 			);
 		}
@@ -387,7 +387,7 @@ void TitleScene::DrawSprite()
 				ButtonW,
 				ButtonH,
 				nullptr,
-				GetButtonDrawColor(isHoverExit, isLeftClick),
+				GetButtonDrawColor(isHoverExit, leftDown),
 				{ 0.5f, 0.5f }
 			);
 		}

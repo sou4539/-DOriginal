@@ -42,43 +42,25 @@ namespace
 	}
 }
 
-void VoltMagic::Shot(
-	const Math::Vector3& startPos,
-	const Math::Vector3& dir,
-	MagicType type,
-	float damage,
-	float speed,
-	const std::shared_ptr<KdGameObject>& chantTarget,
-	const std::shared_ptr<KdGameObject>& flyTarget,
-	const std::shared_ptr<KdGameObject>& ignoreTarget,
-	int chainCount,
-	bool isChainShot)
+bool VoltMagic::ConfigureShot(const MagicShotParams& params)
 {
-	m_chainCount = chainCount;
-	m_isChainShot = isChainShot;
-
-	// 共通の発射初期化はBaseへ任せ、雷専用の連鎖情報だけこのクラスで持つ.
-	MagicBase::Shot(startPos, dir, type, damage, speed, chantTarget, flyTarget, ignoreTarget);
-
-	if (m_isChainShot)
-	{
-		// 連鎖弾は詠唱せず、生成された瞬間から次の敵へ飛ばす.
-		StartFly();
-		UpdateWorldMatrix();
-	}
+	m_chainLeft = params.chainCount;
+	m_isChainShot = params.isChainShot;
+	// 連鎖元からコピーされたm_chainHitsは消さず、同じ敵への再連鎖を防ぐ。
+	return m_isChainShot; // 連鎖弾だけ詠唱を省略する。
 }
 
 void VoltMagic::SetupMagic()
 {
 	MagicBase::SetupMagic();
 
-	m_lifeTime = 60.0f;
+	m_lifeFrames = 60.0f;
 	m_radius = VoltHitRadius;
 	m_frameSpeed = VoltFrameSpeed;
 
 	if (m_isChainShot)
 	{
-		m_framePathList =
+		m_framePaths =
 		{
 			"Asset/Textures/Magic/Volt/Volt0.png",
 			"Asset/Textures/Magic/Volt/Volt1.png",
@@ -88,7 +70,7 @@ void VoltMagic::SetupMagic()
 	}
 	else
 	{
-		m_framePathList =
+		m_framePaths =
 		{
 			"Asset/Textures/Magic/Volt/Lightning0.png",
 			"Asset/Textures/Magic/Volt/Lightning1.png",
@@ -139,7 +121,7 @@ Math::Vector3 VoltMagic::GetEmissiveColor() const
 
 void VoltMagic::CreateChain(const std::shared_ptr<EnemyBase>& hitEnemy)
 {
-	if (m_chainCount <= 0) { return; }
+	if (m_chainLeft <= 0) { return; }
 	if (!hitEnemy) { return; }
 
 	std::shared_ptr<EnemyBase> spNextTarget = SearchChainTarget(hitEnemy);
@@ -154,20 +136,18 @@ void VoltMagic::CreateChain(const std::shared_ptr<EnemyBase>& hitEnemy)
 	startPos += dir * (m_radius + 0.2f);
 
 	std::shared_ptr<VoltMagic> spChainMagic = std::make_shared<VoltMagic>();
-	spChainMagic->m_chainHitList = m_chainHitList;
-	spChainMagic->Shot
-	(
-		startPos,
-		dir,
-		MagicType::Volt,
-		m_damage,
-		m_speed,
-		nullptr,
-		spNextTarget,
-		hitEnemy,
-		m_chainCount - 1,
-		true
-	);
+	spChainMagic->m_chainHits = m_chainHits;
+	// 残り連鎖数を減らして次の弾へ渡す。命中済みリストは上で引き継ぐ。
+	MagicShotParams params;
+	params.startPos = startPos;
+	params.dir = dir;
+	params.damage = m_damage;
+	params.speed = m_speed;
+	params.flyTarget = spNextTarget;
+	params.ignoreTarget = hitEnemy;
+	params.chainCount = m_chainLeft - 1;
+	params.isChainShot = true;
+	spChainMagic->Shot(params);
 
 	SceneManager::Instance().AddObject(spChainMagic);
 }
@@ -178,7 +158,7 @@ std::shared_ptr<EnemyBase> VoltMagic::SearchChainTarget(const std::shared_ptr<En
 
 	std::shared_ptr<EnemyBase> spTarget = nullptr;
 	const Math::Vector3 hitPos = hitEnemy->GetPos();
-	float minDistanceSqr = m_chainRadius * m_chainRadius;
+	float minDistSq = m_chainRadius * m_chainRadius;
 
 	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
@@ -190,10 +170,10 @@ std::shared_ptr<EnemyBase> VoltMagic::SearchChainTarget(const std::shared_ptr<En
 		if (spEnemy->IsExpired()) { continue; }
 
 		const Math::Vector3 toEnemy = spEnemy->GetPos() - hitPos;
-		const float distanceSqr = toEnemy.LengthSquared();
-		if (distanceSqr < minDistanceSqr)
+		const float distSq = toEnemy.LengthSquared();
+		if (distSq < minDistSq)
 		{
-			minDistanceSqr = distanceSqr;
+			minDistSq = distSq;
 			spTarget = spEnemy;
 		}
 	}
@@ -205,7 +185,7 @@ bool VoltMagic::HasChainHitObject(const std::shared_ptr<KdGameObject>& obj) cons
 {
 	if (!obj) { return false; }
 
-	for (const std::weak_ptr<KdGameObject>& wpHitObj : m_chainHitList)
+	for (const std::weak_ptr<KdGameObject>& wpHitObj : m_chainHits)
 	{
 		if (wpHitObj.lock() == obj)
 		{
@@ -221,5 +201,5 @@ void VoltMagic::AddChainHitObject(const std::shared_ptr<KdGameObject>& obj)
 	if (!obj) { return; }
 	if (HasChainHitObject(obj)) { return; }
 
-	m_chainHitList.push_back(obj);
+	m_chainHits.push_back(obj);
 }

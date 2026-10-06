@@ -12,6 +12,9 @@ void EnemySpawner::Init()
 
 void EnemySpawner::Update()
 {
+	// インスタンシング描画34
+	Bat::UpdateSharedAnimation();
+
 	if (m_pDebugWire)
 	{
 		std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
@@ -57,7 +60,7 @@ void EnemySpawner::AddEnemiesToScene(std::list<std::shared_ptr<KdGameObject>>& o
 
 		for (int i = 0; i < area.count; ++i)
 		{
-			if (GetTotalEnemyCount() >= m_nowMaxEnemyCount) { return; }
+			if (GetTotalEnemyCount() >= m_enemyLimit) { return; }
 
 			AddEnemyToScene(objList, target, areaIndex);
 		}
@@ -75,20 +78,20 @@ void EnemySpawner::UpdateMaxEnemyCountByDistance()
 	float distance = toPlayer.Length() - m_safeAreaRadius;
 	distance = std::max(distance, 0.0f);
 
-	float rate = distance / m_maxEnemyCountDistance;
+	float rate = distance / m_fullSpawnDistance;
 	rate = std::clamp(rate, 0.0f, 1.0f);
 
-	m_nowMaxEnemyCount = static_cast<int>(m_minEnemyCount + (m_maxEnemyCount - m_minEnemyCount) * rate);
+	m_enemyLimit = static_cast<int>(m_minEnemyCount + (m_maxEnemyCount - m_minEnemyCount) * rate);
 }
 
-Math::Vector3 EnemySpawner::MakeRandomPos(int spawnAreaIndex) const
+Math::Vector3 EnemySpawner::MakeRandomPos(int areaIndex) const
 {
-	if (spawnAreaIndex < 0 || spawnAreaIndex >= static_cast<int>(m_spawnAreas.size()))
+	if (areaIndex < 0 || areaIndex >= static_cast<int>(m_spawnAreas.size()))
 	{
 		return Math::Vector3::Zero;
 	}
 
-	const SpawnArea& area = m_spawnAreas[spawnAreaIndex];
+	const SpawnArea& area = m_spawnAreas[areaIndex];
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (!spTarget)
 	{
@@ -179,20 +182,20 @@ void EnemySpawner::MaintainEnemyCount()
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (!m_pObjList || !spTarget) { return; }
 
-	if (GetTotalEnemyCount() >= m_nowMaxEnemyCount) { return; }
+	if (GetTotalEnemyCount() >= m_enemyLimit) { return; }
 
 	for (int areaIndex = 0; areaIndex < static_cast<int>(m_spawnAreas.size()); ++areaIndex)
 	{
-		int enemyCountInArea = 0;
+		int areaEnemyCount = 0;
 		for (const EnemyInfo& enemyInfo : m_enemies)
 		{
-			if (enemyInfo.spawnAreaIndex == areaIndex)
+			if (enemyInfo.areaIndex == areaIndex)
 			{
-				++enemyCountInArea;
+				++areaEnemyCount;
 			}
 		}
 
-		if (enemyCountInArea < m_spawnAreas[areaIndex].count)
+		if (areaEnemyCount < m_spawnAreas[areaIndex].count)
 		{
 			AddEnemyToScene(*m_pObjList, spTarget, areaIndex);
 
@@ -215,7 +218,7 @@ void EnemySpawner::UpdateActiveEnemies()
 		return;
 	}
 
-	const float activeRadiusSqr = m_activeEnemyRadius * m_activeEnemyRadius;
+	const float activeRadiusSq = m_activeEnemyRadius * m_activeEnemyRadius;
 	const Math::Vector3 targetPos = spTarget->GetPos();
 
 	for (const EnemyInfo& enemyInfo : m_enemies)
@@ -226,7 +229,7 @@ void EnemySpawner::UpdateActiveEnemies()
 
 		Math::Vector3 toEnemy = spEnemy->GetPos() - targetPos;
 		toEnemy.y = 0.0f;
-		if (toEnemy.LengthSquared() > activeRadiusSqr) { continue; }
+		if (toEnemy.LengthSquared() > activeRadiusSq) { continue; }
 
 		activeEnemies.push_back(spEnemy);
 	}
@@ -234,9 +237,9 @@ void EnemySpawner::UpdateActiveEnemies()
 	SceneManager::Instance().SetActiveEnemies(activeEnemies);
 }
 
-void EnemySpawner::AddEnemyToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target, int spawnAreaIndex)
+void EnemySpawner::AddEnemyToScene(std::list<std::shared_ptr<KdGameObject>>& objList, const std::shared_ptr<KdGameObject>& target, int areaIndex)
 {
-	Math::Vector3 startPos = MakeRandomPos(spawnAreaIndex);
+	Math::Vector3 startPos = MakeRandomPos(areaIndex);
 
 	std::shared_ptr<Bat> bat = std::make_shared<Bat>();
 	bat->SetStartPos(startPos);
@@ -253,6 +256,6 @@ void EnemySpawner::AddEnemyToScene(std::list<std::shared_ptr<KdGameObject>>& obj
 
 	EnemyInfo enemyInfo;
 	enemyInfo.enemy = bat;
-	enemyInfo.spawnAreaIndex = spawnAreaIndex;
+	enemyInfo.areaIndex = areaIndex;
 	m_enemies.push_back(enemyInfo);
 }

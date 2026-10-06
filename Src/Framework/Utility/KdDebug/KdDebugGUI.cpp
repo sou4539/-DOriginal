@@ -21,7 +21,11 @@ void KdDebugGUI::GuiInit(int w, int h)
 	// ImGui::StyleColorsDark();
 	ImGui::StyleColorsClassic();
 	// Setup Platform/Renderer bindings
-	ImGui_ImplWin32_Init(Application::Instance().GetWindowHandle(), ImVec2(w,h));
+	ImGui_ImplWin32_Init
+	(
+		Application::Instance().GetWindowHandle(),
+		ImVec2(static_cast<float>(w), static_cast<float>(h))
+	);
 	ImGui_ImplDX11_Init(KdDirect3D::Instance().WorkDev(), KdDirect3D::Instance().WorkDevContext());
 
 #include "imgui/ja_glyph_ranges.h"

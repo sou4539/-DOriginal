@@ -1,32 +1,36 @@
-#pragma once
+ï»¿#pragma once
 
 #include"../BaseScene/BaseScene.h"
 
+
+class GameStageBase;
 class Status;
 
+// ç¾åœ¨ã®ã‚¹ãƒ†ãƒ¼ã‚¸ã‚’ç®¡ç†ã—ã€æ›´æ–°ãƒ»æç”»ã‚’å§”è­²ã™ã‚‹ã€‚
 class GameScene : public BaseScene
 {
-public :
+public:
+	GameScene() { Init(); }
+	~GameScene() override;
+	void PreUpdate() override;
+	void Update() override;
+	void PostUpdate() override;
+	void PreDraw() override;
+	void Draw() override;
+	void DrawSprite() override;
+	void DrawDebug() override;
+	const std::list<std::shared_ptr<KdGameObject>>& GetObjList() override;
+	void AddObject(const std::shared_ptr<KdGameObject>& obj) override;
 
-	// GameScene‚ğì¬‚µ‚½‚ÉA©“®‚ÅInit()‚ğŒÄ‚ñ‚ÅƒQ[ƒ€—pƒIƒuƒWƒFƒNƒg‚ğ”z’u‚·‚éB
-	GameScene()  { Init(); }
-
-	// GameScene”jŠü‚Ìˆ—B
-	~GameScene();
+	// æœªé–‹å§‹ã®æ–°ã—ã„ã‚¹ãƒ†ãƒ¼ã‚¸ã‚’äºˆç´„ã€‚æ¬¡ãƒ•ãƒ¬ãƒ¼ãƒ å…ˆé ­ã§åˆ‡ã‚Šæ›¿ãˆã‚‹ã€‚
+	void SetNextStage(const std::shared_ptr<GameStageBase>& stage);
+	std::shared_ptr<GameStageBase> GetStage() const { return m_stage; }
 
 private:
-
-	// GameScene’†‚Ì“ü—ÍƒCƒxƒ“ƒgˆ—B
-	void Event() override;
-
-	// GameScene‚Ì‰Šú‰»ˆ—B
-	void Init()  override;
-	void SetCursorVisible(bool isVisible);
-
-	bool IsUpdatePaused() const override;
-	bool CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj) const override;
-
-	std::weak_ptr<Status> m_status;
-	bool m_isCursorVisible = true;
-	bool m_prevBackTitleKey = false;
+	void Init() override;
+	void ChangeStage();
+	// Statusã‚’ã‚¹ãƒ†ãƒ¼ã‚¸ã‚ˆã‚Šé•·ãä¿æŒã—ã€HPãƒ»è‚²æˆçŠ¶æ…‹ã‚’å¼•ãç¶™ãã€‚
+	std::shared_ptr<Status> m_status;
+	std::shared_ptr<GameStageBase> m_stage;
+	std::shared_ptr<GameStageBase> m_nextStage;
 };

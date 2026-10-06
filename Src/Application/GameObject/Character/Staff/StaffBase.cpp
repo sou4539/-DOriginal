@@ -3,10 +3,10 @@
 #include "../../../Scene/SceneManager.h"
 #include "../Enemy/EnemyBase.h"
 #include "../Status/Status.h"
+#include "../Magic/MagicBase.h"
 #include "../Magic/FireMagic/FireMagic.h"
 #include "../Magic/IceMagic/IceMagic.h"
 #include "../Magic/VoltMagic/VoltMagic.h"
-
 #include <algorithm>
 #include <vector>
 
@@ -53,24 +53,24 @@ void StaffBase::DrawLit()
 
 void StaffBase::UpdateAroundTarget(const std::shared_ptr<KdGameObject>& spTarget)
 {
-	StaffLayoutInfo layoutInfo = GetLayoutInfo();
-	if (layoutInfo.count <= 0 || layoutInfo.index < 0)
+	StaffLayoutInfo layout = GetLayoutInfo();
+	if (layout.count <= 0 || layout.index < 0)
 	{
 		return;
 	}
 
 	// すべての杖で同じ基準角度を使い、取得済みの杖を等間隔に並べる。
-	if (layoutInfo.index == 0)
+	if (layout.index == 0)
 	{
-		StaffOrbitBaseAngle += m_rotateSpeed;
+		StaffOrbitBaseAngle += m_orbitSpeed;
 	}
 
-	m_angle = StaffOrbitBaseAngle + GetLayoutOffset(layoutInfo.index, layoutInfo.count);
+	m_orbitAngle = StaffOrbitBaseAngle + GetLayoutOffset(layout.index, layout.count);
 
-	float x = cos(m_angle) * m_radius;
-	float z = sin(m_angle) * m_radius;
+	float x = cos(m_orbitAngle) * m_orbitRadius;
+	float z = sin(m_orbitAngle) * m_orbitRadius;
 
-	m_pos = spTarget->GetPos() + Math::Vector3(x, m_height, z);
+	m_pos = spTarget->GetPos() + Math::Vector3(x, m_orbitHeight, z);
 
 	m_mWorld = Math::Matrix::CreateTranslation(m_pos);
 }
@@ -84,10 +84,10 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 	}
 
 	// 魔法のクールタイムを減らす。
-	m_magicCoolTime--;
+	m_cooldown--;
 
 	// クールタイムが残っているなら、まだ撃たない。
-	if (m_magicCoolTime > 0.0f)
+	if (m_cooldown > 0.0f)
 	{
 		return;
 	}
@@ -113,45 +113,55 @@ void StaffBase::UpdateMagicAttack(const std::shared_ptr<KdGameObject>& spPlayer)
 	std::shared_ptr<KdGameObject> spStaff = shared_from_this();
 
 	std::shared_ptr<Status> spStatus = m_wpStatus.lock();
+
+	// 現在の攻撃力を確認
+	const float attack = spStatus ? spStatus->GetPlayerAttack() : 10.0f;
+	// 魔法自体の倍率と掛け合わせる
+	const float magicDamage = m_damage * (attack / 10.0f);
+
+	// 全魔法で共通の発射条件をまとめる。
+	MagicShotParams params;
+	params.startPos = chantPos;
+	params.dir = shotDir;
+	params.damage = magicDamage;
+	params.speed = m_shotSpeed;
+	params.chantTarget = spStaff;
+	params.flyTarget = spTargetEnemy;
+
+	// 変数の型はBaseでも、実体は各魔法にする。
+	// make_shared<MagicBase>()では氷・雷・炎の専用処理は呼ばれない。
+	std::shared_ptr<MagicBase> magic;
 	switch (m_magicType)
 	{
 	case MagicType::Fire:
-	{
-		const float explosionRadius = spStatus ? spStatus->GetFireExplosionRadius() : 3.0f;
-		std::shared_ptr<FireMagic> magic = std::make_shared<FireMagic>();
-		magic->Shot(chantPos, shotDir, m_magicType, m_magicDamage, m_magicSpeed, spStaff, spTargetEnemy, nullptr, explosionRadius);
-		SceneManager::Instance().AddObject(magic);
+		magic = std::make_shared<FireMagic>();
+		params.explosionRadius = spStatus ? spStatus->GetFireExplosionRadius() : 3.0f;
 		break;
-	}
 	case MagicType::Ice:
-	{
-		const int splitCount = spStatus ? spStatus->GetIceSplitCount() : 1;
-		const int pierceCount = spStatus ? spStatus->GetIcePierceCount() : 1;
-		std::shared_ptr<IceMagic> magic = std::make_shared<IceMagic>();
-		magic->Shot(chantPos, shotDir, m_magicType, m_magicDamage, m_magicSpeed, spStaff, spTargetEnemy, nullptr, pierceCount, splitCount, false);
-		SceneManager::Instance().AddObject(magic);
+		magic = std::make_shared<IceMagic>();
+		params.splitCount = spStatus ? spStatus->GetIceSplitCount() : 0;
+		params.pierceCount = spStatus ? spStatus->GetIcePierceCount() : 1;
 		break;
-	}
 	case MagicType::Volt:
-	{
-		const int chainCount = spStatus ? spStatus->GetVoltChainCount() : 1;
-		std::shared_ptr<VoltMagic> magic = std::make_shared<VoltMagic>();
-		magic->Shot(chantPos, shotDir, m_magicType, m_magicDamage, m_magicSpeed, spStaff, spTargetEnemy, nullptr, chainCount, false);
-		SceneManager::Instance().AddObject(magic);
+		magic = std::make_shared<VoltMagic>();
+		params.chainCount = spStatus ? spStatus->GetVoltChainCount() : 1;
 		break;
-	}
 	default:
 		return;
 	}
 
+	// 入口は1つ。Shot内部のvirtual関数が実体に応じた専用処理を呼ぶ。
+	magic->Shot(params);
+	SceneManager::Instance().AddObject(magic);
+
 	// 杖ごとに設定されたクールタイムへ戻す。
-	m_magicCoolTime = m_magicCoolTimeMax;
+	m_cooldown = m_cooldownMax;
 }
 
 std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGameObject>& spPlayer)
 {
 	std::shared_ptr<KdGameObject> spTargetEnemy = nullptr;
-	float minDistanceSqr = m_searchRadius * m_searchRadius;
+	float minDistSq = m_searchRadius * m_searchRadius;
 
 	for (const std::weak_ptr<EnemyBase>& wpEnemy : SceneManager::Instance().GetActiveEnemies())
 	{
@@ -166,11 +176,11 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 		}
 
 		Math::Vector3 toEnemy = spEnemy->GetPos() - spPlayer->GetPos();
-		float distanceSqr = toEnemy.LengthSquared();
+		float distSq = toEnemy.LengthSquared();
 
-		if (distanceSqr < minDistanceSqr)
+		if (distSq < minDistSq)
 		{
-			minDistanceSqr = distanceSqr;
+			minDistSq = distSq;
 			spTargetEnemy = spEnemy;
 		}
 	}

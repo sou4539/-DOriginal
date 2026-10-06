@@ -22,6 +22,29 @@ enum class MagicState
 	Hit		// 命中中：命中演出を行い、終わったら消える。
 };
 
+// 発射に必要な値をまとめた設定。呼び出し側は必要な項目だけ指定する。
+// 共通項目はBase、専用項目は各魔法が読む。魔法の種類は生成するクラスで決まる。
+struct MagicShotParams
+{
+	Math::Vector3 startPos = Math::Vector3::Zero; // 発射位置
+	Math::Vector3 dir = Math::Vector3::Zero; // 方向。Shotで正規化する
+	float damage = 0.0f; // ダメージ量（倍率ではない）
+	float speed = 0.0f; // 1フレームの移動量
+	std::shared_ptr<KdGameObject> chantTarget; // 詠唱中の追従先。未指定なら追従しない
+	std::shared_ptr<KdGameObject> flyTarget; // 発射時の照準先。未指定ならdirを使う
+	std::shared_ptr<KdGameObject> ignoreTarget; // 当たり判定から除外する敵
+
+	// 氷専用：貫通数、分散数、分散で生まれた弾かどうか。
+	int pierceCount = 1;
+	int splitCount = 0;
+	bool isSplitShot = false;
+	// 雷専用：残り連鎖数、連鎖で生まれた弾かどうか。
+	int chainCount = 0;
+	bool isChainShot = false;
+	// 炎専用：直撃した敵を中心とした爆発範囲。
+	float explosionRadius = 3.0f;
+};
+
 class MagicBase : public CharaBase
 {
 public:
@@ -33,18 +56,15 @@ public:
 	void PostUpdate();
 	void DrawLit() override;
 
-	// 魔法を発射するための初期設定。
-	void Shot(
-		const Math::Vector3& startPos,
-		const Math::Vector3& dir,
-		MagicType type,
-		float damage,
-		float speed,
-		const std::shared_ptr<KdGameObject>& chantTarget,
-		const std::shared_ptr<KdGameObject>& flyTarget,
-		const std::shared_ptr<KdGameObject>& ignoreTarget);
+	// 全魔法共通の入口。派生クラスではShotを再定義しない。
+	// 共通設定 → 専用設定 → 画像・寿命設定 → 即時発射判定、の順序を保証する。
+	void Shot(const MagicShotParams& params);
 
 protected:
+	// Shotから呼ぶ仮想関数。実体がIceMagicならIceMagicの実装が呼ばれる。
+	// trueは詠唱省略を意味する。ここではStartFlyや画像設定は行わない。
+	virtual bool ConfigureShot(const MagicShotParams&) { return false; }
+
 	// 派生クラスで、寿命・当たり判定・画像などを設定する。
 	virtual void SetupMagic();
 
@@ -88,7 +108,6 @@ protected:
 	void PlayShotSound();
 	void PlayHitSound();
 
-	MagicType m_magicType = MagicType::None;
 	MagicState m_state = MagicState::Chant;
 
 	// 詠唱中だけ追従する対象。
@@ -102,11 +121,11 @@ protected:
 	std::weak_ptr<KdGameObject> m_wpIgnoreTarget;
 
 	// すでに当たった敵の記録。
-	std::vector<std::weak_ptr<KdGameObject>> m_hitObjectList;
+	std::vector<std::weak_ptr<KdGameObject>> m_hitObjects;
 
 	float m_damage = 0.0f;
 	float m_speed = 0.0f;
-	float m_lifeTime = 0.0f;
+	float m_lifeFrames = 0.0f;
 	float m_radius = 0.0f;
 
 	// 2.5DOriginalと同じく、1.0から0.0へ減らして詠唱完了を表す。
@@ -114,23 +133,9 @@ protected:
 	float m_chantSpeed = 0.05f;
 
 	// 複数画像のアニメーション用。
-	std::vector<std::string> m_framePathList;
-	float m_frame = 0.0f;
+	std::vector<std::string> m_framePaths;
+	float m_animFrame = 0.0f;
 	float m_frameSpeed = 0.15f;
-	int m_nowFrame = -1;
+	int m_frameIndex = -1;
+
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

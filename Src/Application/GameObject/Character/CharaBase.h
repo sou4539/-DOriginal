@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 class CharaBase :public KdGameObject
 {
@@ -12,25 +12,20 @@ public:
 
 	void RegistHitObject(const std::shared_ptr<KdGameObject>& object)
 	{
-		m_wpHitObjectList.push_back(object);
+		m_wpHitObjects.push_back(object);
 	}
 
 private:
-	// Õ“Ë”»’è‚Æ‚»‚ê‚É”º‚¤À•W‚ÌXV
+	// è¡çªåˆ¤å®šã¨ãã‚Œã«ä¼´ã†åº§æ¨™ã®æ›´æ–°
 	void UpdateCollision();
 
-	// ‰ğ•úˆ—
+	// è§£æ”¾å‡¦ç†
 	void Release();
 
 protected:
 	std::shared_ptr<KdSquarePolygon>			m_spPoly = nullptr;
 	std::shared_ptr<KdModelWork>				m_spModel = nullptr;
-	std::vector<std::weak_ptr<KdGameObject>>	m_wpHitObjectList{};
-	float										m_Gravity = 0;
-
-	//æ‚è•¨§ŒäŠÖŒW
-	Math::Matrix                                m_mLocalFromRideObject;
-	std::weak_ptr<KdGameObject>                 m_wpRiddenObject;
+	std::vector<std::weak_ptr<KdGameObject>>	m_wpHitObjects{};
 
 	Math::Vector3 m_pos;
 	Math::Vector3 m_dir;

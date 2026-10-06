@@ -5,8 +5,7 @@
 
 namespace
 {
-	// FPS優先のため、遠いコウモリはアニメと影の処理を止める。
-	constexpr float BatAnimActiveRadius = 30.0f;
+	// FPS優先のため、遠いコウモリは影の処理を止める。
 	constexpr float BatShadowDrawRadius = 22.0f;
 	constexpr float BatDebugDrawRadius = 80.0f;
 	constexpr float BatSearchRadius = 12.0f;
@@ -19,25 +18,34 @@ namespace
 
 }
 
+std::shared_ptr<KdModelWork> Bat::s_spSharedModel;
+KdAnimator Bat::s_sharedAnimator;
+int Bat::s_sharedAnimUpdateFrame = 0;
+
+void Bat::UpdateSharedAnimation()
+{
+	if (!s_spSharedModel) { return; }
+
+	++s_sharedAnimUpdateFrame;
+	if (s_sharedAnimUpdateFrame % BatNearAnimInterval != 0) { return; }
+
+	s_sharedAnimator.AdvanceTime(
+		s_spSharedModel->WorkNodes(),
+		static_cast<float>(BatNearAnimInterval));
+}
+
 void Bat::Init()
 {
-
-	// コウモリモデルを読み込む。
-
-	if (!m_spModel)
+	// 同じモデルとボーン姿勢を全蝙蝠で共有し、一括描画できるようにする。
+	if (!s_spSharedModel)
 	{
-		m_spModel = std::make_shared<KdModelWork>();
-		m_spModel->SetModelData("Asset/Models/Objects/Character/Bat/Bat.gltf");
+		s_spSharedModel = std::make_shared<KdModelWork>();
+		s_spSharedModel->SetModelData("Asset/Models/Objects/Character/Bat/Bat.gltf");
+		s_sharedAnimator.SetAnimation(s_spSharedModel->GetAnimation("flap_loop"), true);
 	}
 
-	// Play bat flap animation.
-	if (m_spModel)
-	{
-		m_animator.SetAnimation(m_spModel->GetAnimation("flap_loop"), true);
-	}
+	m_spModel = s_spSharedModel;
 
-
-	// Set temporary initial position.
 	m_pos = { -15,3,0 };
 	m_startPos = m_pos;
 	SetPos(m_pos);
@@ -59,16 +67,6 @@ void Bat::Init()
 void Bat::Update()
 {
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
-	float distanceSqr = 0.0f;
-	bool hasTargetDistance = false;
-	bool isMoving = false;
-
-	if (spTarget)
-	{
-		Math::Vector3 toTarget = spTarget->GetPos() - m_pos;
-		distanceSqr = toTarget.LengthSquared();
-		hasTargetDistance = true;
-	}
 
 	if (m_hitFlashFrame > 0)
 	{
@@ -105,7 +103,7 @@ void Bat::Update()
 
 		// プレイヤーまでの方向と距離を調べる。
 		Math::Vector3 toTarget = spTarget->GetPos() - m_pos;
-		distanceSqr = toTarget.LengthSquared();
+		const float distSq = toTarget.LengthSquared();
 
 		// プレイヤーが安全地帯に入ったら追跡をやめる。
 		if (isTargetInSafeArea)
@@ -115,11 +113,11 @@ void Bat::Update()
 		else
 		{
 			// 見つける前は小さい索敵範囲で判定する。
-			if (!m_isChasing && distanceSqr <= BatSearchRadius * BatSearchRadius)
+			if (!m_isChasing && distSq <= BatSearchRadius * BatSearchRadius)
 			{
 				m_isChasing = true;
 			}
-			else if (m_isChasing && distanceSqr > BatChaseRadius * BatChaseRadius)
+			else if (m_isChasing && distSq > BatChaseRadius * BatChaseRadius)
 			{
 				m_isChasing = false;
 			}
@@ -129,13 +127,12 @@ void Bat::Update()
 		if (m_isChasing)
 		{
 			// 距離がほぼ0だと正規化できないため、離れている時だけ進む。
-			if (distanceSqr > 0.0001f)
+			if (distSq > 0.0001f)
 			{
 				toTarget.Normalize();
 
 				// プレイヤーより少し遅い速度で近づく。
 				m_pos += toTarget * BatMoveSpeed;
-				isMoving = true;
 
 				// 移動方向に合わせてコウモリの向きを変える。
 				m_angle = atan2(toTarget.x, toTarget.z);
@@ -145,20 +142,18 @@ void Bat::Update()
 		{
 			// プレイヤーを見失った場合や安全地帯にいる場合は初期位置へ戻る。
 			Math::Vector3 toStart = m_startPos - m_pos;
-			float startDistanceSqr = toStart.LengthSquared();
-			float moveSpeedSqr = BatMoveSpeed * BatMoveSpeed;
+			float startDistSq = toStart.LengthSquared();
+			float moveSpeedSq = BatMoveSpeed * BatMoveSpeed;
 
 			// 初期位置までの距離が1フレームの移動量以下なら到着扱いにする。
-			if (startDistanceSqr <= moveSpeedSqr)
+			if (startDistSq <= moveSpeedSq)
 			{
-				isMoving = (startDistanceSqr > 0.0001f);
 				m_pos = m_startPos;
 			}
 			else
 			{
 				toStart.Normalize();
 				m_pos += toStart * BatMoveSpeed;
-				isMoving = true;
 
 				// 戻る時も移動方向に向きを合わせる。
 				m_angle = atan2(toStart.x, toStart.z);
@@ -173,15 +168,6 @@ void Bat::Update()
 	Math::Matrix rotMat = Math::Matrix::CreateRotationY(m_angle + DirectX::XM_PI);
 	Math::Matrix transMat = Math::Matrix::CreateTranslation(m_pos);
 	m_mWorld = scaleMat * rotMat * transMat;
-
-	const float animActiveRadiusSqr = BatAnimActiveRadius * BatAnimActiveRadius;
-	const bool isNearAnimRange = (!hasTargetDistance || distanceSqr <= animActiveRadiusSqr);
-	const bool shouldUpdateAnimThisFrame = isNearAnimRange && (++m_animUpdateFrame % BatNearAnimInterval == 0);
-
-	if (m_spModel && shouldUpdateAnimThisFrame)
-	{
-		m_animator.AdvanceTime(m_spModel->WorkNodes(), static_cast<float>(BatNearAnimInterval));
-	}
 }
 
 void Bat::DrawLit()
@@ -190,11 +176,11 @@ void Bat::DrawLit()
 
 	if (m_hitFlashFrame > 0)
 	{
-		KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld, BatHitColor, BatHitEmissive);
+		KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld, BatHitColor, BatHitEmissive);
 		return;
 	}
 
-	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld, kWhiteColor);
+	KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld, kWhiteColor);
 
 }
 
@@ -210,13 +196,16 @@ void Bat::GenerateDepthMapFromLight()
 		if (toTarget.LengthSquared() > BatShadowDrawRadius * BatShadowDrawRadius) { return; }
 	}
 
+	float range = 0.05;
+	Math::Vector3 color = { 1,0.3,0.3 };
+	KdShaderManager::Instance().m_StandardShader.SetDissolve(d, &range, &color);
+
 	// 遠いコウモリの影は見えにくいので描画せず、影用のモデル描画を減らす。
-	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld);
+	KdModelInstanceBatcher::Instance().SubmitDepth(m_spModel, m_mWorld);
 }
 
 void Bat::DrawEffect()
 {
-	// Bat uses the real shadow map, so no fake flattened shadow is drawn here.
 }
 
 void Bat::OnHit()
@@ -250,12 +239,3 @@ void Bat::OnHit(float damage)
 		}
 	}
 }
-
-
-
-
-
-
-
-
-

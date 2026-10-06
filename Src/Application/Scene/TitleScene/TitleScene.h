@@ -24,8 +24,8 @@ private :
 	std::shared_ptr<KdSoundInstance> m_titleBgm = nullptr;
 	std::shared_ptr<KdSoundInstance> m_exitClickSound = nullptr;
 
-	bool m_prevLeftClick = false;
-	bool m_prevDebugResetKey = false;
+	bool m_prevLeftDown = false;
+	bool m_prevResetDown = false;
 	bool m_isExitRequested = false;
 };
 

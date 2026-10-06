@@ -20,7 +20,7 @@ protected:
 
 	void PlayUIClickSound() const;
 	void DrawLevelUpSelectUI(const LevelUpSelectUITextureSet& textures) const;
-	int GetClickedLevelUpSelectIndex(bool isLeftClick, bool& prevLeftClick) const;
+	int GetClickedLevelUpSelectIndex(bool leftDown, bool& prevLeftDown) const;
 	void DrawVillageGuideUI(KdTexture* arrowTex, const Math::Vector3& playerPos, float hideRadius, KdCamera* camera) const;
 	void DrawCursorUI(KdTexture* cursorTex) const;
 };

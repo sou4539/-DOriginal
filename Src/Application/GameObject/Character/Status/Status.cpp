@@ -105,16 +105,16 @@ void Status::Init()
 	LoadProgress();
 
 	// 初回開始時は魔法を持っていないため、最初の魔法取得UIを開く。
-	if (!m_playerStatus.HasAnyMagic())
+	if (!m_stats.HasAnyMagic())
 	{
-		m_pendingLevelUpSelectCount = 1;
+		m_pendingChoices = 1;
 		OpenLevelUpSelect();
 	}
 }
 
 void Status::Update()
 {
-	if (m_isLevelUpSelect)
+	if (m_isChoosingMagic)
 	{
 		UpdateLevelUpSelect();
 	}
@@ -125,48 +125,48 @@ void Status::Update()
 void Status::UpdateDebugKeys()
 {
 	// デバッグ用：Qキーを押した瞬間にレベルアップさせる。
-	const bool isDebugLevelUpKey = (GetAsyncKeyState('Q') & 0x8000);
-	if (isDebugLevelUpKey && !m_prevDebugLevelUpKey)
+	const bool levelUpDown = (GetAsyncKeyState('Q') & 0x8000);
+	if (levelUpDown && !m_prevLevelUpDown)
 	{
-		const int levelUpCount = m_playerStatus.AddExp(m_playerStatus.GetNextExp());
+		const int levelUpCount = m_stats.AddExp(m_stats.GetNextExp());
 		if (levelUpCount > 0)
 		{
-			m_pendingLevelUpSelectCount += levelUpCount;
+			m_pendingChoices += levelUpCount;
 			OpenLevelUpSelect();
 		}
 		SaveProgress();
 	}
-	m_prevDebugLevelUpKey = isDebugLevelUpKey;
+	m_prevLevelUpDown = levelUpDown;
 
 	// デバッグ用：F5キーで現在の進行状況を保存する。
-	const bool isDebugSaveKey = (GetAsyncKeyState(VK_F5) & 0x8000);
-	if (isDebugSaveKey && !m_prevDebugSaveKey)
+	const bool saveDown = (GetAsyncKeyState(VK_F5) & 0x8000);
+	if (saveDown && !m_prevSaveDown)
 	{
 		SaveProgress();
 	}
-	m_prevDebugSaveKey = isDebugSaveKey;
+	m_prevSaveDown = saveDown;
 
 	// デバッグ用：F9キーで進行状況を初期状態へ戻す。
-	const bool isDebugResetKey = (GetAsyncKeyState(VK_F9) & 0x8000);
-	if (isDebugResetKey && !m_prevDebugResetKey)
+	const bool resetDown = (GetAsyncKeyState(VK_F9) & 0x8000);
+	if (resetDown && !m_prevResetDown)
 	{
 		ResetProgress();
 	}
-	m_prevDebugResetKey = isDebugResetKey;
+	m_prevResetDown = resetDown;
 
 	// デバッグ用：KキーでプレイヤーHPを0にする。
-	const bool isDebugKillKey = (GetAsyncKeyState('K') & 0x8000);
-	if (isDebugKillKey && !m_prevDebugKillKey)
+	const bool killDown = (GetAsyncKeyState('K') & 0x8000);
+	if (killDown && !m_prevKillDown)
 	{
 		KillPlayerForDebug();
 	}
-	m_prevDebugKillKey = isDebugKillKey;
+	m_prevKillDown = killDown;
 }
 
 // HPバーの描画処理。
 void Status::DrawSprite()
 {
-	if (m_isLevelUpSelect)
+	if (m_isChoosingMagic)
 	{
 		DrawLevelUpSelect();
 	}
@@ -191,19 +191,19 @@ void Status::DrawSprite()
 			{ 0.0f, 0.0f }
 		);
 
-		float hpRate = 0.0f;
-		if (m_playerStatus.GetMaxHp() > 0.0f)
+		float hpRatio = 0.0f;
+		if (m_stats.GetMaxHp() > 0.0f)
 		{
-			hpRate = m_playerStatus.GetHp() / m_playerStatus.GetMaxHp();
+			hpRatio = m_stats.GetHp() / m_stats.GetMaxHp();
 		}
-		hpRate = std::clamp(hpRate, 0.0f, 1.0f);
+		hpRatio = std::clamp(hpRatio, 0.0f, 1.0f);
 
 		const int innerX = barX + HpGaugeOffsetX;
 		const int innerY = barY + HpGaugeOffsetY;
 		const int innerW = HpGaugeW;
 		const int innerH = HpGaugeH;
 
-		const int hideW = static_cast<int>(innerW * (1.0f - hpRate));
+		const int hideW = static_cast<int>(innerW * (1.0f - hpRatio));
 		if (hideW > 0)
 		{
 			const int hideCenterX = innerX + innerW - (hideW / 2);
@@ -222,10 +222,10 @@ void Status::DrawSprite()
 	}
 
 	DrawExpBar();
-	DrawNumber(m_playerStatus.GetLevel(), LevelNumberX, LevelNumberY, NumberDrawW, NumberDrawH);
+	DrawNumber(m_stats.GetLevel(), LevelNumberX, LevelNumberY, NumberDrawW, NumberDrawH);
 	DrawVillageGuide();
 
-	if (m_isLevelUpSelect)
+	if (m_isChoosingMagic)
 	{
 		DrawCursor();
 	}
@@ -249,16 +249,16 @@ void Status::DrawExpBar()
 		{ 0.0f, 0.0f }
 	);
 
-	float expRate = 0.0f;
-	if (m_playerStatus.GetNextExp() > 0.0f)
+	float expRatio = 0.0f;
+	if (m_stats.GetNextExp() > 0.0f)
 	{
-		expRate = m_playerStatus.GetExp() / m_playerStatus.GetNextExp();
+		expRatio = m_stats.GetExp() / m_stats.GetNextExp();
 	}
-	expRate = std::clamp(expRate, 0.0f, 1.0f);
+	expRatio = std::clamp(expRatio, 0.0f, 1.0f);
 
 	const int innerX = ExpBarX + ExpGaugeOffsetX;
 	const int innerY = ExpBarY + ExpGaugeOffsetY;
-	const int fillW = static_cast<int>(ExpGaugeW * expRate);
+	const int fillW = static_cast<int>(ExpGaugeW * expRatio);
 	const int hideW = ExpGaugeW - fillW;
 
 	if (fillW > 0)
@@ -298,12 +298,12 @@ void Status::DrawNumber(int value, int x, int y, int drawW, int drawH)
 	std::string text = std::to_string(value);
 	for (int i = 0; i < static_cast<int>(text.size()); ++i)
 	{
-		const int number = text[i] - '0';
-		if (number < 0 || number > 9) { continue; }
+		const int digit = text[i] - '0';
+		if (digit < 0 || digit > 9) { continue; }
 
 		Math::Rectangle srcRect =
 		{
-			number * NumberSrcW,
+			digit * NumberSrcW,
 			0,
 			NumberSrcW,
 			NumberSrcH
@@ -342,31 +342,31 @@ void Status::DrawLevelUpSelect()
 {
 	LevelUpSelectUITextureSet textures;
 	textures.back = m_levelUpBackTex.get();
-	textures.icons[0] = m_playerStatus.HasFire() ? m_fireUpTex.get() : m_fireGetTex.get();
-	textures.icons[1] = m_playerStatus.HasIce() ? m_iceUpTex.get() : m_iceGetTex.get();
-	textures.icons[2] = m_playerStatus.HasVolt() ? m_voltUpTex.get() : m_voltGetTex.get();
+	textures.icons[0] = m_stats.HasFire() ? m_fireUpTex.get() : m_fireGetTex.get();
+	textures.icons[1] = m_stats.HasIce() ? m_iceUpTex.get() : m_iceGetTex.get();
+	textures.icons[2] = m_stats.HasVolt() ? m_voltUpTex.get() : m_voltGetTex.get();
 
 	DrawLevelUpSelectUI(textures);
 }
 
 void Status::UpdateLevelUpSelect()
 {
-	const bool isLeftClick = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
-	const int selectIndex = GetClickedLevelUpSelectIndex(isLeftClick, m_prevLeftClick);
+	const bool leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000);
+	const int choice = GetClickedLevelUpSelectIndex(leftDown, m_prevLeftDown);
 
-	if (selectIndex == 0)
+	if (choice == 0)
 	{
 		PlayUIClickSound();
 		EnhanceFire();
 		CloseLevelUpSelect();
 	}
-	else if (selectIndex == 1)
+	else if (choice == 1)
 	{
 		PlayUIClickSound();
 		EnhanceIce();
 		CloseLevelUpSelect();
 	}
-	else if (selectIndex == 2)
+	else if (choice == 2)
 	{
 		PlayUIClickSound();
 		EnhanceVolt();
@@ -376,21 +376,21 @@ void Status::UpdateLevelUpSelect()
 
 void Status::OpenLevelUpSelect()
 {
-	if (m_pendingLevelUpSelectCount <= 0) { return; }
+	if (m_pendingChoices <= 0) { return; }
 
-	m_isLevelUpSelect = true;
+	m_isChoosingMagic = true;
 }
 
 void Status::CloseLevelUpSelect()
 {
-	if (m_pendingLevelUpSelectCount > 0)
+	if (m_pendingChoices > 0)
 	{
-		--m_pendingLevelUpSelectCount;
+		--m_pendingChoices;
 	}
 
-	m_isLevelUpSelect = m_pendingLevelUpSelectCount > 0;
+	m_isChoosingMagic = m_pendingChoices > 0;
 
-	if (!m_isLevelUpSelect)
+	if (!m_isChoosingMagic)
 	{
 		std::shared_ptr<CameraBase> spCamera = m_camera.lock();
 		if (spCamera)
@@ -402,39 +402,39 @@ void Status::CloseLevelUpSelect()
 
 void Status::EnhanceFire()
 {
-	if (m_playerStatus.HasFire())
+	if (m_stats.HasFire())
 	{
-		m_playerStatus.EnhanceFire();
+		m_stats.EnhanceFire();
 	}
 	else
 	{
-		m_playerStatus.UnlockFire();
+		m_stats.UnlockFire();
 	}
 	SaveProgress();
 }
 
 void Status::EnhanceIce()
 {
-	if (m_playerStatus.HasIce())
+	if (m_stats.HasIce())
 	{
-		m_playerStatus.EnhanceIce();
+		m_stats.EnhanceIce();
 	}
 	else
 	{
-		m_playerStatus.UnlockIce();
+		m_stats.UnlockIce();
 	}
 	SaveProgress();
 }
 
 void Status::EnhanceVolt()
 {
-	if (m_playerStatus.HasVolt())
+	if (m_stats.HasVolt())
 	{
-		m_playerStatus.EnhanceVolt();
+		m_stats.EnhanceVolt();
 	}
 	else
 	{
-		m_playerStatus.UnlockVolt();
+		m_stats.UnlockVolt();
 	}
 	SaveProgress();
 }
@@ -442,26 +442,26 @@ void Status::EnhanceVolt()
 // プレイヤーHPを減らす処理。
 void Status::DamagePlayer(float damage)
 {
-	m_playerStatus.Damage(damage);
+	m_stats.Damage(damage);
 }
 
 // プレイヤーHPを最大まで戻す処理。
 void Status::ResetPlayerHp()
 {
-	m_playerStatus.ResetHp();
+	m_stats.ResetHp();
 }
 
 // 経験値を加算する処理。
 void Status::AddExp(float exp)
 {
-	const int levelUpCount = m_playerStatus.AddExp(exp);
+	const int levelUpCount = m_stats.AddExp(exp);
 	if (levelUpCount <= 0)
 	{
 		SaveProgress();
 		return;
 	}
 
-	m_pendingLevelUpSelectCount += levelUpCount;
+	m_pendingChoices += levelUpCount;
 	OpenLevelUpSelect();
 	SaveProgress();
 }
@@ -470,7 +470,7 @@ void Status::SaveProgress()
 {
 	std::filesystem::create_directories("Save");
 
-	const PlayerStatus::SaveData data = m_playerStatus.GetSaveData();
+	const PlayerStatus::SaveData data = m_stats.GetSaveData();
 	std::ofstream file(ProgressSavePath);
 	if (!file) { return; }
 
@@ -524,13 +524,13 @@ void Status::LoadProgress()
 		data.hasVolt = hasVolt;
 	}
 
-	m_playerStatus.ApplySaveData(data);
+	m_stats.ApplySaveData(data);
 }
 
 void Status::ResetProgress()
 {
-	m_playerStatus.Reset();
-	m_pendingLevelUpSelectCount = 1;
+	m_stats.Reset();
+	m_pendingChoices = 1;
 	OpenLevelUpSelect();
 
 	std::error_code error;
@@ -539,7 +539,7 @@ void Status::ResetProgress()
 
 void Status::KillPlayerForDebug()
 {
-	m_playerStatus.Damage(m_playerStatus.GetMaxHp());
+	m_stats.Damage(m_stats.GetMaxHp());
 }
 
 bool Status::HasMagic(MagicType type) const
@@ -547,11 +547,11 @@ bool Status::HasMagic(MagicType type) const
 	switch (type)
 	{
 	case MagicType::Fire:
-		return m_playerStatus.HasFire();
+		return m_stats.HasFire();
 	case MagicType::Ice:
-		return m_playerStatus.HasIce();
+		return m_stats.HasIce();
 	case MagicType::Volt:
-		return m_playerStatus.HasVolt();
+		return m_stats.HasVolt();
 	default:
 		return false;
 	}
