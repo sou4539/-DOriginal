@@ -15,6 +15,8 @@
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::BeginLit()
 {
+	// ディザ用の点模様を描画開始時に戻す。
+	if (m_ditherTex) { SetDitherTexture(*m_ditherTex); }
 	// 頂点シェーダーのパイプライン変更
 	if (KdShaderManager::Instance().SetVertexShader(m_VS_Lit))
 	{
@@ -62,6 +64,7 @@ void KdStandardShader::EndLit()
 // インスタンシング描画16
 void KdStandardShader::BeginLitInstanced()
 {
+	if (m_ditherTex) { SetDitherTexture(*m_ditherTex); }
 	// インスタンシング用頂点シェーダーと入力レイアウトを設定
 	if
 		(
@@ -973,6 +976,11 @@ bool KdStandardShader::Init()
 
 	SetDissolveTexture(*KdAssets::Instance().m_textures.GetData("Asset/Textures/System/WhiteNoise.png"));
 
+	// 点模様を起動時に読み込み、通常・一括描画で共有する。
+	m_ditherTex = KdAssets::Instance().m_textures.GetData("Asset/Textures/System/dot.png");
+	if (!m_ditherTex) { Release(); return false; }
+	SetDitherTexture(*m_ditherTex);
+
 
 	return true;
 }
@@ -983,6 +991,10 @@ bool KdStandardShader::Init()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::Release()
 {
+	m_ditherTex.reset();
+	m_normalTextureOverride.reset();
+	m_overrideNormalTexture = false;
+	m_baseColorTextureOverride.reset();
 	KdSafeRelease(m_VS_Lit);
 
 	// インスタンシング描画14
@@ -1099,9 +1111,15 @@ void KdStandardShader::WriteMaterial(const KdMaterial& material, const Math::Vec
 	ID3D11ShaderResourceView* srvs[4];
 
 	srvs[0] = material.m_baseColorTex ? material.m_baseColorTex->WorkSRView() : KdDirect3D::Instance().GetWhiteTex()->WorkSRView();
+	// モデルの共有データを触らず、この描画の色画像だけ置き換える。
+	if (m_baseColorTextureOverride) { srvs[0] = m_baseColorTextureOverride->WorkSRView(); }
 	srvs[1] = material.m_metallicRoughnessTex ? material.m_metallicRoughnessTex->WorkSRView() : KdDirect3D::Instance().GetWhiteTex()->WorkSRView();
 	srvs[2] = material.m_emissiveTex ? material.m_emissiveTex->WorkSRView() : KdDirect3D::Instance().GetWhiteTex()->WorkSRView();
 	srvs[3] = material.m_normalTex ? material.m_normalTex->WorkSRView() : KdDirect3D::Instance().GetNormalTex()->WorkSRView();
+	if (m_overrideNormalTexture)
+	{
+		srvs[3] = m_normalTextureOverride ? m_normalTextureOverride->WorkSRView() : KdDirect3D::Instance().GetNormalTex()->WorkSRView();
+	}
 
 	// セット
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(0, _countof(srvs), srvs);
@@ -1133,6 +1151,9 @@ void KdStandardShader::ConvertNormalsFor2D(std::vector<KdPolygon::Vertex>& targe
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::ResetCBObject()
 {
+	m_normalTextureOverride.reset();
+	m_overrideNormalTexture = false;
+	m_baseColorTextureOverride.reset();
 	m_cb0_Obj.Work() = cbObject();
 
 	m_cb0_Obj.Write();

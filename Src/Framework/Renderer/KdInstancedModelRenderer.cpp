@@ -14,6 +14,13 @@ namespace
 		return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
 	}
 
+	// 効果が異なる個体を同じ描画にまとめると見た目が混ざるため比較する。
+	bool IsSameEffects(const KdModelVisualEffects& a, const KdModelVisualEffects& b)
+	{
+		return a.RimLight == b.RimLight && IsSameVector(a.RimColor, b.RimColor) &&
+			a.RimPower == b.RimPower && a.AlphaDither == b.AlphaDither &&
+			a.Alpha == b.Alpha && a.DistanceFade == b.DistanceFade;
+	}
 	std::vector<KdStandardShader::InstanceData> MakeInstanceData(
 		const std::vector<Math::Matrix>& worlds,
 		size_t begin,
@@ -39,7 +46,7 @@ void KdModelInstanceBatcher::SubmitLit(
 	const Math::Matrix& world,
 	const Math::Color& color,
 	const Math::Vector3& emissive,
-	const float dissolve)
+	const float dissolve, const KdModelVisualEffects& effects)
 {
 	if (!model) { return; }
 
@@ -48,7 +55,7 @@ void KdModelInstanceBatcher::SubmitLit(
 		if (batch.Model.get() == model.get() &&
 			IsSameColor(batch.Color, color) &&
 			IsSameVector(batch.Emissive, emissive)&&
-			batch.Dissolve == dissolve)
+			batch.Dissolve == dissolve && IsSameEffects(batch.Effects, effects))
 		{
 			batch.Worlds.push_back(world);
 			return;
@@ -61,6 +68,7 @@ void KdModelInstanceBatcher::SubmitLit(
 	batch.Emissive = emissive;
 	batch.Worlds.push_back(world);
 	batch.Dissolve = dissolve;
+	batch.Effects = effects;
 	m_litStaticBatches.push_back(std::move(batch));
 }
 
@@ -69,7 +77,7 @@ void KdModelInstanceBatcher::SubmitLit(
 	const Math::Matrix& world,
 	const Math::Color& color,
 	const Math::Vector3& emissive,
-	const float dissolve
+	const float dissolve, const KdModelVisualEffects& effects
 )
 {
 	if (!model || !model->IsEnable()) { return; }
@@ -79,7 +87,7 @@ void KdModelInstanceBatcher::SubmitLit(
 		if (batch.Model.get() == model.get() &&
 			IsSameColor(batch.Color, color) &&
 			IsSameVector(batch.Emissive, emissive)&&
-			batch.Dissolve == dissolve)
+			batch.Dissolve == dissolve && IsSameEffects(batch.Effects, effects))
 		{
 			batch.Worlds.push_back(world);
 			return;
@@ -92,6 +100,7 @@ void KdModelInstanceBatcher::SubmitLit(
 	batch.Emissive = emissive;
 	batch.Worlds.push_back(world);
 	batch.Dissolve = dissolve;
+	batch.Effects = effects;
 	m_litSkinnedBatches.push_back(std::move(batch));
 }
 
@@ -150,6 +159,10 @@ void KdModelInstanceBatcher::FlushLit()
 		{
 			const size_t count = std::min<size_t>(KdStandardShader::MaxInstanceCount, batch.Worlds.size() - begin);
 			const auto instances = MakeInstanceData(batch.Worlds, begin, count);
+			// 描画の直前に保存した効果を戻す。無効なバッチには効果を引き継がない。
+			shader.SetLimLightEnable(batch.Effects.RimLight);
+			shader.SetLimLight(batch.Effects.RimColor, batch.Effects.RimPower);
+			shader.SetAlphaDither(batch.Effects.AlphaDither, batch.Effects.Alpha, batch.Effects.DistanceFade);
 			shader.SetDissolve(batch.Dissolve);
 			shader.DrawModelInstanced(*batch.Model, instances, batch.Color, batch.Emissive);
 		}
@@ -161,6 +174,10 @@ void KdModelInstanceBatcher::FlushLit()
 		{
 			const size_t count = std::min<size_t>(KdStandardShader::MaxInstanceCount, batch.Worlds.size() - begin);
 			const auto instances = MakeInstanceData(batch.Worlds, begin, count);
+			// 描画の直前に保存した効果を戻す。無効なバッチには効果を引き継がない。
+			shader.SetLimLightEnable(batch.Effects.RimLight);
+			shader.SetLimLight(batch.Effects.RimColor, batch.Effects.RimPower);
+			shader.SetAlphaDither(batch.Effects.AlphaDither, batch.Effects.Alpha, batch.Effects.DistanceFade);
 			shader.SetDissolve(batch.Dissolve);
 			shader.DrawModelInstanced(*batch.Model, instances, batch.Color, batch.Emissive);
 		}

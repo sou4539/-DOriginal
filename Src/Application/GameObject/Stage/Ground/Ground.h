@@ -11,6 +11,9 @@ public:
 	void Update() override;
 	void DrawLit() override;
 
+	// 色画像とノーマル画像をまとめて設定する。失敗時は元の設定を維持する。
+	bool SetGroundTextures(const std::string& colorFile, const std::string& normalFile = "");
+
 	// 地面表示の基準になる対象を設定する。
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{
@@ -19,6 +22,11 @@ public:
 
 private:
 	void Init() override;
+
+	// ステージごとの色画像。未指定ならモデルに付属する画像を使う。
+	std::shared_ptr<KdTexture> m_groundTexture;
+	// 地面の色画像と、凹凸を表現するノーマルマップ。
+	std::shared_ptr<KdTexture> m_groundNormalTexture;
 
 	// 地面の表示サイズ。
 	float m_groundScale = 100.0f;

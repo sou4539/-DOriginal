@@ -13,8 +13,7 @@ namespace
 	constexpr float BatMoveSpeed = 0.11f;
 	constexpr int BatHitFlashFrame = 5;
 	constexpr int BatNearAnimInterval = 2;
-	const Math::Color BatHitColor = Math::Color(5.0f, 0.05f, 0.05f, 1.0f);
-	const Math::Vector3 BatHitEmissive = Math::Vector3(1.2f, 0.0f, 0.0f);
+	const Math::Vector3 BatHitRimColor = { 3.0f, 0.1f, 0.1f };
 
 }
 
@@ -87,7 +86,7 @@ void Bat::Update()
 	}
 
 	// デバッグ表示がONで、近くにいる時だけ索敵範囲を作る。
-	if (m_pDebugWire && KdDebugWireFrame::IsEnable())
+	if (m_pDebugWire && KdDebugWireFrame::IsEnable() && !AlwaysChases())
 	{
 		bool canDrawDebug = true;
 		if (spTarget)
@@ -119,7 +118,11 @@ void Bat::Update()
 		const float distSq = toTarget.LengthSquared();
 
 		// プレイヤーが安全地帯に入ったら追跡をやめる。
-		if (isTargetInSafeArea)
+		if (AlwaysChases())
+		{
+			m_isChasing = true;
+		}
+		else if (isTargetInSafeArea)
 		{
 			m_isChasing = false;
 		}
@@ -190,7 +193,14 @@ void Bat::DrawLit()
 
 	if (m_hitFlashFrame > 0)
 	{
-		KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld, BatHitColor, BatHitEmissive, d);
+		// モデル本来の色を残し、被弾した5フレームだけ輪郭を赤く光らせる。
+		// 一括描画なので、効果はシェーダーへ直接設定せず登録情報に保存する。
+		KdModelVisualEffects effects;
+		effects.RimLight = true;
+		effects.RimColor = BatHitRimColor;
+		effects.RimPower = 2.0f;
+		KdModelInstanceBatcher::Instance().SubmitLit(
+			m_spModel, m_mWorld, kWhiteColor, Math::Vector3::Zero, d, effects);
 		return;
 	}
 	float range = 0.05;
@@ -260,7 +270,22 @@ void Bat::OnHit(float damage)
 		std::shared_ptr<Status> spStatus = m_wpStatus.lock();
 		if (spStatus)
 		{
+			// 経験値を加算する。
 			spStatus->AddExp(m_exp);
+
+			// コウモリを倒した数を加算する。
+			if (CountsAsGrassBat()) { spStatus->AddKillBatCount(); }
 		}
+		// 死亡状態に入った後に一度だけ通知する。報酬は強化前の値で渡す。
+		OnDefeated();
 	}
+}
+
+void Bat::SetCombatStats(float maxHp, float experience)
+{
+	if (!CanBeTargeted()) { return; }
+	const float healthRate = m_hp / m_maxHp;
+	m_maxHp = maxHp;
+	m_hp = maxHp * healthRate;
+	m_exp = experience;
 }

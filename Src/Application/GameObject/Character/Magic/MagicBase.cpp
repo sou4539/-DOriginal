@@ -10,6 +10,8 @@ namespace
 	// 2.5DOriginalのdと同じ考え方。
 	constexpr float MagicChantSpeed = 0.05f;
 	constexpr float MagicHitCheckMargin = 3.0f;
+	constexpr float ChantCircleScale = 0.06f;
+	constexpr float ChantCircleRotationSpeed = 0.08f;
 }
 
 void MagicBase::Init()
@@ -73,6 +75,7 @@ void MagicBase::UpdateChant()
 
 	// 詠唱中は2.5DOriginalと同じく、値を1.0から0.0へ減らしていく。
 	m_chant -= m_chantSpeed;
+	m_chantCircleAngle += ChantCircleRotationSpeed;
 
 	UpdateChantMagic();
 
@@ -245,6 +248,16 @@ void MagicBase::DrawLit()
 	KdShaderManager::Instance().m_StandardShader.SetDissolve(0.0f);
 }
 
+void MagicBase::DrawEffect()
+{
+	if (m_state != MagicState::Chant || m_isExpired || !m_spChantCircle) { return; }
+
+	const Math::Matrix world = Math::Matrix::CreateScale(ChantCircleScale)
+		* Math::Matrix::CreateRotationY(m_chantCircleAngle)
+		* Math::Matrix::CreateTranslation(m_pos + Math::Vector3(0.0f, -0.1f, 0.0f));
+	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spChantCircle, world);
+}
+
 void MagicBase::Shot(const MagicShotParams& params)
 {
 	// 共通データを弾へ保存する。paramsへの参照そのものは保持しない。
@@ -274,6 +287,12 @@ void MagicBase::Shot(const MagicShotParams& params)
 
 	// 専用設定を先に済ませる。雷は連鎖弾かどうかで画像が変わるため順序が重要。
 	const bool skipChant = ConfigureShot(params);
+	m_chantCircleAngle = 0.0f;
+	if (!skipChant && !m_spChantCircle)
+	{
+		m_spChantCircle = std::make_shared<KdModelWork>();
+		m_spChantCircle->SetModelData("Asset/Models/Objects/GameObjects/Warp/WarpMagic.gltf");
+	}
 	SetupMagic();
 
 	// 画像・寿命を準備してから即時発射する。通常弾は詠唱状態のまま待つ。

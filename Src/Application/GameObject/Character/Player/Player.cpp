@@ -2,16 +2,20 @@
 
 #include "../../Camera/CameraBase.h"
 #include "../Status/Status.h"
+#include "../Enemy/EnemyBase.h"
 #include "../../../Scene/SceneManager.h"
+
+#include<cmath>
 
 namespace
 {
-	constexpr float PlayerMoveSpeed = 0.1f;
+	constexpr float PlayerMoveSpeed = 0.15f;
 	constexpr float PlayerDamageRadius = 1.2f;
 	constexpr float PlayerDamageSphereHeight = 1.5f;
 	constexpr float BatContactDamage = 5.0f;
 	constexpr float HitInvincibleFrames = 60.0f;
 	constexpr float RespawnInvincibleFrames = 120.0f;
+	constexpr int PlayerHitFlashFrames = 12;
 
 	const Math::Vector3 DefaultRespawnPos = { -30.0f, 0.0f, 0.0f };
 }
@@ -34,12 +38,28 @@ void Player::Init()
 	SetPos(m_pos);
 }
 
-void Player::GenerateDepthMapFromLight()
+void Player::DrawLit()
 {
 	if (!m_spModel) { return; }
 
+	auto& shader = KdShaderManager::Instance().m_StandardShader;
+	// 接触ダメージを受けた直後だけ赤い輪郭を表示する。
+	// DrawModel終了時に設定が戻るため、影や他のキャラクターには伝わらない。
+	shader.SetLimLightEnable(m_hitFlashFrames > 0);
+	if (m_hitFlashFrames > 0)
+	{
+		shader.SetLimLight({ 3.0f, 0.1f, 0.1f }, 2.0f);
+	}
+	shader.DrawModel(*m_spModel, FlyMat());
+}
+
+void Player::GenerateDepthMapFromLight()
+{
+	if (!m_spModel) { return; }
+	auto& shader = KdShaderManager::Instance().m_StandardShader;
+
 	// 通常描画と同じモデル行列で描くことで、見た目と同じ形の影を作る。
-	KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, m_mWorld);
+	shader.DrawModel(*m_spModel, FlyMat());
 }
 void Player::DrawEffect()
 {
@@ -59,11 +79,36 @@ void Player::Update()
 	CharaBase::Update();
 
 	UpdateInvincible();
+	if (m_hitFlashFrames > 0) { --m_hitFlashFrames; }
 	if (m_canMove)
 	{
 		UpdateMove();
 	}
 	UpdateWorldMatrix();
+
+	m_FlyAngle += DirectX::XM_2PI / 120.0f;
+	if (m_FlyAngle >= DirectX::XM_2PI)
+	{
+		m_FlyAngle -= DirectX::XM_2PI;
+	}
+}
+
+// KdDebugGUIのNewFrameとRenderの間で呼び出す。
+void Player::DrawDebugGui()
+{
+	// 現在位置を確認するためのデバッグウィンドウ。
+	ImGui::Begin("Player Position");
+
+	const Math::Vector3 pos = GetPos();
+	ImGui::Text("X: %.3f  Y: %.3f  Z: %.3f", pos.x, pos.y, pos.z);
+
+	if (ImGui::Button("Set Spawn Position"))
+	{
+		// 現在位置を復活位置として登録する。
+		SetRespawnPos(pos);
+	}
+
+	ImGui::End();
 }
 
 // 無敵時間を更新する。
@@ -187,10 +232,13 @@ void Player::UpdateDamageCollision()
 		if (spObj->Intersects(sphereInfo, &hits))
 		{
 			// 敵に触れたのでプレイヤーHPを減らす。
-			spStatus->DamagePlayer(BatContactDamage);
+			// 敵ごとの接触ダメージを使う。草原のコウモリは従来どおり5。
+			auto enemy = std::dynamic_pointer_cast<EnemyBase>(spObj);
+			spStatus->DamagePlayer(enemy ? enemy->GetContactDamage() : BatContactDamage);
 
 			// 次のダメージまで少し待つ。
 			m_invincibleFrames = HitInvincibleFrames;
+			m_hitFlashFrames = PlayerHitFlashFrames;
 
 			// 1体でも触れていたら今回の判定は終わる。
 			break;
@@ -220,10 +268,20 @@ void Player::RespawnIfDead()
 
 	// 復活直後に敵へ触れていても、すぐダメージを受けないようにする。
 	m_invincibleFrames = RespawnInvincibleFrames;
+	m_hitFlashFrames = 0;
 }
 
 void Player::UpdateSafeAreaFlag()
 {
+	if (m_useSafeAreaBox)
+	{
+		// 足元の座標が箱の内側なら安全。四隅も含めて判定する。
+		const Math::Vector3 offset = GetPos() - m_safeAreaCenter;
+		const Math::Vector3 halfSize = m_safeAreaBoxSize * 0.5f;
+		m_isInSafeArea = std::abs(offset.x) <= halfSize.x &&
+			std::abs(offset.y) <= halfSize.y && std::abs(offset.z) <= halfSize.z;
+		return;
+	}
 	// 半径が0以下なら安全地帯は未設定として扱う。
 	if (m_safeAreaRadius <= 0.0f)
 	{
@@ -237,6 +295,19 @@ void Player::UpdateSafeAreaFlag()
 
 	float distSq = toPlayer.LengthSquared();
 	m_isInSafeArea = distSq <= m_safeAreaRadius * m_safeAreaRadius;
+}
+
+Math::Matrix Player::FlyMat() const
+{
+	// プレイヤーの浮遊処理(見た目だけ)
+	const float flyHeight = 0.4f + std::sin(m_FlyAngle) * 0.1f;
+
+	Math::Matrix drawMat = m_mWorld;
+	Math::Vector3 pos = drawMat.Translation();
+	pos.y += flyHeight;
+	drawMat.Translation(pos);
+
+	return drawMat;
 }
 
 

@@ -1,6 +1,8 @@
 ﻿#include "../../../Application/main.h"
 
 #include "KdDebugGUI.h"
+#include "../../../Application/Scene/SceneManager.h"
+#include "../../../Application/GameObject/Character/Player/Player.h"
 
 KdDebugGUI::KdDebugGUI()
 {}
@@ -49,6 +51,12 @@ void KdDebugGUI::GuiProcess()
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
+
+	// ImGuiはフレーム開始後に描画する。Update内のBeginはAssertionになる。
+	for (const auto& object : SceneManager::Instance().GetObjList())
+	{
+		if (object) { object->DrawDebugGui(); }
+	}
 
 	//===========================================================
 	// 以下にImGui描画処理を記述

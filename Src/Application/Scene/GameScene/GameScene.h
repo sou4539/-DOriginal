@@ -29,6 +29,7 @@ public:
 private:
 	void Init() override;
 	void ChangeStage();
+	std::shared_ptr<GameStageBase> CreateGrassStage(bool returning);
 	// Statusをステージより長く保持し、HP・育成状態を引き継ぐ。
 	std::shared_ptr<Status> m_status;
 	std::shared_ptr<GameStageBase> m_stage;

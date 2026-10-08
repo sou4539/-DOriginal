@@ -20,8 +20,7 @@ namespace
 }
 
 void StaffBase::Init()
-{
-}
+{}
 
 void StaffBase::Update()
 {
@@ -38,6 +37,16 @@ void StaffBase::Update()
 	}
 
 	UpdateAroundTarget(spTarget);
+
+	// 杖が光るかどうかを確認
+	if (m_lightEnable)
+	{
+		KdShaderManager::Instance().WorkAmbientController().AddPointLight(
+			Math::Vector3(4.0f, 3.7f, 3.2f), // 光を強くする
+			20.0f,                          // 届く範囲を広げる
+			GetPos() + Math::Vector3(0, 1.5f, 0));
+	}
+
 	UpdateMagicAttack(spTarget);
 }
 
@@ -171,8 +180,8 @@ std::shared_ptr<KdGameObject> StaffBase::SearchEnemy(const std::shared_ptr<KdGam
 			continue;
 		}
 		if (!spEnemy->CanBeTargeted())
-		{ 
-			continue; 
+		{
+			continue;
 		}
 
 		Math::Vector3 toEnemy = spEnemy->GetPos() - spPlayer->GetPos();
@@ -204,9 +213,9 @@ StaffBase::StaffLayoutInfo StaffBase::GetLayoutInfo() const
 	}
 
 	std::sort(unlockedStaffs.begin(), unlockedStaffs.end(), [](const StaffBase* a, const StaffBase* b)
-	{
-		return a->GetMagicOrder() < b->GetMagicOrder();
-	});
+		{
+			return a->GetMagicOrder() < b->GetMagicOrder();
+		});
 
 	StaffLayoutInfo info;
 	info.count = static_cast<int>(unlockedStaffs.size());

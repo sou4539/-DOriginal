@@ -280,6 +280,7 @@
     <ClInclude Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Castle\NoneCastle.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\GrudgeBat.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UI.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.h" />
@@ -300,6 +301,7 @@
     <ClInclude Include="Src\Application\GameObject\Stage\Tree\Tree.h" />
     <ClInclude Include="Src\Application\GameObject\Stage\Village\Village.h" />
     <ClInclude Include="Src\Application\GameObject\Stage\Castle\Castle.h" />
+    <ClInclude Include="Src\Application\GameObject\Stage\Castle\CastleSafeArea.h" />
     <ClInclude Include="Src\Application\main.h" />
     <ClInclude Include="Src\Application\Scene\BaseScene\BaseScene.h" />
     <ClInclude Include="Src\Application\Scene\GameScene\GameScene.h" />
@@ -363,6 +365,7 @@
     <ClCompile Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Castle\NoneCastle.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.cpp" />
+    <ClCompile Include="Src\Application\GameObject\Character\Enemy\Bat\GrudgeBat.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.cpp" />
     <ClCompile Include="Src\Application\GameObject\UI\UI.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.cpp" />

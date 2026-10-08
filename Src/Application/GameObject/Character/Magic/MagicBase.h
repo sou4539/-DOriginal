@@ -55,6 +55,7 @@ public:
 	void Update();
 	void PostUpdate();
 	void DrawLit() override;
+	void DrawEffect() override;
 
 	// 全魔法共通の入口。派生クラスではShotを再定義しない。
 	// 共通設定 → 専用設定 → 画像・寿命設定 → 即時発射判定、の順序を保証する。
@@ -116,6 +117,9 @@ protected:
 	// 音再生の共通入口。
 	void PlayShotSound();
 	void PlayHitSound();
+
+	std::shared_ptr<KdModelWork> m_spChantCircle;
+	float m_chantCircleAngle = 0.0f;
 
 	MagicState m_state = MagicState::Chant;
 

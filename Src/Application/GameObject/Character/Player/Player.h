@@ -16,6 +16,12 @@ public:
 	// 毎フレームの通常更新。
 	void Update() override;
 
+	// 被弾直後だけ輪郭を光らせて、モデルを描画する。
+	void DrawLit() override;
+
+	// ImGuiのフレーム開始後に呼ぶ。Updateから直接呼ばない。
+	void DrawDebugGui() override;
+
 	// 影を落とすため、ライト視点の深度マップへプレイヤーモデルを描画する。
 	void GenerateDepthMapFromLight() override;
 
@@ -46,6 +52,7 @@ public:
 	// 村の安全地帯スフィアを設定する。
 	void SetSafeArea(const Math::Vector3& center, float radius)
 	{
+		m_useSafeAreaBox = false;
 		m_safeAreaCenter = center;
 		m_safeAreaRadius = radius;
 
@@ -56,6 +63,15 @@ public:
 
 	// プレイヤーが安全地帯にいるか返す。
 	bool IsInSafeArea() const { return m_isInSafeArea; }
+
+	// 城の安全地帯。sizeは半径ではなく、箱全体の幅・高さ・奥行き。
+	void SetSafeAreaBox(const Math::Vector3& center, const Math::Vector3& size)
+	{
+		m_useSafeAreaBox = true;
+		m_safeAreaCenter = center;
+		m_safeAreaBoxSize = size;
+		UpdateSafeAreaFlag();
+	}
 
 	// プレイヤー操作の有効/無効を切り替える。
 	void SetControlEnable(bool enable) { m_canMove = enable; }
@@ -104,6 +120,9 @@ private:
 	// ダメージを受けた後の無敵時間。
 	float m_invincibleFrames = 0.0f;
 
+	// 見た目の被弾時間。無敵時間とは分け、復活時には光らせない。
+	int m_hitFlashFrames = 0;
+
 	// HPが0になった時に戻る村の中の座標。
 	Math::Vector3 m_respawnPos = Math::Vector3::Zero;
 
@@ -113,9 +132,15 @@ private:
 	// 村を覆う安全地帯スフィア。
 	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 0.0f;
+	bool m_useSafeAreaBox = false;
+	Math::Vector3 m_safeAreaBoxSize = Math::Vector3::Zero;
 
 	// trueならWASD入力で移動できる。
 	bool m_canMove = true;
+
+	// プレイヤーの浮遊処理(見た目だけ)
+	float m_FlyAngle = 0.0f;
+	Math::Matrix FlyMat() const;
 };
 
 

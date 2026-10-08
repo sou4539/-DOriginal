@@ -7,7 +7,7 @@ class SceneManager
 {
 public :
 
-	// �V�[�����
+	// シーンの種類。
 	enum class SceneType
 	{
 		Title,
@@ -23,40 +23,40 @@ public :
 	void DrawSprite();
 	void DrawDebug();
 
-	// ���̃V�[�����Z�b�g (���̃t���[������؂�ւ��)
+	// 次のシーンを予約する。切り替えは次のフレームの先頭で行う。
 	void SetNextScene(SceneType _nextScene)
 	{
 		m_nextSceneType = _nextScene;
 	}
 
-	// ���݂̃V�[���̃I�u�W�F�N�g���X�g���擾
+	// 現在のシーンのオブジェクト一覧を取得する。
 	const std::list<std::shared_ptr<KdGameObject>>& GetObjList();
 
 	void SetActiveEnemies(const std::vector<std::weak_ptr<EnemyBase>>& enemies);
 	const std::vector<std::weak_ptr<EnemyBase>>& GetActiveEnemies() const { return m_activeEnemies; }
 
-	// ���݂̃V�[���ɃI�u�W�F�N�g��ǉ�
+	// 現在のシーンにオブジェクトを追加する。
 	void AddObject(const std::shared_ptr<KdGameObject>& _obj);
 
 private :
 
-	// �}�l�[�W���[�̏�����
+	// シーン管理を初期化する。
 	void Init()
 	{
-		// �J�n�V�[���ɐ؂�ւ�
+		// 開始シーンを作成する。
 		ChangeScene(m_currentSceneType);
 	}
 
-	// �V�[���؂�ւ��֐�
+	// 指定された種類のシーンに切り替える。
 	void ChangeScene(SceneType _sceneType);
 
-	// ���݂̃V�[���̃C���X�^���X��ێ����Ă���|�C���^
+	// 現在のシーンを保持する共有ポインター。
 	std::shared_ptr<BaseScene> m_currentScene = nullptr;
 
-	// ���݂̃V�[���̎�ނ�ێ����Ă���ϐ�
+	// 現在のシーンの種類。
 	SceneType m_currentSceneType = SceneType::Title;
 	
-	// ���̃V�[���̎�ނ�ێ����Ă���ϐ�
+	// 次に切り替えるシーンの種類。
 	SceneType m_nextSceneType = m_currentSceneType;
 
 	std::vector<std::weak_ptr<EnemyBase>> m_activeEnemies;
@@ -68,7 +68,7 @@ private:
 
 public:
 
-	// �V���O���g���p�^�[��
+	// シーン管理を一か所で共有するための取得関数。
 	static SceneManager& Instance()
 	{
 		static SceneManager instance;

@@ -77,7 +77,8 @@ private:
 
 	int m_enemyLimit = 1;
 	int m_minEnemyCount = 1;
-	int m_maxEnemyCount = 100;
+	// 村から離れた場所で維持するコウモリの最大数。
+	int m_maxEnemyCount = 200;
 	float m_fullSpawnDistance = 250.0f;
 	float m_activeEnemyRadius = 100.0f;
 };

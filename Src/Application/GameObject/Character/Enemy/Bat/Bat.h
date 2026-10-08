@@ -56,6 +56,16 @@ public:
 		return !m_isExpired && m_hp > 0.0f;
 	}
 
+protected:
+	// 派生した怨念でも移動・被弾・ディゾルブを再利用する。
+	// HP上限が変わるときは残りHPの割合を維持し、全回復させない。
+	void SetCombatStats(float maxHp, float experience);
+	virtual bool CountsAsGrassBat() const { return true; }
+	virtual bool AlwaysChases() const { return false; }
+	virtual void OnDefeated() {}
+	float GetDissolveValue() const { return d; }
+	bool IsHitFlashing() const { return m_hitFlashFrame > 0; }
+
 private:
 	static std::shared_ptr<KdModelWork> s_spSharedModel;
 	static KdAnimator s_sharedAnimator;
@@ -81,6 +91,7 @@ private:
 	float m_damageRadius = 0.7f;
 	float m_moveSpeed = 0.11f;
 	float m_hp = 30.0f;
+	float m_maxHp = 30.0f;
 	float m_exp = 20.0f;
 
 	float d = 0.0f; // ディゾルブ値

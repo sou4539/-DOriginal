@@ -60,6 +60,24 @@ public:
 	bool HasMagic(MagicType type) const;
 	bool IsLevelUpSelect() const { return m_isChoosingMagic; }
 
+	// 倒したコウモリの数を加算する。
+	void AddKillBatCount()
+	{ 
+		++m_KillBatCount;
+	}
+
+	// 倒したコウモリの数を取得する。
+	int GetKillBatCount() const
+	{
+		return m_KillBatCount;
+	}
+	
+	// 倒したコウモリの数をリセットする。
+	void ResetKillBatCount()
+	{
+		m_KillBatCount = 0;
+	}
+
 private:
 	void SaveProgress();
 	void LoadProgress();
@@ -117,4 +135,8 @@ private:
 	bool m_prevResetDown = false;
 	bool m_prevKillDown = false;
 	bool m_prevLeftDown = false;
+
+	// 倒したコウモリの数
+	// これがそのまま敵の数にもなる
+	int m_KillBatCount = 0;
 };

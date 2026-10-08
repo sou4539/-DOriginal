@@ -25,6 +25,11 @@ public:
 		m_wpStatus = status;
 	}
 
+	void SetLightEnable(bool enable) 
+	{ 
+		m_lightEnable = enable; 
+	}
+
 protected:
 
 	// 杖ごとの魔法性能を設定する。
@@ -74,6 +79,8 @@ private:
 	float m_cooldownMax = 60.0f;
 	float m_searchRadius = 14.0f;
 
+	// 光るかどうか
+	bool m_lightEnable = false;
 };
 
 

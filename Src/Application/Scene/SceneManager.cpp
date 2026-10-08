@@ -6,7 +6,7 @@
 
 void SceneManager::PreUpdate()
 {
-	// �V�[���ؑ�
+	// 予約されたシーンへの切り替えを、更新処理の前に行う。
 	if (m_currentSceneType != m_nextSceneType)
 	{
 		ChangeScene(m_nextSceneType);
@@ -62,7 +62,7 @@ void SceneManager::AddObject(const std::shared_ptr<KdGameObject>& _obj)
 
 void SceneManager::ChangeScene(SceneType _sceneType)
 {
-	// ���̃V�[�����쐬���A���݂̃V�[���ɂ���
+	// 指定された種類のシーンを作り、現在のシーンとして保持する。
 	switch (_sceneType)
 	{
 	case SceneType::Title:
@@ -73,7 +73,7 @@ void SceneManager::ChangeScene(SceneType _sceneType)
 		break;
 	}
 
-	// ���݂̃V�[�������X�V
+	// 切り替え後のシーンの種類を記録する。
 	m_currentSceneType = _sceneType;
 	m_activeEnemies.clear();
 }

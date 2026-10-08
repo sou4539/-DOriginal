@@ -9,7 +9,7 @@
 namespace
 {
 	// 村の中心から城の原点までの水平距離。配置距離を変える場所。
-	constexpr float CastleDistance = 200.0f;
+	constexpr float CastleDistance = 1000.0f;
 	constexpr const char* PlacementPath = "Save/CastlePlacement.txt";
 
 	Math::Vector3 LoadOrCreatePosition(const Math::Vector3& center)
@@ -56,11 +56,17 @@ namespace
 NoneCastle::NoneCastle(const Math::Vector3& villageCenter)
 {
 	m_spModel = std::make_shared<KdModelWork>();
-	m_spModel->SetModelData("Asset/Models/Objects/Character/Castle/Castle.gltf");
+	m_spModel->SetModelData("Asset/Models/Objects/GameObjects/Castle/Castle.gltf");
 
-	// 外装モデルはまず等倍で配置。ボスマップ側の拡大率は流用しない。
-	m_mWorld = Math::Matrix::CreateTranslation(LoadOrCreatePosition(villageCenter));
-	// 今回は表示と配置のみ。当たり判定・入場処理は別途実装する。
+	// 草原の城の大きさ・向き・位置。描画と当たり判定で同じ行列を使う。
+	Math::Matrix scaleMat = Math::Matrix::CreateScale(10.0f);
+	Math::Matrix rotMat = Math::Matrix::CreateRotationY(DirectX::XMConvertToRadians(180.0f));
+	Math::Matrix transMat = Math::Matrix::CreateTranslation(LoadOrCreatePosition(villageCenter));
+	m_mWorld = scaleMat * rotMat * transMat;
+	// 城モデルの形状を壁の判定として登録する。
+	// TypeGroundはプレイヤーの押し戻し処理が調べる属性。
+	m_pCollider = std::make_unique<KdCollider>();
+	m_pCollider->RegisterCollisionShape("NoneCastle", m_spModel, KdCollider::TypeGround);
 }
 
 void NoneCastle::GenerateDepthMapFromLight()

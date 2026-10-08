@@ -3,7 +3,7 @@
 void IceStaff::Init()
 {
 	m_spModel = std::make_shared<KdModelWork>();
-	m_spModel->SetModelData("Asset/Models/Objects/Character/Staff/IceStaff.gltf");
+	m_spModel->SetModelData("Asset/Models/Objects/GameObjects/Staff/IceStaff.gltf");
 
 	// IceStaff用の魔法性能を設定する。
 

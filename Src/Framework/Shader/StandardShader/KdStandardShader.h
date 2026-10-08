@@ -41,6 +41,16 @@ public:
 		float			DissolveEdgeRange = 0.03f;	// 0 ～ 1
 
 		Math::Vector3	DissolveEmissive = { 1.0f, 0.0f, 0.0f };
+
+		// 16バイト単位でHLSL側と配置を一致させる。
+		int LimLightEnable = 0;
+		Math::Vector3 limLightColor = { 1, 1, 1 };
+		float limLightPow = 1.0f;
+		int DitherEnable = 0;
+		float DitherAlpha = 1.0f;
+		float DitherDistance = 5.0f;
+		Math::Vector3 DitherTarget = Math::Vector3::Zero;
+		float DitherRadius = 3.0f;
 	};
 
 	// 定数バッファ(メッシュ単位更新)
@@ -69,6 +79,61 @@ public:
 	//================================================
 	// 設定・取得
 	//================================================
+
+	// リムライト設定
+	// 次のモデルの色画像だけ差し替える。共有モデルのマテリアルは変更しない。
+	// nullptrなら元の画像を使い、DrawModel終了時に差し替えを解除する。
+	void SetBaseColorTextureOverride(const std::shared_ptr<KdTexture>& texture)
+	{
+		m_baseColorTextureOverride = texture;
+		m_dirtyCBObj = true;
+	}
+
+	// リムライト設定
+	// 授業サンプルと同じ名前で、輪郭の発光を設定する。
+	// 差し替え時にノーマル画像を省略した場合は、凹凸なしの画像を使う。
+	void SetNormalTextureOverride(const std::shared_ptr<KdTexture>& texture)
+	{
+		m_normalTextureOverride = texture;
+		m_overrideNormalTexture = true;
+		m_dirtyCBObj = true;
+	}
+
+	void SetLimLightEnable(bool enable) { m_cb0_Obj.Work().LimLightEnable = enable; m_dirtyCBObj = true; }
+	void SetLimLight(Math::Vector3 color, float power = 1.0f)
+	{
+		m_cb0_Obj.Work().limLightColor = color;
+		m_cb0_Obj.Work().limLightPow = std::max(power, 0.001f);
+		m_dirtyCBObj = true;
+	}
+	// alphaは残す割合。distanceFade=trueなら授業のカメラ距離による抜き方。
+	// wallsOnlyは距離による抜きを壁面に限定する。床・天井には適用しない。
+	void SetAlphaDither(bool enable, float alpha = 0.4f, bool distanceFade = false, bool wallsOnly = false)
+	{
+		m_cb0_Obj.Work().DitherEnable = enable ? (wallsOnly ? 3 : (distanceFade ? 2 : 1)) : 0;
+		m_cb0_Obj.Work().DitherAlpha = std::clamp(alpha, 0.0f, 1.0f);
+		m_dirtyCBObj = true;
+	}
+		// Limit wall fading to the view corridor ending before the player.
+	void SetWallDitherTarget(const Math::Vector3& target, float radius = 3.0f)
+	{
+		m_cb0_Obj.Work().DitherEnable = 4;
+		m_cb0_Obj.Work().DitherTarget = target;
+		m_cb0_Obj.Work().DitherRadius = std::max(radius, 0.01f);
+		m_dirtyCBObj = true;
+	}
+
+	void SetDitherTexture(KdTexture& texture)
+	{
+		KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(7, 1, texture.WorkSRViewAddress());
+	}
+
+	// 距離で抜く範囲を指定する。モデル描画後は既定値の5に戻る。
+	void SetAlphaDitherDistance(float distance)
+	{
+		m_cb0_Obj.Work().DitherDistance = std::max(distance, 0.0f);
+		m_dirtyCBObj = true;
+	}
 
 	// UVタイリング設定
 	void SetUVTiling(const Math::Vector2& tiling)
@@ -287,6 +352,10 @@ private:
 
 	// テクスチャ
 	std::shared_ptr<KdTexture>	m_dissolveTex = nullptr;	// ディゾルブで使用するデフォルトテクスチャ
+	std::shared_ptr<KdTexture> m_ditherTex; // 授業サンプルの点模様を保持する
+	std::shared_ptr<KdTexture> m_baseColorTextureOverride;
+	std::shared_ptr<KdTexture> m_normalTextureOverride;
+	bool m_overrideNormalTexture = false;
 
 	// 定数バッファ
 	KdConstantBuffer<cbObject>		m_cb0_Obj;				// オブジェクト単位で更新

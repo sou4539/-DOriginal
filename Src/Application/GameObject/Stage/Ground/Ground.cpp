@@ -1,8 +1,33 @@
-#include "Ground.h"
+﻿#include "Ground.h"
+
+bool Ground::SetGroundTextures(const std::string& colorFile, const std::string& normalFile)
+{
+	// 空文字ならモデルに付属する画像へ戻す。
+	if (colorFile.empty())
+	{
+		if (!normalFile.empty()) { return false; }
+		m_groundTexture.reset();
+		m_groundNormalTexture.reset();
+		return true;
+	}
+
+	// 2枚とも読み込めてから反映する。片方が失敗しても現在の床を維持する。
+	auto colorTexture = std::make_shared<KdTexture>();
+	if (!colorTexture->Load(colorFile)) { return false; }
+	std::shared_ptr<KdTexture> normalTexture;
+	if (!normalFile.empty())
+	{
+		normalTexture = std::make_shared<KdTexture>();
+		if (!normalTexture->Load(normalFile)) { return false; }
+	}
+	m_groundTexture = colorTexture;
+	m_groundNormalTexture = normalTexture;
+	return true;
+}
 
 void Ground::Init()
 {
-	// �n�ʃ��f���Ɠ����蔻�����������B
+	// 地面モデルと当たり判定を準備する。
 	m_spModel = std::make_shared<KdModelWork>();
 	m_spModel->SetModelData("Asset/Models/Objects/Stage/Ground/Ground.gltf");
 
@@ -22,13 +47,13 @@ void Ground::Update()
 	std::shared_ptr<KdGameObject> spTarget = m_wpTarget.lock();
 	if (!spTarget) { return; }
 
-	// �v���C���[�ʒu��n��1�����̋�؂�Ɋۂ߂�B
+	// プレイヤー位置を地面1枚分の区切りに丸める。
 	Math::Vector3 targetPos = spTarget->GetPos();
 	m_basePos.x = std::floor((targetPos.x / m_tileLength) + 0.5f) * m_tileLength;
 	m_basePos.y = 0.0f;
 	m_basePos.z = std::floor((targetPos.z / m_tileLength) + 0.5f) * m_tileLength;
 
-	// �����蔻��͒��S�̒n�ʂɍ��킹��B
+	// 当たり判定は中心の地面に合わせる。
 	m_mWorld = Math::Matrix::CreateScale(m_groundScale) *
 			   Math::Matrix::CreateTranslation(m_basePos);
 }
@@ -37,10 +62,10 @@ void Ground::DrawLit()
 {
 	if (!m_spModel) { return; }
 
-	// �n�ʂ�����ԂȂ��E�J��Ԃ�����ŕ`�悷��B
+	// 地面だけ補間なし・繰り返しありで描画する。
 	KdShaderManager::Instance().ChangeSamplerState(KdSamplerState::Point_Wrap);
 
-	// �v���C���[���ӂ𖄂߂邽�߁A3�~3���̒n�ʂ�`�悷��B
+	// プレイヤー周辺を埋めるため、3×3枚の地面を描画する。
 	for (int z = -1; z <= 1; ++z)
 	{
 		for (int x = -1; x <= 1; ++x)
@@ -52,8 +77,14 @@ void Ground::DrawLit()
 			Math::Matrix drawMat = Math::Matrix::CreateScale(m_groundScale) *
 								   Math::Matrix::CreateTranslation(drawPos);
 
-			// DrawModel���UV�ݒ肪�߂邽�߁A�`�悲�Ƃɐݒ肷��B
+			// DrawModel後にUV設定が戻るため、描画ごとに設定する。
 			KdShaderManager::Instance().m_StandardShader.SetUVTiling(m_textureTiling);
+			// 共有マテリアルを変更せず、このタイルの画像だけ差し替える。
+			if (m_groundTexture)
+			{
+				KdShaderManager::Instance().m_StandardShader.SetBaseColorTextureOverride(m_groundTexture);
+				KdShaderManager::Instance().m_StandardShader.SetNormalTextureOverride(m_groundNormalTexture);
+			}
 			KdShaderManager::Instance().m_StandardShader.DrawModel(*m_spModel, drawMat);
 		}
 	}

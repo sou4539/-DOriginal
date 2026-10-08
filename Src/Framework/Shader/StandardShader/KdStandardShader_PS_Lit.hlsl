@@ -6,6 +6,7 @@ Texture2D g_baseTex : register(t0);			// ベースカラーテクスチャ
 Texture2D g_metalRoughTex : register(t1);	// メタリック/ラフネステクスチャ
 Texture2D g_emissiveTex : register(t2);		// 発光テクスチャ
 Texture2D g_normalTex : register(t3);		// 法線マップ
+Texture2D g_ditherTex : register(t7); // 授業の点模様テクスチャ
 
 // 特殊処理用テクスチャ
 Texture2D g_dirShadowMap : register(t10);	// 平行光シャドウマップ
@@ -276,5 +277,47 @@ float4 main(VSOutput In) : SV_Target0
 	//------------------------------------------
 	// 出力
 	//------------------------------------------
+	// アルファディザ：通常の半透明合成ではなく、点模様で画素を抜く。
+	// 法線マップの凹凸ではなく、元の面の向きで壁を判別する。
+	// 横向きの面だけを抜くので、同じ城モデルの床や天井は残る。
+	if (g_ditherEnable != 0 && (g_ditherEnable < 3 || abs(normalize(In.wN).y) < 0.5))
+	{
+		float alpha = g_ditherAlpha;
+		if (g_ditherEnable == 4)
+		{
+			float3 toTarget = g_ditherTarget - g_CamPos;
+			float targetDistance = length(toTarget);
+			float3 axis = toTarget / max(targetDistance, 0.001);
+			float3 toPixel = In.wPos - g_CamPos;
+			float depth = dot(toPixel, axis);
+			float lateral = length(toPixel - axis * depth);
+			float rate = 0.0;
+			float horizontalDistance = length(toTarget.xz);
+			float horizontalDepth = dot(toPixel.xz, toTarget.xz) / max(horizontalDistance, 0.001);
+			if (depth >= 0.0 && depth < targetDistance - 0.3
+				&& horizontalDepth >= 0.0 && horizontalDepth < horizontalDistance - 0.3)
+			{
+				rate = (1.0 - smoothstep(g_ditherRadius - 0.5, g_ditherRadius, lateral))
+					* (1.0 - smoothstep(targetDistance - 1.0, targetDistance - 0.3, depth));
+			}
+			alpha = lerp(1.0, g_ditherAlpha, rate);
+		}
+		else if (g_ditherEnable >= 2)
+		{
+			float rate = 1.0 - min(1.0, max(0.0, camDist - g_ditherDistance));
+			alpha = lerp(1.0, g_ditherAlpha, rate);
+		}
+		// 0で全画素を消し、1なら元のモデルをそのまま描く。
+		clip(alpha - 0.00001);
+		float dither = g_ditherTex.Sample(g_ss, In.UV * 100).r;
+		clip(dither - (1.0 - alpha));
+	}
+
+	// リムライト：視線と面が直角に近い輪郭へ発光色を加える。
+	if (g_limLightEnable != 0)
+	{
+		float rim = 1.0 - saturate(dot(normalize(g_CamPos - In.wPos), wN));
+		outColor += g_limLightColor * pow(rim, g_limLightPow);
+	}
 	return float4(outColor, baseColor.a);
 }

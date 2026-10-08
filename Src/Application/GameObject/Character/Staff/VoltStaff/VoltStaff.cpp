@@ -1,11 +1,11 @@
-#include "VoltStaff.h"
+ï»¿#include "VoltStaff.h"
 
 void VoltStaff::Init()
 {
 	m_spModel = std::make_shared<KdModelWork>();
-	m_spModel->SetModelData("Asset/Models/Objects/Character/Staff/VoltStaff.gltf");
+	m_spModel->SetModelData("Asset/Models/Objects/GameObjects/Staff/VoltStaff.gltf");
 
-	// VoltStaff—p‚Ì–‚–@«”\‚ğİ’è‚·‚éB
+	// VoltStaffç”¨ã®é­”æ³•æ€§èƒ½ã‚’è¨­å®šã™ã‚‹ã€‚
 	SetMagicParam(MagicType::Volt, 3.0f, 0.3f, 30.0f);
 }
 

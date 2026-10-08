@@ -3,6 +3,17 @@
 class KdModelData;
 class KdModelWork;
 
+// 一括描画では設定が同じ個体だけをまとめる。省略すると両方とも無効。
+struct KdModelVisualEffects
+{
+	bool RimLight = false;
+	Math::Vector3 RimColor = { 1, 1, 1 };
+	float RimPower = 1.0f;
+	bool AlphaDither = false;
+	float Alpha = 0.4f; // 残す割合：0で消え、1で全部表示する
+	bool DistanceFade = false; // trueならカメラの近くで点模様に抜く
+};
+
 // インスタンシング描画28
 // Collect matching models and render them together at the end of each pass.
 class KdModelInstanceBatcher
@@ -17,12 +28,14 @@ public:
 	void SubmitLit(const std::shared_ptr<KdModelData>& model, const Math::Matrix& world,
 		const Math::Color& color = kWhiteColor,
 		const Math::Vector3& emissive = Math::Vector3::Zero,
-		const float dissolve = 0.0f);
+		const float dissolve = 0.0f,
+		const KdModelVisualEffects& effects = {});
 
 	void SubmitLit(const std::shared_ptr<KdModelWork>& model, const Math::Matrix& world,
 		const Math::Color& color = kWhiteColor,
 		const Math::Vector3& emissive = Math::Vector3::Zero,
-		const float dissolve = 0.0f);
+		const float dissolve = 0.0f,
+		const KdModelVisualEffects& effects = {});
 
 	void SubmitDepth(const std::shared_ptr<KdModelData>& model, const Math::Matrix& world);
 	void SubmitDepth(const std::shared_ptr<KdModelWork>& model, const Math::Matrix& world);
@@ -34,6 +47,7 @@ public:
 private:
 	struct StaticBatch
 	{
+		KdModelVisualEffects Effects;
 		std::shared_ptr<KdModelData> Model;
 		Math::Color Color = kWhiteColor;
 		Math::Vector3 Emissive = Math::Vector3::Zero;
@@ -43,6 +57,7 @@ private:
 
 	struct SkinnedBatch
 	{
+		KdModelVisualEffects Effects;
 		// Instances sharing one KdModelWork also share one animated bone pose.
 		std::shared_ptr<KdModelWork> Model;
 		Math::Color Color = kWhiteColor;

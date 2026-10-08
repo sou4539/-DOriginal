@@ -2,6 +2,7 @@
 #include "../SceneManager.h"
 #include "../GameStageBase/GameStageBase.h"
 #include "../GameStageBase/GrassStage/GrassStage.h"
+#include "../GameStageBase/CastleStage/CastleStage.h"
 #include "../../GameObject/Character/Status/Status.h"
 
 GameScene::~GameScene() = default;
@@ -9,7 +10,22 @@ GameScene::~GameScene() = default;
 void GameScene::Init()
 {
 	m_status = std::make_shared<Status>();
-	m_nextStage = std::make_shared<GrassStage>();
+	m_nextStage = CreateGrassStage(false);
+}
+
+std::shared_ptr<GameStageBase> GameScene::CreateGrassStage(bool returning)
+{
+	auto grass = std::make_shared<GrassStage>();
+	grass->SetReturnFromCastle(returning);
+	// 草原は入場を通知するだけ。移動先を決めるのはGameSceneの役割。
+	// grassはこのGameSceneが所有するので、コールバックもその寿命内で使う。
+	grass->SetCastleEntryCallback([this]()
+	{
+		auto castle = std::make_shared<CastleStage>();
+		castle->SetExitCallback([this]() { SetNextStage(CreateGrassStage(true)); });
+		SetNextStage(castle);
+	});
+	return grass;
 }
 
 void GameScene::SetNextStage(const std::shared_ptr<GameStageBase>& stage)

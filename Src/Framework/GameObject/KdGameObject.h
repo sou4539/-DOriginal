@@ -34,6 +34,8 @@ public:
 	virtual void DrawBright() {}
 	virtual void DrawSprite() {}
 	virtual void DrawDebug();
+	// ImGuiのNewFrame後に呼ぶ編集画面。不要なオブジェクトは何もしない。
+	virtual void DrawDebugGui() {}
 	void ClearDebugWire();
 
 	virtual void SetAsset(const std::string&) {}

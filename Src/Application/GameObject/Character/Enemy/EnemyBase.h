@@ -14,6 +14,9 @@ public:
 	// 敵として扱えるかを外部から確認する。
 	bool IsEnemy() const { return true; }
 
+	// 接触ダメージ。通常の敵は従来の5、怨念は強化倍率に応じて変更する。
+	virtual float GetContactDamage() const { return 5.0f; }
+
 	// スポナーなどから敵を消す時に使う。
 	void Expire() { m_isExpired = true; }
 
