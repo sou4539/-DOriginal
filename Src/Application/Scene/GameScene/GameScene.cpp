@@ -4,25 +4,34 @@
 #include "../GameStageBase/GrassStage/GrassStage.h"
 #include "../GameStageBase/CastleStage/CastleStage.h"
 #include "../../GameObject/Character/Status/Status.h"
+#include "../../GameObject/Character/Enemy/Bat/GrudgeBat.h"
 
 GameScene::~GameScene() = default;
 
 void GameScene::Init()
 {
 	m_status = std::make_shared<Status>();
-	m_nextStage = CreateGrassStage(false);
+	m_grudgeBattle = std::make_shared<GrudgeBattleState>();
+	m_nextStage = CreateGrassStage(GrassArrivalPoint::VillageSpawn);
 }
 
-std::shared_ptr<GameStageBase> GameScene::CreateGrassStage(bool returning)
+std::shared_ptr<GameStageBase> GameScene::CreateGrassStage(GrassArrivalPoint arrival)
 {
 	auto grass = std::make_shared<GrassStage>();
-	grass->SetReturnFromCastle(returning);
+	grass->SetArrivalPoint(arrival);
 	// 草原は入場を通知するだけ。移動先を決めるのはGameSceneの役割。
 	// grassはこのGameSceneが所有するので、コールバックもその寿命内で使う。
-	grass->SetCastleEntryCallback([this]()
+	grass->SetCastleEntryCallback([this](CastleEntryRoute route)
 	{
 		auto castle = std::make_shared<CastleStage>();
-		castle->SetExitCallback([this]() { SetNextStage(CreateGrassStage(true)); });
+		castle->SetEntryRoute(route);
+		castle->SetGrudgeBattle(m_grudgeBattle);
+		castle->SetExitCallback([this]() { SetNextStage(CreateGrassStage(GrassArrivalPoint::CastleEntrance)); });
+		castle->SetDeathCallback([this]() { SetNextStage(CreateGrassStage(GrassArrivalPoint::VillageSpawn)); });
+		castle->SetPortalReturnCallback([this]()
+		{
+			SetNextStage(CreateGrassStage(GrassArrivalPoint::VillagePortal));
+		});
 		SetNextStage(castle);
 	});
 	return grass;
@@ -37,6 +46,12 @@ void GameScene::SetNextStage(const std::shared_ptr<GameStageBase>& stage)
 void GameScene::ChangeStage()
 {
 	if (!m_nextStage) { return; }
+	// 死亡・ポータル・通常出口の全経路で、実際に退城するときに一度だけ減衰する。
+	if (std::dynamic_pointer_cast<CastleStage>(m_stage) &&
+		std::dynamic_pointer_cast<GrassStage>(m_nextStage) && m_grudgeBattle)
+	{
+		m_grudgeBattle->OnCastleExit();
+	}
 	// 旧ステージを先に破棄し、その後で新しいカメラ・プレイヤーを作る。
 	m_stage.reset();
 	SceneManager::Instance().SetActiveEnemies({});

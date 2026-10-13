@@ -8,6 +8,6 @@ VSOutput main(float4 pos : POSITION,
     VSOutput Out;
     Out.Pos = pos;
     Out.UV = uv;
-    
+
     return Out;
 }

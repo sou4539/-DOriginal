@@ -66,7 +66,7 @@ private:
 	struct cbBlur
 	{
 		Math::Vector4 Info[kMaxSampling];
-	
+
 		int SamplingNum = 0;
 		int _blank[3] = { 0, 0 ,0 };
 	};

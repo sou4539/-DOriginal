@@ -3,17 +3,22 @@ cbuffer cbObject : register(b0)
 {
 	float2	g_UVOffset;
 	float2	g_UVTiling;
-	
+
 	int g_FogEnable;	// フォグ有効
 	int g_OnlyEmissie;	// エミッシブの描画だけにするかどうか
 	int g_IsSkinMeshObj;// スキンメッシュオブジェクトかどうか(スキンメッシュ対応)
-	
+
 	float g_dissolveValue;		// ディゾルブの閾値
 	float g_dissolveEdgeRange;	// ディゾルブの境界線の太さ
 	float3 g_dissolveEmissive;	// 境界の色
+
+	int g_opticalCamoEnable;	// 光学迷彩1
+	float3 g_opticalDummy;
+
 	int g_limLightEnable;
 	float3 g_limLightColor;
 	float g_limLightPow;
+
 	int g_ditherEnable;
 	float g_ditherAlpha;
 	float g_ditherDistance;

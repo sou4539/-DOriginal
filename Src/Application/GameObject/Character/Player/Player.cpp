@@ -65,7 +65,7 @@ void Player::DrawEffect()
 {
 	if (!m_spModel) { return; }
 
-	// Fake ground shadow.
+	// 地面に簡易的な影を描画する。
 	Math::Matrix shadowMat = m_mWorld * Math::Matrix::CreateScale(1.0f, 0.0f, 1.0f);
 	shadowMat.Translation({ m_pos.x, 0.03f, m_pos.z });
 
@@ -255,6 +255,12 @@ void Player::RespawnIfDead()
 
 	// HPが残っているなら復活処理は不要。
 	if (!spStatus->IsPlayerDead()) { return; }
+	if (m_onDeath)
+	{
+		spStatus->ResetPlayerHp();
+		m_onDeath();
+		return;
+	}
 
 	// プレイヤーを村の復活地点へ戻す。
 	m_pos = m_respawnPos;
@@ -309,6 +315,3 @@ Math::Matrix Player::FlyMat() const
 
 	return drawMat;
 }
-
-
-

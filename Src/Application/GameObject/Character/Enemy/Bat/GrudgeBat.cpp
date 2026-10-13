@@ -1,15 +1,18 @@
 ﻿#include "GrudgeBat.h"
 
+#include "../../../../Scene/SceneManager.h"
+
 namespace
 {
 	// 通常のHP30・接触ダメージ5・経験値20の2倍。調整はここで行う。
-	constexpr float InitialHp = 60.0f;
-	constexpr float InitialDamage = 10.0f;
-	constexpr float InitialExp = 40.0f;
+	constexpr float InitialHp = GameBalance::GrudgeInitialHp;
+	constexpr float InitialDamage = GameBalance::GrudgeInitialDamage;
+	constexpr float InitialExp = GameBalance::GrudgeInitialExp;
 }
 
 GrudgeBat::GrudgeBat(const std::shared_ptr<GrudgeBattleState>& battle) : m_battle(battle)
 {
+	m_cbjType = GhostObj;
 	RefreshStrength();
 }
 
@@ -23,6 +26,7 @@ void GrudgeBat::RefreshStrength()
 
 void GrudgeBat::Update()
 {
+	m_cbjType = GhostObj;
 	RefreshStrength();
 	// 移動速度・死亡後の停止・ディゾルブは通常のコウモリと共通。
 	Bat::Update();
@@ -43,17 +47,22 @@ float GrudgeBat::GetContactDamage() const
 void GrudgeBat::OnDefeated()
 {
 	// Batの死亡処理から一度だけ呼ばれ、残り全員の強化倍率を更新する。
-	if (m_battle) { ++m_battle->DefeatedCount; }
+	if (m_battle)
+	{
+		++m_battle->DefeatedCount;
+		m_battle->StrengthBonus += GameBalance::GrudgeStrengthPerKill;
+	}
 }
 
 void GrudgeBat::DrawLit()
 {
 	if (!m_spModel) { return; }
 	KdModelVisualEffects effects;
-	// 怨念は青白い輪郭。被弾時は赤い輪郭に切り替える。
-	effects.RimLight = true;
-	effects.RimColor = IsHitFlashing() ? Math::Vector3(3.0f, 0.1f, 0.1f) : Math::Vector3(0.3f, 0.7f, 1.0f);
+	effects.RimLight = IsHitFlashing();
+	effects.RimColor = Math::Vector3(3.0f, 0.1f, 0.1f);
 	effects.RimPower = 2.0f;
+	effects.OpticalCamo = true;
+	effects.ScreenTexture = SceneManager::Instance().GetRenderTargetTexture();
 	KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld,
-		Math::Color(0.6f, 0.8f, 1.0f, 1.0f), Math::Vector3::Zero, GetDissolveValue(), effects);
+		kWhiteColor, Math::Vector3::Zero, GetDissolveValue(), effects);
 }

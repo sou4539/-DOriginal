@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 
-
 //===============================================================
 //
 // 様々なバッファを作成・操作するクラス
@@ -38,7 +37,7 @@ public:
 	// ・bufferUsage	… バッファの使用法　D3D11_USAGE定数を指定する
 	// ・initData		… 作成時に書き込むデータ nullptrだと何も書き込まない
 	bool Create(UINT bindFlags, UINT bufferSize, D3D11_USAGE bufferUsage, const D3D11_SUBRESOURCE_DATA* initData);
-	
+
 	// 解放
 	void Release()
 	{
@@ -76,7 +75,7 @@ public:
 
 	//
 	KdBuffer() {}
-	// 
+	//
 	~KdBuffer() {
 		Release();
 	}
@@ -177,7 +176,7 @@ public:
 		m_isDirty = true;
 	}
 
-	// 
+	//
 	~KdConstantBuffer()
 	{
 		Release();

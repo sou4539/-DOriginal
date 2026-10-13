@@ -15,8 +15,6 @@ public:
 	void DrawLit() override;
 	void GenerateDepthMapFromLight() override;
 	void DrawEffect() override;
-
-	// インスタンシング描画33
 	// 全蝙蝠で共有する羽ばたき姿勢を1フレームに1回だけ進める。
 	static void UpdateSharedAnimation();
 
@@ -63,7 +61,7 @@ protected:
 	virtual bool CountsAsGrassBat() const { return true; }
 	virtual bool AlwaysChases() const { return false; }
 	virtual void OnDefeated() {}
-	float GetDissolveValue() const { return d; }
+	float GetDissolveValue() const { return m_dissolveThreshold; }
 	bool IsHitFlashing() const { return m_hitFlashFrame > 0; }
 
 private:
@@ -94,17 +92,5 @@ private:
 	float m_maxHp = 30.0f;
 	float m_exp = 20.0f;
 
-	float d = 0.0f; // ディゾルブ値
+	float m_dissolveThreshold = 0.0f; // ディゾルブ値
 };
-
-
-
-
-
-
-
-
-
-
-
-

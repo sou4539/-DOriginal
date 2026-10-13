@@ -9,8 +9,6 @@ class KdStandardShader
 public:
 	// スキンメッシュ対応
 	static const int maxBoneBufferSize = 300;
-
-	// インスタンシング描画3
 	// 1回の描画で扱える最大インスタンス数
 	static constexpr UINT MaxInstanceCount = 2048;
 
@@ -41,6 +39,9 @@ public:
 		float			DissolveEdgeRange = 0.03f;	// 0 ～ 1
 
 		Math::Vector3	DissolveEmissive = { 1.0f, 0.0f, 0.0f };
+		int OpticalCamoEnable = 0;
+		float dummy[3] = { 0,0,0 };
+
 
 		// 16バイト単位でHLSL側と配置を一致させる。
 		int LimLightEnable = 0;
@@ -79,6 +80,15 @@ public:
 	//================================================
 	// 設定・取得
 	//================================================
+	void SetOpticalCamoEnable(bool enable)
+	{
+		m_cb0_Obj.Work().OpticalCamoEnable = enable;
+		m_dirtyCBObj = true;
+	}
+	void SetScreenTexture(KdTexture& tex)
+	{
+		KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(9, 1, tex.WorkSRViewAddress());
+	}
 
 	// リムライト設定
 	// 次のモデルの色画像だけ差し替える。共有モデルのマテリアルは変更しない。
@@ -114,7 +124,7 @@ public:
 		m_cb0_Obj.Work().DitherAlpha = std::clamp(alpha, 0.0f, 1.0f);
 		m_dirtyCBObj = true;
 	}
-		// Limit wall fading to the view corridor ending before the player.
+		// 壁を薄くする範囲を、カメラからプレイヤーの手前までに限定する。
 	void SetWallDitherTarget(const Math::Vector3& target, float radius = 3.0f)
 	{
 		m_cb0_Obj.Work().DitherEnable = 4;
@@ -221,8 +231,6 @@ public:
 	// 陰影をつけるオブジェクト等を描画する前後に行う
 	void BeginLit();
 	void EndLit();
-
-	// インスタンシング描画15
 	void BeginLitInstanced();
 	void EndLitInstanced();
 
@@ -233,8 +241,6 @@ public:
 	// 最も初めに行う、光を遮るオブジェクトを描画する前後に行う
 	void BeginGenerateDepthMapFromLight();
 	void EndGenerateDepthMapFromLight();
-
-	// インスタンシング描画21
 	// 影マップの描画先を維持したまま、インスタンシング用パイプラインへ切り替える
 	void BeginGenerateDepthMapFromLightInstanced();
 	void EndGenerateDepthMapFromLightInstanced();
@@ -247,18 +253,14 @@ public:
 		const Math::Vector4& col, const Math::Vector3& emissive);
 
 	// モデルデータ描画：アニメーションに非対応
-	void DrawModel(const KdModelData& rModel, const Math::Matrix& mWorld = Math::Matrix::Identity, 
+	void DrawModel(const KdModelData& rModel, const Math::Matrix& mWorld = Math::Matrix::Identity,
 		const Math::Color& colRate = kWhiteColor, const Math::Vector3& emissive = Math::Vector3::Zero);
-
-	// インスタンシング描画17
 	void DrawModelInstanced(const KdModelData& rModel,const std::vector<InstanceData>& instances,
 		const Math::Color& colRate = kWhiteColor,const Math::Vector3& emissive = Math::Vector3::Zero);
 
 	// モデルワーク描画：アニメーションに対応
 	void DrawModel(KdModelWork& rModel, const Math::Matrix& mWorld = Math::Matrix::Identity,
 		const Math::Color& colRate = kWhiteColor, const Math::Vector3& emissive = Math::Vector3::Zero);
-
-	// インスタンシング描画22
 	// 同じアニメーション姿勢を共有するスキンメッシュをまとめて描画
 	void DrawModelInstanced(KdModelWork& rModel, const std::vector<InstanceData>& instances,
 		const Math::Color& colRate = kWhiteColor, const Math::Vector3& emissive = Math::Vector3::Zero);
@@ -288,8 +290,6 @@ public:
 	std::shared_ptr<KdTexture>& GetDepthTex() { return m_depthMapFromLightRTPack.m_RTTexture; }
 
 private:
-
-	// インスタンシング描画7
 	bool SetInstanceDataToDevice
 	(
 		const std::vector<InstanceData>& instances
@@ -329,22 +329,16 @@ private:
 
 	// 頂点シェーダー
 	ID3D11VertexShader* m_VS_Lit = nullptr;
-
-	// インスタンシング描画11
 	ID3D11VertexShader* m_VS_LitInstanced = nullptr;
 
 	ID3D11VertexShader* m_VS_UnLit = nullptr;				// 陰影なし
 	ID3D11VertexShader* m_VS_GenDepthFromLight = nullptr;	// 光からの深度
-
-	// インスタンシング描画23
 	ID3D11VertexShader* m_VS_GenDepthFromLightInstanced = nullptr;
 
 	// 頂点入力レイアウト
 	ID3D11InputLayout* m_inputLayout = nullptr;
-
-	// インスタンシング描画12
 	ID3D11InputLayout* m_inputLayoutInstanced = nullptr;
-	
+
 	// ピクセルシェーダー
 	ID3D11PixelShader* m_PS_Lit = nullptr;					// 陰影あり
 	ID3D11PixelShader* m_PS_UnLit = nullptr;				// 陰影なし
@@ -362,8 +356,6 @@ private:
 	KdConstantBuffer<cbMesh>		m_cb1_Mesh;				// メッシュ毎に更新
 	KdConstantBuffer<cbMaterial>	m_cb2_Material;			// マテリアル毎に更新
 	KdConstantBuffer<cbBone>		m_cb3_Bone;				// ボーン事に更新(スキンメッシュ対応「)
-
-	// インスタンシング描画4
 	// 各インスタンスのワールド行列をGPUへ渡す頂点バッファ
 	KdBuffer m_instanceBuffer;
 

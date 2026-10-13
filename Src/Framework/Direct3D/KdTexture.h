@@ -32,7 +32,7 @@ public:
 
 	// シェーダリソースビュー取得
 	const ID3D11ShaderResourceView*		GetSRView() const { return m_srv; }
-	ID3D11ShaderResourceView*			WorkSRView() const { return m_srv; }	
+	ID3D11ShaderResourceView*			WorkSRView() const { return m_srv; }
 	// シェーダリソースビューのアドレス取得
 	const ID3D11ShaderResourceView* const*	GetSRViewAddress() const { return &m_srv; }
 	ID3D11ShaderResourceView* const*		WorkSRViewAddress() const { return &m_srv; }
@@ -117,10 +117,10 @@ public:
 	// ShaderResourceViewをセットする
 	void SetSRView(ID3D11ShaderResourceView* srv);
 
-	// 
+	//
 	KdTexture() {}
 
-	// 
+	//
 	KdTexture(std::string_view filename )
 	{
 		Load(filename);
@@ -131,7 +131,7 @@ public:
 	//====================================================
 	void Release();
 
-	// 
+	//
 	~KdTexture()
 	{
 		Release();

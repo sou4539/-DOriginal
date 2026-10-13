@@ -40,4 +40,3 @@ private:
 	bool m_isDebugWireVisible = false;
 	bool m_prevDebugWireKey = false;
 };
-

@@ -7,15 +7,48 @@
 #include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
 #include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
 #include "../../GameObject/Character/Status/Status.h"
+#include "../../GameObject/UI/PauseMenu.h"
 
 
 GameStageBase::~GameStageBase()
 {
+	if (m_stageBgm) { m_stageBgm->Stop(); }
 	SetCursorVisible(false);
+}
+
+void GameStageBase::StartStageBgm(const char* path)
+{
+	if (m_stageBgm) { m_stageBgm->Stop(); }
+	m_stageBgm = KdAudioManager::Instance().Play(path, true);
+	if (m_stageBgm) { m_stageBgm->SetVolume(0.5f); }
+}
+
+void GameStageBase::DrawSprite()
+{
+	BaseScene::DrawSprite();
+	if (m_menuOpen && m_pauseMenu)
+	{
+		KdShaderManager::Instance().m_spriteShader.Begin();
+		m_pauseMenu->DrawMenu();
+		KdShaderManager::Instance().m_spriteShader.End();
+		return;
+	}
+	if (!m_interactionPrompt || IsUpdatePaused()) { return; }
+	KdShaderManager::Instance().m_spriteShader.Begin();
+	m_interactionPrompt->Draw(GetInteractionAction());
+	KdShaderManager::Instance().m_spriteShader.End();
 }
 
 void GameStageBase::Event()
 {
+	const bool escapeDown = (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+	if (escapeDown && !m_prevEscapeDown) { SetMenuOpen(!m_menuOpen); }
+	m_prevEscapeDown = escapeDown;
+	if (m_menuOpen)
+	{
+		if (m_pauseMenu) { m_pauseMenu->HandleInput(); }
+		return;
+	}
 	const bool cursorDown = (GetAsyncKeyState(VK_F1) & 0x8000);
 	if (cursorDown && !m_prevCursorDown)
 	{
@@ -54,6 +87,14 @@ void GameStageBase::Start(const std::shared_ptr<Status>& status)
 
 void GameStageBase::Init()
 {
+	m_pauseMenu = std::make_shared<PauseMenu>();
+	m_pauseMenu->SetCallback([this](bool returnToTitle)
+	{
+		if (returnToTitle) { SceneManager::Instance().SetNextScene(SceneManager::SceneType::Title); }
+		else { SetMenuOpen(false); }
+	});
+	m_prevEscapeDown = (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0;
+	m_interactionPrompt = std::make_shared<InteractionPrompt>();
 	// カメラを作成する。
 	std::shared_ptr<TPSCamera> camera;
 	camera = std::make_shared<TPSCamera>();
@@ -129,6 +170,7 @@ void GameStageBase::SetCursorVisible(bool isVisible)
 
 bool GameStageBase::IsUpdatePaused() const
 {
+	if (m_menuOpen) { return true; }
 	std::shared_ptr<Status> status = m_status.lock();
 	if (!status) { return false; }
 
@@ -137,5 +179,21 @@ bool GameStageBase::IsUpdatePaused() const
 
 bool GameStageBase::CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj) const
 {
+	if (m_menuOpen) { return false; }
 	return std::dynamic_pointer_cast<Status>(obj) != nullptr;
+}
+
+void GameStageBase::SetMenuOpen(bool open)
+{
+	if (m_menuOpen == open) { return; }
+	if (open) { m_cursorVisibleBeforeMenu = m_isCursorVisible; }
+	m_menuOpen = open;
+	if (m_pauseMenu) { m_pauseMenu->SetOpen(open); }
+	// メニュー中は画像カーソルだけを描画し、Windowsのカーソルを隠す。
+	SetCursorVisible(open ? false : m_cursorVisibleBeforeMenu);
+	if (auto camera = m_camera.lock())
+	{
+		camera->SetMouseLocked(!open && !m_isCursorVisible);
+		camera->ResetMouseMove();
+	}
 }

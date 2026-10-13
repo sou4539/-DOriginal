@@ -37,6 +37,12 @@ public :
 
 	// 現在のシーンにオブジェクトを追加する。
 	void AddObject(const std::shared_ptr<KdGameObject>& _obj);
+	void ChangeRenderTarget();
+	void UndoRenderTarget();
+	const std::shared_ptr<KdTexture>& GetRenderTargetTexture() const
+	{
+		return m_rtPack.m_RTTexture;
+	}
 
 private :
 
@@ -45,6 +51,7 @@ private :
 	{
 		// 開始シーンを作成する。
 		ChangeScene(m_currentSceneType);
+		m_rtPack.CreateRenderTarget(1280, 720, true);
 	}
 
 	// 指定された種類のシーンに切り替える。
@@ -55,11 +62,13 @@ private :
 
 	// 現在のシーンの種類。
 	SceneType m_currentSceneType = SceneType::Title;
-	
+
 	// 次に切り替えるシーンの種類。
 	SceneType m_nextSceneType = m_currentSceneType;
 
 	std::vector<std::weak_ptr<EnemyBase>> m_activeEnemies;
+	KdRenderTargetPack		m_rtPack;
+	KdRenderTargetChanger 	m_rtChanger;
 
 private:
 

@@ -62,7 +62,7 @@ public:
 
 	// 倒したコウモリの数を加算する。
 	void AddKillBatCount()
-	{ 
+	{
 		++m_KillBatCount;
 	}
 
@@ -71,7 +71,7 @@ public:
 	{
 		return m_KillBatCount;
 	}
-	
+
 	// 倒したコウモリの数をリセットする。
 	void ResetKillBatCount()
 	{

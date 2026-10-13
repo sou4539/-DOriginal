@@ -19,7 +19,8 @@ namespace
 	{
 		return a.RimLight == b.RimLight && IsSameVector(a.RimColor, b.RimColor) &&
 			a.RimPower == b.RimPower && a.AlphaDither == b.AlphaDither &&
-			a.Alpha == b.Alpha && a.DistanceFade == b.DistanceFade;
+			a.Alpha == b.Alpha && a.DistanceFade == b.DistanceFade &&
+			a.OpticalCamo == b.OpticalCamo && a.ScreenTexture == b.ScreenTexture;
 	}
 	std::vector<KdStandardShader::InstanceData> MakeInstanceData(
 		const std::vector<Math::Matrix>& worlds,
@@ -39,8 +40,6 @@ namespace
 		return instances;
 	}
 }
-
-// インスタンシング描画29
 void KdModelInstanceBatcher::SubmitLit(
 	const std::shared_ptr<KdModelData>& model,
 	const Math::Matrix& world,
@@ -164,6 +163,11 @@ void KdModelInstanceBatcher::FlushLit()
 			shader.SetLimLight(batch.Effects.RimColor, batch.Effects.RimPower);
 			shader.SetAlphaDither(batch.Effects.AlphaDither, batch.Effects.Alpha, batch.Effects.DistanceFade);
 			shader.SetDissolve(batch.Dissolve);
+			shader.SetOpticalCamoEnable(batch.Effects.OpticalCamo && batch.Effects.ScreenTexture != nullptr);
+			if (batch.Effects.OpticalCamo && batch.Effects.ScreenTexture)
+			{
+				shader.SetScreenTexture(*batch.Effects.ScreenTexture);
+			}
 			shader.DrawModelInstanced(*batch.Model, instances, batch.Color, batch.Emissive);
 		}
 	}
@@ -179,6 +183,11 @@ void KdModelInstanceBatcher::FlushLit()
 			shader.SetLimLight(batch.Effects.RimColor, batch.Effects.RimPower);
 			shader.SetAlphaDither(batch.Effects.AlphaDither, batch.Effects.Alpha, batch.Effects.DistanceFade);
 			shader.SetDissolve(batch.Dissolve);
+			shader.SetOpticalCamoEnable(batch.Effects.OpticalCamo && batch.Effects.ScreenTexture != nullptr);
+			if (batch.Effects.OpticalCamo && batch.Effects.ScreenTexture)
+			{
+				shader.SetScreenTexture(*batch.Effects.ScreenTexture);
+			}
 			shader.DrawModelInstanced(*batch.Model, instances, batch.Color, batch.Emissive);
 		}
 	}

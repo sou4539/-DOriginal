@@ -11,7 +11,7 @@ bool KdCSVData::Load(const std::string_view filename)
 	std::ifstream ifs(m_filePass);
 
 	if (!ifs)
-	{ 
+	{
 		assert(0 && "CSVDataが見つかりません");
 
 		return false;

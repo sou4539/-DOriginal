@@ -21,13 +21,13 @@ bool KdWindow::Create(int clientWidth, int clientHeight, std::string_view titleN
 	wc.cbSize = sizeof(WNDCLASSEX);							// 構造体のサイズ
 	wc.style = 0;											// スタイル
 	wc.lpfnWndProc = &KdWindow::callWindowProc;			// ウインドウ関数
-	wc.cbClsExtra = 0;										// エキストラクラス情報 
+	wc.cbClsExtra = 0;										// エキストラクラス情報
 	wc.cbWndExtra = 0;										// エキストラウィンドウ情報
 	wc.hInstance = hInst;									// インスタンスハンドル
 	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);			// ラージアイコン
-	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);		// スモールアイコン 
+	wc.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);		// スモールアイコン
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);			// マウスカーソル
-	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);	// 背景色 
+	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);	// 背景色
 	wc.lpszMenuName = nullptr;								// メインメニュー名
 	wc.lpszClassName = wndClsName.c_str();					// ウィンドウクラス名
 
@@ -50,14 +50,14 @@ bool KdWindow::Create(int clientWidth, int clientHeight, std::string_view titleN
 	m_hWnd = CreateWindow(
 		wndClsName.c_str(),	// ウィンドウクラス名
 		titleName.data(),	// ウィンドウのタイトル
-		_dwStyle,			// ウィンドウタイプを標準タイプに	
+		_dwStyle,			// ウィンドウタイプを標準タイプに
 		0,					// ウィンドウの位置（Ｘ座標）
-		0,					// ウィンドウの位置（Ｙ座標）						
+		0,					// ウィンドウの位置（Ｙ座標）
 		_clientWidth,		// ウィンドウの幅
-		_clientHeight,		// ウィンドウの高さ			
+		_clientHeight,		// ウィンドウの高さ
 		nullptr,			// 親ウィンドウのハンドル
 		nullptr,			// メニューのハンドル
-		hInst,				// インスタンスハンドル 
+		hInst,				// インスタンスハンドル
 		this);				// 追加情報
 
 	if (m_hWnd == nullptr) {

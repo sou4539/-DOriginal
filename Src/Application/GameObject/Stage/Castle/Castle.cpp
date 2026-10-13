@@ -20,7 +20,7 @@ void Castle::DrawLit()
 {
 	if (!m_spModel) { return; }
 	auto& shader = KdShaderManager::Instance().m_StandardShader;
-	// Fade only walls between the camera and the player.
+	// カメラとプレイヤーの間にある壁だけを薄く表示する。
 	if (auto target = m_wpTarget.lock())
 	{
 		const Math::Vector3 bodyPos = target->GetPos() + Math::Vector3(0.0f, 1.0f, 0.0f);

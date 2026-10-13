@@ -421,7 +421,7 @@ bool KdSphereCollision::Intersects(const KdCollider::RayInfo& target, const Math
 	// 当たった時のみ計算
 	if (isHit)
 	{
-		// レイ発射位置 + レイの当たった位置までのベクトル 
+		// レイ発射位置 + レイの当たった位置までのベクトル
 		pRes->m_hitPos = target.m_pos + target.m_dir * hitDistance;
 
 		pRes->m_hitDir = target.m_dir * (-1);

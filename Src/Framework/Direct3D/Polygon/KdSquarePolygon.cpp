@@ -1,4 +1,4 @@
-﻿#include "KdSquarePolygon.h" 
+﻿#include "KdSquarePolygon.h"
 
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
@@ -135,7 +135,7 @@ void KdSquarePolygon::SetUVRect(const Math::Rectangle& _rect)
 }
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
-// 
+//
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdSquarePolygon::SetUVRect(const Math::Vector2& _uvMin, const Math::Vector2& _uvMax)
 {

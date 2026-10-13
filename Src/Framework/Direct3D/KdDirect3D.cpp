@@ -306,7 +306,7 @@ bool KdDirect3D::Init(HWND hWnd, int w, int h, bool deviceDebug, std::string& er
 
 	// DrawVertices用頂点バッファを作成
 	UINT bufferSize = 80;
-	for (int i = 0; i < 10; i++)	// 
+	for (int i = 0; i < 10; i++)	//
 	{
 		m_tempFixedVertexBuffer[i].Create(D3D11_BIND_VERTEX_BUFFER, bufferSize, D3D11_USAGE_DYNAMIC, nullptr);
 
@@ -439,7 +439,7 @@ ID3D11SamplerState* KdDirect3D::CreateSamplerState(KdSamplerFilterMode filterTyp
 		desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	}
 
-	// 
+	//
 	desc.MipLODBias = 0;
 	desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 0;
 	desc.MinLOD = 0;

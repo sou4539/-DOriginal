@@ -106,7 +106,7 @@ public:
 		return 0;
 	}
 
-	// 
+	//
 	const tinygltf::Accessor*	GetAccessor() const { return m_accessor; }
 	const tinygltf::BufferView*	GetBufferView() const { return m_bufferView; }
 	const tinygltf::Buffer*		GetBuffer() const { return m_buffer; }
@@ -171,12 +171,12 @@ std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path)
 		bool ret = false;
 		if (ext.compare("glb") == 0) {
 			std::cout << "Reading binary glTF" << std::endl;
-			// assume binary glTF.
+			// バイナリ形式のglTFとして読み込む。
 			ret = gltf_ctx.LoadBinaryFromFile(&model, &err, &warn, input_filename.c_str());
 		}
 		else {
 			std::cout << "Reading ASCII glTF" << std::endl;
-			// assume ascii glTF.
+			// テキスト形式のglTFとして読み込む。
 			ret = gltf_ctx.LoadASCIIFromFile(&model, &err, &warn, input_filename.c_str());
 		}
 
@@ -563,7 +563,7 @@ std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path)
 				// スキンメッシュ情報が無ければ現状不要なので無視
 				if (model.skins.size() > 0)
 				{
-					// Skin INDEX
+					// スキニングで参照するボーン番号
 					if (srcPrimitive.attributes.count("JOINTS_0") > 0)
 					{
 						destNode->Mesh.IsSkinMesh = true;
@@ -582,7 +582,7 @@ std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path)
 						}
 					}
 
-					// Skin WEIGHT
+					// スキニングのボーンごとの影響度
 					if (srcPrimitive.attributes.count("WEIGHTS_0") > 0)
 					{
 						destNode->Mesh.IsSkinMesh = true;
@@ -680,7 +680,7 @@ std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path)
 			// Subset
 			destNode->Mesh.Subsets[pi].FaceCount += (UINT)prim->Faces.size();	// 面数を加算
 
-			// 
+			//
 			currentVertexIdx	+= (UINT)prim->Vertices.size();
 			currentFaceIdx		+= (UINT)prim->Faces.size();
 
@@ -705,7 +705,7 @@ std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path)
 			if (v.Tangent.Length()) { continue; }
 
 			Math::Vector3( 0.0f, 1.0f, 0.0f ).Cross(v.Normal, v.Tangent);
-			
+
 			if (v.Tangent.x == 0 && v.Tangent.y == 0 && v.Tangent.z == 0)
 			{
 				Math::Vector3( 0.0f, 0.0f, -1.0f).Cross(v.Normal, v.Tangent);
@@ -726,7 +726,7 @@ std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path)
 		// 名前
 		animation->m_name = srcAni.name;
 
-		// 
+		//
 		std::vector<std::shared_ptr<KdGLTFAnimationData::Node>> tempNodes;
 		tempNodes.resize(destModel->Nodes.size());
 
@@ -1201,7 +1201,7 @@ static std::string PrintValue(const std::string &name,
 		}
 	}
 	else if (value.IsArray()) {
-		// TODO(syoyo): Better pretty printing of array item
+		// TODO(syoyo)：配列要素の出力形式を改善する。
 		ss << Indent(indent) << name << " [ \n";
 		for (size_t i = 0; i < value.Size(); i++) {
 			ss << PrintValue("", value.Get(int(i)), indent + 1, /* tag */ false);
@@ -1212,7 +1212,7 @@ static std::string PrintValue(const std::string &name,
 		ss << "\n" << Indent(indent) << "] ";
 	}
 
-	// @todo { binary }
+	// TODO：バイナリ形式への対応を検討する。
 
 	return ss.str();
 }
@@ -1270,7 +1270,7 @@ static void DumpPrimitive(const tinygltf::Primitive &primitive, int indent) {
 
 static void DumpExtensions(const tinygltf::ExtensionMap &extension,
 	const int indent) {
-	// TODO(syoyo): pritty print Value
+	// TODO(syoyo)：値を読みやすい形式で出力する。
 	for (auto &e : extension) {
 		std::cout << Indent(indent) << e.first << std::endl;
 		std::cout << PrintValue("extensions", e.second, indent + 1) << std::endl;
@@ -1625,7 +1625,7 @@ static void Dump(const tinygltf::Model &model) {
 		}
 	}
 
-	// toplevel extensions
+	// 最上位の拡張情報
 	{
 		std::cout << "extensions(items=" << model.extensions.size() << ")"
 			<< std::endl;
@@ -1634,5 +1634,3 @@ static void Dump(const tinygltf::Model &model) {
 }
 
 #endif
-
-

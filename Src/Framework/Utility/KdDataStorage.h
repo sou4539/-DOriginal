@@ -45,6 +45,13 @@ public:
 			}
 			const std::string message = "Asset load failed: " + std::string(fileName) + "\n";
 			OutputDebugStringA(message.c_str());
+			std::wstring dialog = L"Asset load failed:\n" + sjis_to_wide(std::string(fileName).c_str());
+			if (!pathError)
+			{
+				dialog += L"\n\nWorking directory:\n" + workingDirectory.wstring();
+			}
+			dialog += L"\n\nSee AssetLoadErrors.log for details.";
+			MessageBoxW(nullptr, dialog.c_str(), L"Asset load error", MB_OK | MB_ICONERROR);
 			assert(0 && "KdDataStorage::LoadData ファイルが存在しません。ファイルパスを確認してください");
 
 			return nullptr;

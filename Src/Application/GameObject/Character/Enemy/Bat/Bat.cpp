@@ -65,12 +65,14 @@ void Bat::Init()
 
 void Bat::Update()
 {
+
+
 	// ディゾルブ処理
 	if (m_hp <= 0.0f)
 	{
-		d = std::min(d + 0.01f, 1.0f);
+		m_dissolveThreshold = std::min(m_dissolveThreshold + 0.01f, 1.0f);
 
-		if (d >= 1.0f)
+		if (m_dissolveThreshold >= 1.0f)
 		{
 			m_isExpired = true;
 		}
@@ -200,16 +202,16 @@ void Bat::DrawLit()
 		effects.RimColor = BatHitRimColor;
 		effects.RimPower = 2.0f;
 		KdModelInstanceBatcher::Instance().SubmitLit(
-			m_spModel, m_mWorld, kWhiteColor, Math::Vector3::Zero, d, effects);
+			m_spModel, m_mWorld, kWhiteColor, Math::Vector3::Zero, m_dissolveThreshold, effects);
 		return;
 	}
 	float range = 0.05;
 	Math::Vector3 color = { 1,0.3,0.3 };
-	KdShaderManager::Instance().m_StandardShader.SetDissolve(d, &range, &color);
+	KdShaderManager::Instance().m_StandardShader.SetDissolve(m_dissolveThreshold, &range, &color);
 
 	KdModelInstanceBatcher::Instance().SubmitLit(
 		m_spModel, m_mWorld,
-		kWhiteColor, Math::Vector3::Zero, d);
+		kWhiteColor, Math::Vector3::Zero, m_dissolveThreshold);
 
 }
 
@@ -227,7 +229,7 @@ void Bat::GenerateDepthMapFromLight()
 
 	float range = 0.05;
 	Math::Vector3 color = { 1,0.3,0.3 };
-	KdShaderManager::Instance().m_StandardShader.SetDissolve(d, &range, &color);
+	KdShaderManager::Instance().m_StandardShader.SetDissolve(m_dissolveThreshold, &range, &color);
 
 	// 遠いコウモリの影は見えにくいので描画せず、影用のモデル描画を減らす。
 	KdModelInstanceBatcher::Instance().SubmitDepth(m_spModel, m_mWorld);

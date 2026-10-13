@@ -73,7 +73,7 @@ static bool KdCreateViewsFromTexture2D(ID3D11Texture2D* resource, ID3D11ShaderRe
 			case DXGI_FORMAT_R32_TYPELESS:
 				srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
 				break;
-				// 24ビット(Zバッファ) + 8ビット(ステンシルバッファ) 
+				// 24ビット(Zバッファ) + 8ビット(ステンシルバッファ)
 			case DXGI_FORMAT_R24G8_TYPELESS:
 				srvDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
 				break;
@@ -141,7 +141,7 @@ static bool KdCreateViewsFromTexture2D(ID3D11Texture2D* resource, ID3D11ShaderRe
 		case DXGI_FORMAT_R32_TYPELESS:
 			dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
 			break;
-			// 24ビット(Zバッファ) + 8ビット(ステンシルバッファ) 
+			// 24ビット(Zバッファ) + 8ビット(ステンシルバッファ)
 		case DXGI_FORMAT_R24G8_TYPELESS:
 			dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 			break;
@@ -214,7 +214,7 @@ bool KdTexture::Load(std::string_view filename, bool renderTarget, bool depthSte
 	// 画像読み込み
 	//------------------------------------
 
-	// Bind Flags
+	// テクスチャの使用用途を指定するフラグ
 	UINT bindFlags = 0;
 	bindFlags |= D3D11_BIND_SHADER_RESOURCE;
 	if (renderTarget)bindFlags |= D3D11_BIND_RENDER_TARGET;
@@ -286,7 +286,7 @@ bool KdTexture::Load(std::string_view filename, bool renderTarget, bool depthSte
 		image.GetImageCount(),
 		image.GetMetadata(),
 		D3D11_USAGE_DEFAULT,							// Usage
-		bindFlags,										// Bind Flags
+		bindFlags,										// テクスチャの使用用途を指定するフラグ
 		0,												// CPU Access Flags
 		0,												// MiscFlags
 		DirectX::CREATETEX_FLAGS::CREATETEX_DEFAULT,	// CREATETEX_DEFAULT
@@ -408,7 +408,7 @@ bool KdTexture::CreateRenderTarget(int w, int h, DXGI_FORMAT format, UINT arrayC
 	D3D11_TEXTURE2D_DESC desc = {};
 
 	SetTextureInfo(desc, w, h, format, arrayCnt, 0);
-	
+
 	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	desc.CPUAccessFlags = 0;
@@ -466,4 +466,3 @@ void KdTexture::Release()
 
 	m_filepath = "";
 }
-

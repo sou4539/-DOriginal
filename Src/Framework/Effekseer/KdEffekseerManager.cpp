@@ -312,7 +312,7 @@ bool KdEffekseerObject::IsPlaying()
 {
 	if (m_parentManager == nullptr) { return false; }
 
-	// ハンドルが0( 未再生 or 再生終了 )でない場合はTrue, 
+	// ハンドルが0( 未再生 or 再生終了 )でない場合はTrue,
 	// そうでなければFalse
 	return m_parentManager->GetInstanceCount(m_handle) != 0;
 }

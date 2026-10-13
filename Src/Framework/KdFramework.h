@@ -65,8 +65,6 @@
 // シェーダ
 #include "Shader/KdAmbientController.h"
 #include "Shader/KdShaderManager.h"
-
-// インスタンシング描画30
 #include "Renderer/KdInstancedModelRenderer.h"
 
 // デバッグ機能

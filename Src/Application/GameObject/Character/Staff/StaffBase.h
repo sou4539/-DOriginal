@@ -16,8 +16,8 @@ public:
 	void DrawLit() override;
 
 	void SetTarget(const std::weak_ptr<KdGameObject>& target)
-	{ 
-		m_wpTarget = target; 
+	{
+		m_wpTarget = target;
 	}
 
 	void SetStatus(const std::shared_ptr<Status>& status)
@@ -25,9 +25,9 @@ public:
 		m_wpStatus = status;
 	}
 
-	void SetLightEnable(bool enable) 
-	{ 
-		m_lightEnable = enable; 
+	void SetLightEnable(bool enable)
+	{
+		m_lightEnable = enable;
 	}
 
 protected:
@@ -82,5 +82,3 @@ private:
 	// 光るかどうか
 	bool m_lightEnable = false;
 };
-
-

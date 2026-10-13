@@ -8,7 +8,7 @@
 namespace
 {
 	// exeから親フォルダーをたどり、Assetがある場所を作業ディレクトリにする。
-	void SetAssetWorkingDirectory()
+	bool SetAssetWorkingDirectory()
 	{
 		// 起動方法によらずAssetとSaveの基準位置を固定する。
 		wchar_t executablePath[32768] = {};
@@ -24,9 +24,26 @@ namespace
 			{
 				if (std::filesystem::is_directory(directory / L"Asset", error))
 				{
-					// Asset/...とSave/...の相対パスが、このフォルダー基準になる。
-					std::filesystem::current_path(directory, error);
-					break;
+					// exeから得たUnicodeの実パスを使用する。短縮名へは変換しない。
+					const bool directorySet = SetCurrentDirectoryW(directory.c_str()) != FALSE;
+					const DWORD directoryError = directorySet ? ERROR_SUCCESS : GetLastError();
+					const auto noisePath = directory / L"Asset/Textures/System/WhiteNoise.png";
+					const auto titlePath = directory / L"Asset/Textures/UI/Title/StartButton.png";
+					const bool noiseExists = GetFileAttributesW(noisePath.c_str()) != INVALID_FILE_ATTRIBUTES;
+					const DWORD noiseError = noiseExists ? ERROR_SUCCESS : GetLastError();
+					const bool titleExists = GetFileAttributesW(titlePath.c_str()) != INVALID_FILE_ATTRIBUTES;
+					const DWORD titleError = titleExists ? ERROR_SUCCESS : GetLastError();
+					if (directorySet && noiseExists && titleExists)
+					{
+						return true;
+					}
+					const std::wstring message = L"Required assets could not be found in:\n" + directory.wstring()
+						+ L"\n\nDirectory error: " + std::to_wstring(directoryError)
+						+ L"\nWhiteNoise error: " + std::to_wstring(noiseError)
+						+ L"\nStartButton error: " + std::to_wstring(titleError)
+						+ L"\n\nExecutable:\n" + executablePath;
+					MessageBoxW(nullptr, message.c_str(), L"Startup asset path error", MB_OK | MB_ICONERROR);
+					return false;
 				}
 				const auto parent = directory.parent_path();
 				// ドライブの最上位では親も同じになるため、検索を終了する。
@@ -34,12 +51,15 @@ namespace
 				directory = parent;
 			}
 		}
+		MessageBoxW(nullptr, L"No Asset folder found beside the executable or its parent folders.",
+			L"Startup asset path error", MB_OK | MB_ICONERROR);
+		return false;
 	}
 }
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_  HINSTANCE, _In_ LPSTR , _In_ int)
 {
-	SetAssetWorkingDirectory();
+	if (!SetAssetWorkingDirectory()) { return 1; }
 
 	// メモリリークを知らせる
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -56,7 +76,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_  HINSTANCE, _In_ LPSTR , _In_ int)
 	setlocale(LC_ALL, "japanese");
 
 	//===================================================================
-	Application::Instance().Execute();
+	try
+	{
+		Application::Instance().Execute();
+	}
+	catch (const std::exception& error)
+	{
+		MessageBoxA(nullptr, error.what(), "Startup exception", MB_OK | MB_ICONERROR);
+		CoUninitialize();
+		return 1;
+	}
 
 	// COM解放
 	CoUninitialize();
@@ -199,7 +228,7 @@ bool Application::Init(int w, int h)
 
 	//===================================================================
 	KdFontManager::Instance().Init(GetWindowHandle());
-	
+
 	//===================================================================
 
 	return true;
@@ -244,13 +273,6 @@ void Application::Execute()
 			break;
 		}
 
-		if (GetAsyncKeyState(VK_ESCAPE))
-		{
-//			if (MessageBoxA(m_window.GetWndHandle(), "本当にゲームを終了しますか？",
-			{
-				End();
-			}
-		}
 
 		//=========================================
 

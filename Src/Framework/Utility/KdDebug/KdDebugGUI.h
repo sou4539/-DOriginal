@@ -4,7 +4,7 @@ struct ImGuiAppLog
 {
 	ImGuiTextBuffer     Buf;
 	ImGuiTextFilter     Filter;
-	ImVector<int>       LineOffsets;        // Index to lines offset. We maintain this with AddLog() calls, allowing us to have a random access on lines
+	ImVector<int>       LineOffsets;        // AddLogで各行の開始位置を保持し、任意の行へ直接アクセスできるようにする。
 	bool                AutoScroll;
 	bool                ScrollToBottom;
 
@@ -44,7 +44,7 @@ struct ImGuiAppLog
 			return;
 		}
 
-		// Options menu
+		// オプションメニュー
 		if (ImGui::BeginPopup("Options"))
 		{
 			if (ImGui::Checkbox("Auto-scroll", &AutoScroll))
@@ -53,7 +53,7 @@ struct ImGuiAppLog
 			ImGui::EndPopup();
 		}
 
-		// Main window
+		// メインウィンドウ
 		if (ImGui::Button("Options"))
 			ImGui::OpenPopup("Options");
 		ImGui::SameLine();
@@ -117,7 +117,7 @@ public:
 
 	void AddLog(const char* fmt, ...);
 	void ClearLog();
-	
+
 private:
 	void GuiRelease();
 

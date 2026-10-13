@@ -257,8 +257,6 @@ bool Tree::IsOutsideActiveRange(const Math::Vector3& pos) const
 
 	return toPos.LengthSquared() > m_activeRadius * m_activeRadius;
 }
-
-// インスタンシング描画32
 void Tree::DrawLit()
 {
 	for (const TreeData& tree : m_trees)

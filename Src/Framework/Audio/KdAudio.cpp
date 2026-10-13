@@ -1,14 +1,14 @@
 ﻿#include "KdAudio.h"
 
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
-// 
+//
 // KdAudioManager
-// 
+//
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 // 初期化
-// ・DirectXAudioEngineの初期化 
+// ・DirectXAudioEngineの初期化
 // ・3Dリスナーの設定
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdAudioManager::Init()
@@ -16,8 +16,27 @@ void KdAudioManager::Init()
 	// AudioEngine初期化
 	DirectX::AUDIO_ENGINE_FLAGS eflags = DirectX::AudioEngine_ReverbUseFilters;
 
-	m_audioEng = std::make_unique<DirectX::AudioEngine>(eflags);
-	m_audioEng->SetReverb(DirectX::Reverb_Default);
+	try
+	{
+		m_audioEng = std::make_unique<DirectX::AudioEngine>(eflags);
+		m_audioEng->SetReverb(DirectX::Reverb_Default);
+	}
+	catch (const std::exception&)
+	{
+		// リバーブを使えない環境では、基本の音声エンジンで再試行する。
+		m_audioEng.reset();
+		try
+		{
+			m_audioEng = std::make_unique<DirectX::AudioEngine>(DirectX::AudioEngine_Default);
+		}
+		catch (const std::exception& error)
+		{
+			m_audioEng.reset();
+			OutputDebugStringA("Audio initialization failed; continuing without audio: ");
+			OutputDebugStringA(error.what());
+			OutputDebugStringA("\n");
+		}
+	}
 
 	m_listener.OrientFront = { 0, 0, 1 };
 }
@@ -165,6 +184,7 @@ void KdAudioManager::SoundReset()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdAudioManager::LoadSoundAssets(std::initializer_list<std::string_view>& fileNames)
 {
+	if (!m_audioEng) { return; }
 	for (std::string_view fileName : fileNames)
 	{
 		auto itFound = m_soundMap.find(fileName.data());
@@ -240,9 +260,9 @@ std::shared_ptr<KdSoundEffect> KdAudioManager::GetSound(std::string_view fileNam
 
 
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
-// 
+//
 // KdSoundEffect
-// 
+//
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
 
 // 音データの読み込み
@@ -271,9 +291,9 @@ bool KdSoundEffect::Load(std::string_view fileName, const std::unique_ptr<Direct
 
 
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
-// 
+//
 // KdSoundInstance
-// 
+//
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
 
 KdSoundInstance::KdSoundInstance(const std::shared_ptr<KdSoundEffect>& soundEffect)
@@ -336,11 +356,10 @@ bool KdSoundInstance::IsStopped()
 }
 
 
-
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
-// 
+//
 // KdSoundInstance3D
-// 
+//
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 
 KdSoundInstance3D::KdSoundInstance3D(const std::shared_ptr<KdSoundEffect>& soundEffect, const DirectX::AudioListener& ownerListener)

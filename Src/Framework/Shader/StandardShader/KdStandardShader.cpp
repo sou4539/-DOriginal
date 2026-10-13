@@ -53,15 +53,12 @@ void KdStandardShader::BeginLit()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void KdStandardShader::EndLit()
 {
-	// インスタンシング描画31
 	// 通常Litパスの終了直前に、全オブジェクトから登録されたモデルを一括描画する。
 	KdModelInstanceBatcher::Instance().FlushLit();
 
 	ID3D11ShaderResourceView* pNullSRV = nullptr;
 	KdDirect3D::Instance().WorkDevContext()->PSSetShaderResources(10, 1, &pNullSRV);
 }
-
-// インスタンシング描画16
 void KdStandardShader::BeginLitInstanced()
 {
 	if (m_ditherTex) { SetDitherTexture(*m_ditherTex); }
@@ -209,8 +206,6 @@ void KdStandardShader::BeginGenerateDepthMapFromLight()
 	m_depthMapFromLightRTPack.ClearTexture(kRedColor);
 	m_depthMapFromLightRTChanger.ChangeRenderTarget(m_depthMapFromLightRTPack);
 }
-
-// インスタンシング描画24
 void KdStandardShader::BeginGenerateDepthMapFromLightInstanced()
 {
 	if (KdShaderManager::Instance().SetVertexShader(m_VS_GenDepthFromLightInstanced))
@@ -324,8 +319,6 @@ void KdStandardShader::DrawModel(const KdModelData& rModel, const Math::Matrix& 
 		ResetCBObject();
 	}
 }
-
-// インスタンシング描画18
 void KdStandardShader::DrawModelInstanced(
 	const KdModelData& rModel,
 	const std::vector<InstanceData>& instances,
@@ -470,8 +463,6 @@ void KdStandardShader::DrawModel(KdModelWork& rModel, const Math::Matrix& mWorld
 		ResetCBObject();
 	}
 }
-
-// インスタンシング描画25
 void KdStandardShader::DrawModelInstanced(
 	KdModelWork& rModel,
 	const std::vector<InstanceData>& instances,
@@ -741,8 +732,6 @@ bool KdStandardShader::Init()
 			return false;
 		}
 	}
-
-	// インスタンシング描画13
 	{
 		// インスタンシング用コンパイル済みシェーダー
 #include "KdStandardShader_VS_LitInstanced.shaderInc"
@@ -877,8 +866,6 @@ bool KdStandardShader::Init()
 			return false;
 		}
 	}
-
-	// インスタンシング描画26
 	{
 #include "KdStandardShader_VS_GenDepthMapFromLightInstanced.shaderInc"
 
@@ -944,8 +931,6 @@ bool KdStandardShader::Init()
 	m_cb1_Mesh.Create();
 	m_cb2_Material.Create();
 	m_cb3_Bone.Create();
-
-	// インスタンシング描画5
 	// インスタンスごとのワールド行列を保存する動的頂点バッファを作成
 	const UINT bufferBytes =
 		static_cast<UINT>(sizeof(InstanceData) * MaxInstanceCount);
@@ -974,7 +959,9 @@ bool KdStandardShader::Init()
 	m_depthMapFromLightRTPack.CreateRenderTarget(1024, 1024, true, DXGI_FORMAT_R32_FLOAT);
 	m_depthMapFromLightRTPack.ClearTexture(kRedColor);
 
-	SetDissolveTexture(*KdAssets::Instance().m_textures.GetData("Asset/Textures/System/WhiteNoise.png"));
+	const auto dissolveTexture = KdAssets::Instance().m_textures.GetData("Asset/Textures/System/WhiteNoise.png");
+	if (!dissolveTexture) { Release(); return false; }
+	SetDissolveTexture(*dissolveTexture);
 
 	// 点模様を起動時に読み込み、通常・一括描画で共有する。
 	m_ditherTex = KdAssets::Instance().m_textures.GetData("Asset/Textures/System/dot.png");
@@ -996,14 +983,10 @@ void KdStandardShader::Release()
 	m_overrideNormalTexture = false;
 	m_baseColorTextureOverride.reset();
 	KdSafeRelease(m_VS_Lit);
-
-	// インスタンシング描画14
 	KdSafeRelease(m_VS_LitInstanced);
 	KdSafeRelease(m_inputLayoutInstanced);
 
 	KdSafeRelease(m_VS_GenDepthFromLight);
-
-	// インスタンシング描画27
 	KdSafeRelease(m_VS_GenDepthFromLightInstanced);
 	KdSafeRelease(m_VS_UnLit);
 
@@ -1018,13 +1001,9 @@ void KdStandardShader::Release()
 	m_cb2_Material.Release();
 	// スキンメッシュ対応
 	m_cb3_Bone.Release();
-
-	// インスタンシング描画6
 	// インスタンスバッファ解放
 	m_instanceBuffer.Release();
 }
-
-// インスタンシング描画8
 bool KdStandardShader::SetInstanceDataToDevice
 (
 	const std::vector<InstanceData>& instances
@@ -1069,8 +1048,6 @@ bool KdStandardShader::SetInstanceDataToDevice
 
 	return true;
 }
-
-// インスタンシング描画9
 void KdStandardShader::ClearInstanceDataFromDevice()
 {
 	ID3D11Buffer* nullBuffer = nullptr;

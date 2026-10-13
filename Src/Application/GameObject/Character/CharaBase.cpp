@@ -9,7 +9,7 @@ void CharaBase::Init()
 // 更新
 void CharaBase::Update()
 {
-	
+
 }
 
 void CharaBase::PostUpdate()

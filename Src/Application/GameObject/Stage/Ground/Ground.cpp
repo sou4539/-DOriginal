@@ -91,4 +91,3 @@ void Ground::DrawLit()
 
 	KdShaderManager::Instance().UndoSamplerState();
 }
-

@@ -128,7 +128,7 @@ void KdDebugWireFrame::AddDebugBox(const Math::Matrix& matrix, const Math::Vecto
 	if (!isOriented)
 	{
 		aabb.Center = matrix.Translation() + offset;
-		
+
 		// ?s????T?C?Y???M?????????
 		aabb.Extents.x = size.x * (matrix.Right().Length());
 		aabb.Extents.y = size.y * (matrix.Up().Length());
@@ -142,14 +142,14 @@ void KdDebugWireFrame::AddDebugBox(const Math::Matrix& matrix, const Math::Vecto
 		Math::Matrix createMat = matrix;
 		createMat.Translation(createMat.Translation() + offset);
 		obb.Transform(obb, createMat);
-		
+
 		// ?s????T?C?Y???M?????????
 		obb.Extents.x = size.x * (matrix.Right().Length());
 		obb.Extents.y = size.y * (matrix.Up().Length());
 		obb.Extents.z = size.z * (matrix.Backward().Length());
 
 		obb.GetCorners(corners);
-	}	
+	}
 
 	// ????`
 	{
@@ -263,10 +263,3 @@ void KdDebugWireFrame::Release()
 {
 	m_debugVertices.clear();
 }
-
-
-
-
-
-
-

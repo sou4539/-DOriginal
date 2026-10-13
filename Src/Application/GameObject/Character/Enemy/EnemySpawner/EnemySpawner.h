@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "../EnemyBase.h"
+#include "../../Status/GameBalance.h"
 #include <vector>
 
 class Bat;
@@ -15,6 +16,8 @@ public:
 	void Init() override;
 	void Update() override;
 
+	// 現在はグループごとの上限countと高さcenter.yを使用する。
+	// 水平位置はプレイヤー周囲のGameBalance設定から抽選する。radiusは旧配置API用。
 	void AddSpawnArea(const Math::Vector3& center, float radius, int count);
 	void SetTarget(const std::shared_ptr<KdGameObject>& target);
 
@@ -67,8 +70,8 @@ private:
 	std::weak_ptr<KdGameObject> m_wpTarget;
 	std::weak_ptr<Status> m_wpStatus;
 
-	float m_spawnMinRadius = 55.0f;
-	float m_spawnMaxRadius = 70.0f;
+	float m_spawnMinRadius = GameBalance::SpawnMinRadius;
+	float m_spawnMaxRadius = GameBalance::SpawnMaxRadius;
 
 	Math::Vector3 m_safeAreaCenter = Math::Vector3::Zero;
 	float m_safeAreaRadius = 0.0f;
@@ -78,7 +81,7 @@ private:
 	int m_enemyLimit = 1;
 	int m_minEnemyCount = 1;
 	// 村から離れた場所で維持するコウモリの最大数。
-	int m_maxEnemyCount = 200;
-	float m_fullSpawnDistance = 250.0f;
+	int m_maxEnemyCount = GameBalance::GrassMaxEnemies;
+	float m_fullSpawnDistance = GameBalance::FullSpawnDistance;
 	float m_activeEnemyRadius = 100.0f;
 };

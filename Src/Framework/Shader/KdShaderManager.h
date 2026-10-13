@@ -236,7 +236,7 @@ private:
 	// パイプラインステート
 	//
 	//==========================
-	 
+
 	//深度ステンシル（奥行情報の使い方・手前にあるものを無視して描画したりできる
 	ID3D11DepthStencilState* m_depthStencilStates[(int)KdDepthStencilState::Max] = {};
 	std::stack<ID3D11DepthStencilState*> m_ds_Undo;

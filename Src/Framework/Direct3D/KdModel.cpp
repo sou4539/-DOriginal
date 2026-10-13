@@ -18,7 +18,7 @@ bool KdModelData::Load(std::string_view filename)
 	Release();
 
 	std::string fileDir = KdGetDirFromPath(filename.data());
-	
+
 	std::shared_ptr<KdGLTFModel> spGltfModel = KdLoadGLTFModel(filename.data());
 	if (spGltfModel == nullptr) { return false; }
 
@@ -97,7 +97,7 @@ void KdModelData::CreateNodes(const std::shared_ptr<KdGLTFModel>& spGltfModel)
 		if (boneIdx >= 0)
 		{
 			if (boneIdx >= (int)m_boneNodeIndices.size()) { m_boneNodeIndices.resize(boneIdx + 1); }
-			
+
 			m_boneNodeIndices[boneIdx] = nodeIdx;
 		}
 	}
@@ -215,9 +215,9 @@ bool KdModelData::IsSkinMesh()
 
 
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
-// 
+//
 // KdModelWork
-// 
+//
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 const KdModelData::Node* KdModelWork::FindDataNode(std::string_view name) const
 {
@@ -258,7 +258,7 @@ KdModelWork::Node* KdModelWork::FindWorkNode(std::string_view name)
 
 // モデル設定：コピーノードの生成
 void KdModelWork::SetModelData(const std::shared_ptr<KdModelData>& rModel)
-{ 
+{
 	m_spData = rModel;
 
 	size_t nodeSize = rModel->GetOriginalNodes().size();

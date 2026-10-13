@@ -282,7 +282,12 @@
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\GrudgeBat.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Status\GameBalance.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UI.h" />
+    <ClInclude Include="Src\Application\GameObject\UI\InteractionPrompt.h" />
+    <ClInclude Include="Src\Application\GameObject\UI\PauseMenu.h" />
+    <ClInclude Include="Src\Application\GameObject\Stage\WarpStone.h" />
+    <ClInclude Include="Src\Application\Scene\GameStageBase\StageTransition.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemyBase.h" />
     <ClInclude Include="Src\Application\GameObject\Character\CharaBase.h" />

@@ -50,5 +50,3 @@ private:
 	// 村を表示する半径。
 	float m_visibleRadius = 85.0f;
 };
-
-

@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "../GameStageBase.h"
+#include "../StageTransition.h"
 
 #include <functional>
 
@@ -15,21 +16,23 @@ public:
 	~GrassStage() override{}
 
 	// 入場条件を満たした時に呼ぶ処理を、GameSceneから受け取る。
-	void SetCastleEntryCallback(const std::function<void()>& callback)
+	void SetCastleEntryCallback(const std::function<void(CastleEntryRoute)>& callback)
 	{
 		m_onCastleEntry = callback;
 	}
 
-	void SetReturnFromCastle(bool value) { m_returnFromCastle = value; }
+	void SetArrivalPoint(GrassArrivalPoint arrival) { m_arrivalPoint = arrival; }
 
 private:
 	void Init() override;
-	// Bのデバッグワープと、入口でのEキーの入場判定を行う。
+	// Bのデバッグワープと、入口でのFキーの入場判定を行う。
 	void Event() override;
+	InteractionAction GetInteractionAction() const override;
+	bool IsNearVillagePortal() const;
 	std::weak_ptr<NoneCastle> m_castle;
-	bool m_returnFromCastle = false;
+	GrassArrivalPoint m_arrivalPoint = GrassArrivalPoint::VillageSpawn;
 	bool m_prevWarpDown = false;
 	bool m_prevEnterDown = false;
-	std::function<void()> m_onCastleEntry;
+	std::function<void(CastleEntryRoute)> m_onCastleEntry;
 
 };

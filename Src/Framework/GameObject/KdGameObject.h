@@ -4,6 +4,15 @@
 class KdGameObject : public std::enable_shared_from_this<KdGameObject>
 {
 public:
+	enum
+	{
+		None,
+		PlayerObj,
+		GroundObj,
+		EnemyObj,
+		GhostObj,
+		ItemObj,
+	};
 
 	// どのような描画を行うのかを設定するTypeID：Bitフラグで複数指定可能
 	enum
@@ -44,7 +53,6 @@ public:
 	virtual Math::Vector3 GetPos() const { return m_mWorld.Translation(); }
 
 
-
 	// 拡大率を変更する関数
 	void SetScale(float scalar);
 	virtual void SetScale(const Math::Vector3& scale);
@@ -72,6 +80,16 @@ public:
 	bool Intersects(const KdCollider::RayInfo& targetShape, std::list<KdCollider::CollisionResult>* pResults);
 
 	//追加した関数
+	UINT GetObjType() const
+	{
+		return m_cbjType;
+	}
+
+	void SetObjType(UINT type)
+	{
+		m_cbjType = type;
+	}
+
 	//正面の角度
 	virtual void SetDir(const Math::Vector3& dir) { m_mWorld.Backward(dir); }
 	virtual Math::Vector3 GetDir() const { return m_mWorld.Backward(); }
@@ -100,4 +118,5 @@ protected:
 
 	// デバッグ情報クラス
 	std::unique_ptr<KdDebugWireFrame> m_pDebugWire = nullptr;
+	UINT m_cbjType = None;
 };

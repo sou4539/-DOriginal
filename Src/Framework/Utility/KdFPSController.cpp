@@ -44,7 +44,7 @@ void KdFPSController::Control()
 void KdFPSController::Monitoring()
 {
 	// FPS計測のタイミング　0.5秒おき
-	constexpr float kFpsRefreshFrame = 500;		
+	constexpr float kFpsRefreshFrame = 500;
 
 	m_fpsCnt++;
 

@@ -25,7 +25,3 @@ private:
 
 	std::vector<KdPolygon::Vertex>	m_debugVertices;
 };
-
-
-
-

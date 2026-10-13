@@ -30,7 +30,7 @@ VSOutput main(
 		normal = mul(normal, (float3x3) mBones);
 	}
 	// <----------------スキニング
-	
+
 	VSOutput Out;
 
     // 座標変換
@@ -52,7 +52,7 @@ VSOutput main(
 
     // UV座標
 	Out.UV = uv * g_UVTiling + g_UVOffset;
-	
+
     // 出力
 	return Out;
 }

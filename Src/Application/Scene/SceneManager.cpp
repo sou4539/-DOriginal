@@ -28,6 +28,13 @@ void SceneManager::PostUpdate()
 void SceneManager::PreDraw()
 {
 	m_currentScene->PreDraw();
+	// 描画先をテクスチャに変更
+	ChangeRenderTarget();
+
+	m_currentScene->Draw();
+
+	// 描画先を元に戻す
+	UndoRenderTarget();
 }
 
 void SceneManager::Draw()
@@ -58,6 +65,17 @@ void SceneManager::SetActiveEnemies(const std::vector<std::weak_ptr<EnemyBase>>&
 void SceneManager::AddObject(const std::shared_ptr<KdGameObject>& _obj)
 {
 	m_currentScene->AddObject(_obj);
+}
+
+void SceneManager::ChangeRenderTarget()
+{
+	m_rtPack.ClearTexture();
+	m_rtChanger.ChangeRenderTarget(m_rtPack);
+}
+
+void SceneManager::UndoRenderTarget()
+{
+	m_rtChanger.UndoRenderTarget();
 }
 
 void SceneManager::ChangeScene(SceneType _sceneType)

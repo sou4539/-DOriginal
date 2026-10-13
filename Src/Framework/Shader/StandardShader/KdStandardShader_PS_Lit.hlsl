@@ -6,7 +6,9 @@ Texture2D g_baseTex : register(t0);			// ベースカラーテクスチャ
 Texture2D g_metalRoughTex : register(t1);	// メタリック/ラフネステクスチャ
 Texture2D g_emissiveTex : register(t2);		// 発光テクスチャ
 Texture2D g_normalTex : register(t3);		// 法線マップ
-Texture2D g_ditherTex : register(t7); // 授業の点模様テクスチャ
+Texture2D g_ditherTex : register(t7);		// 授業の点模様テクスチャ
+
+Texture2D g_screenTex : register(t9);		// 光学迷彩テクスチャ
 
 // 特殊処理用テクスチャ
 Texture2D g_dirShadowMap : register(t10);	// 平行光シャドウマップ
@@ -38,18 +40,18 @@ float4 main(VSOutput In) : SV_Target0
 	{
 		discard;
 	}
-	
+
 	//------------------------------------------
 	// 材質色
 	//------------------------------------------
 	float4 baseColor = g_baseTex.Sample(g_ss, In.UV) * g_BaseColor * In.Color;
-	
+
 	// Alphaテスト
 	if( baseColor.a < 0.05f )
 	{
 		discard;
 	}
-	
+
 	// カメラへの方向
 	float3 vCam = g_CamPos - In.wPos;
 	float camDist = length(vCam); // カメラ - ピクセル距離
@@ -60,7 +62,7 @@ float4 main(VSOutput In) : SV_Target0
 
 	// UV座標（0～1）から 射影座標（-1～1）へ変換
 	wN = wN * 2.0 - 1.0;
-	
+
 	{
 		// 3種の法線から法線行列を作成
 		row_major float3x3 mTBN =
@@ -69,7 +71,7 @@ float4 main(VSOutput In) : SV_Target0
 			normalize(In.wB),
 			normalize(In.wN),
 		};
-	
+
 		// 法線ベクトルをこのピクセル空間へ変換
 		wN = mul(wN, mTBN);
 	}
@@ -77,21 +79,57 @@ float4 main(VSOutput In) : SV_Target0
 	// 法線正規化
 	wN = normalize(wN);
 
+	// 光学迷彩
+	if (g_opticalCamoEnable)
+	{
+        //return g_screenTex.Sample(g_ss, In.UV).r;
+
+		// テクスチャのサイズを取得
+		float w = 0;
+		float h = 0;
+		g_screenTex.GetDimensions(w, h);
+
+		// キャラの表示位置のテクスチャ座標をUVに変更する
+		float2 uv = float2(In.Pos.x / w, In.Pos.y / h);
+		// In.Posには2D座標
+		// UV座標に変換したピクセル座標をピクセル座標という
+
+		// 法線からずれを算出
+		float offset = wN.xy / 20;
+
+		// テクスチャから色を取る
+		float4 col = g_screenTex.Sample(g_ss, uv + offset);
+
+		// ちょっと色をつける
+		col.rb *= 1.2;
+		col.g *= 1.1;
+
+		// リムライトを追加
+		if(g_limLightEnable!=0)
+		{
+			float rim = 1.0 - saturate(dot(normalize(g_CamPos - In.wPos), wN));
+
+			col.rgb += g_limLightColor * pow(rim, g_limLightPow);
+		}
+
+		return col;
+	}
+
 	float4 mr = g_metalRoughTex.Sample(g_ss, In.UV);
 	// 金属性
 	float metallic = mr.b * g_Metallic;
 	// 粗さ
 	float roughness = mr.g * g_Roughness;
 	// ラフネスを逆転させ「滑らか」さにする
-	float smoothness = 1.0 - roughness; 
+	float smoothness = 1.0 - roughness;
 	float specPower = pow(2, 11 * smoothness); // 1～2048
-	
+
 	//------------------------------------------
 	// ライティング
 	//------------------------------------------
 	// 最終的な色
 	float3 outColor = 0;
-	
+
 		// 材質の拡散色　非金属ほど材質の色になり、金属ほど拡散色は無くなる
 	const float3 baseDiffuse = lerp( baseColor.rgb, float3( 0, 0, 0 ), metallic );
 		// 材質の反射色　非金属ほど光の色をそのまま反射し、金属ほど材質の色が乗る
@@ -113,13 +151,13 @@ float4 main(VSOutput In) : SV_Target0
 		float2 uv = liPos.xy * float2(1, -1) * 0.5 + 0.5;
 		// ライトカメラからの距離
 		float z = liPos.z - 0.004; // シャドウアクネ対策
-		
+
 		// 画像のサイズからテクセルサイズを求める
 		float w, h;
 		g_dirShadowMap.GetDimensions(w, h);
 		float tw = 1.0 / w;
 		float th = 1.0 / h;
-	
+
 		// uvの周辺3x3も判定し、平均値を求める
 		shadow = 0;
 		for (int y = -1; y <= 1; y++)
@@ -131,7 +169,7 @@ float4 main(VSOutput In) : SV_Target0
 		}
 		shadow *= 0.11;
 	}
-		
+
 	//-------------------------
 	// 平行光
 	//-------------------------
@@ -169,25 +207,25 @@ float4 main(VSOutput In) : SV_Target0
 	{
 		// ピクセルから点光への方向
 		float3 dir = g_PointLights[ i ].Pos - In.wPos;
-		
+
 		// 距離を算出
 		float dist = length( dir );
-		
+
 		// 正規化
 		dir /= dist;
-		
+
 		// 点光の判定以内
 		if( dist < g_PointLights[ i ].Radius )
 		{
 			// 半径をもとに、距離の比率を求める
 			float atte = 1.0 - saturate( dist / g_PointLights[ i ].Radius );
-			
+
 			// 明度の追加
 			totalBrightness += (1 - pow( 1 - atte, 2 )) * g_PointLights[ i ].IsBright;
-			
+
 			// 逆２乗の法則
 			atte *= atte;
-			
+
 			// Diffuse(拡散光)
 			{
 				// 光の方向と法線の方向との角度さが光の強さになる
@@ -210,7 +248,7 @@ float4 main(VSOutput In) : SV_Target0
 				float spec = BlinnPhong( -dir, vCam, wN, specPower );
 
 				spec *= atte; // 減衰
-				
+
 				// 光の色 * 反射光の強さ * 材質の反射色 * 透明率 * 適当な調整値
 				outColor += (g_PointLights[i].Color * spec) * baseSpecular * baseColor.a * 0.5;
 			}
@@ -218,7 +256,7 @@ float4 main(VSOutput In) : SV_Target0
 	}
 
 	outColor += g_AmbientLight.rgb * baseColor.rgb * baseColor.a;
-	
+
 	// 自己発光色の適応
 	if (g_OnlyEmissie)
 	{
@@ -228,7 +266,7 @@ float4 main(VSOutput In) : SV_Target0
 	{
 		outColor += g_emissiveTex.Sample(g_ss, In.UV).rgb * g_Emissive * In.Color.rgb;
 	}
-	
+
 	//------------------------------------------
 	// 高さフォグ
 	//------------------------------------------
@@ -239,15 +277,15 @@ float4 main(VSOutput In) : SV_Target0
 			float distRate = length(In.wPos - g_CamPos);
 			distRate = saturate(distRate / g_HeightFogDistance);
 			distRate = pow(distRate, 2.0);
-			
+
 			float heightRange = g_HeightFogTopValue - g_HeightFogBottomValue;
 			float heightRate = 1 - saturate((In.wPos.y - g_HeightFogBottomValue) / heightRange);
-			
+
 			float fogRate = heightRate * distRate;
 			outColor = lerp(outColor, g_HeightFogColor, fogRate);
 		}
 	}
-	
+
 	//------------------------------------------
 	// 距離フォグ
 	//------------------------------------------
@@ -255,11 +293,11 @@ float4 main(VSOutput In) : SV_Target0
 	{
 		// フォグ 1(近い)～0(遠い)
 		float f = saturate(1.0 / exp(camDist * g_DistanceFogDensity));
-		
+
 		// 適用
 		outColor = lerp(g_DistanceFogColor, outColor, f);
 	}
-	
+
 	// ディゾルブ輪郭発光
 	if (g_dissolveValue > 0)
 	{
@@ -270,10 +308,10 @@ float4 main(VSOutput In) : SV_Target0
 			outColor += g_dissolveEmissive;
 		}
 	}
-	
+
 	totalBrightness = saturate( totalBrightness );
 	outColor *= totalBrightness;
-	
+
 	//------------------------------------------
 	// 出力
 	//------------------------------------------

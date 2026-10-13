@@ -25,7 +25,7 @@ cbuffer cbFog : register(b8)
 	int g_DistanceFogEnable;		// 距離フォグ有効/無効フラグ
 	float3 g_DistanceFogColor;		// 距離フォグ色
 	float g_DistanceFogDensity;		// 距離フォグ減衰率
-	
+
 	// 高さフォグ
 	float g_HeightFogTopValue;		// 高さフォグの開始の高さ
 	float g_HeightFogBottomValue;	// 高さフォグの終了の高さ
@@ -46,14 +46,14 @@ cbuffer cbLight : register(b9)
 	float3  g_DL_Dir;    // 光の方向
 	float3  g_DL_Color;  // 光の色
 	row_major float4x4  g_DL_mLightVP;  // ビュー行列 x 射影行列
-	
+
 	//--------------
 	// 点光
 	//--------------
 	// 使用数
 	int4			g_PointLightNum;   // パッキング規則が大変なので、int4のxのみを使用する
 	// データ
-	struct PointLight 
+	struct PointLight
 	{
 	    float3	    Color;			// 色
 	    float	    Radius;			// 半径

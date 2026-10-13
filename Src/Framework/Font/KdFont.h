@@ -142,7 +142,7 @@ private:
 
 	HWND								m_hWnd = 0;							// ウィンドウハンドル
 	HDC									m_hDC = 0;							// デバイスコンテキスト
-	
+
 	std::map<std::string, int>			m_LoadedFontMap;					// 追加したttfファイルのリスト
 
 	//=====================================================

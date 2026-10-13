@@ -156,7 +156,7 @@ private:
 	// 内部的には、レンダリングコマンドと呼ばれるバイナリデータを作成し、GPUに送る。
 	// GPUがレンダリングコマンドを解析することで実際の描画処理が行われる。
 	//==============================================================
-	ID3D11DeviceContext*	m_pDeviceContext = nullptr;	
+	ID3D11DeviceContext*	m_pDeviceContext = nullptr;
 
 	//==============================================================
 	// ウインドウへの表示やダブルバッファリングなどを行うクラス。
@@ -196,7 +196,7 @@ private:
 
 	KdDirect3D() {}
 
-	~KdDirect3D() 
+	~KdDirect3D()
 	{
 		Release();
 	}

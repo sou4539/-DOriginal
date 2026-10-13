@@ -1,24 +1,24 @@
-#include "BaseScene.h"
+ï»¿#include "BaseScene.h"
 
 void BaseScene::PreUpdate()
 {
-	// Update‚Ì‘O‚ÌXVˆ—
+	// Updateã®å‰ã®æ›´æ–°å‡¦ç†
 	auto it = m_objList.begin();
 
 	while (it != m_objList.end())
 	{
-		if ((*it)->IsExpired())	// IsExpired() EEE –³Œø‚È‚çtrue
+		if ((*it)->IsExpired())	// IsExpired() ãƒ»ãƒ»ãƒ» ç„¡åŠ¹ãªã‚‰true
 		{
-			// –³Œø‚ÈƒIƒuƒWƒFƒNƒg‚ğƒŠƒXƒg‚©‚çíœ
+			// ç„¡åŠ¹ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã‚’ãƒªã‚¹ãƒˆã‹ã‚‰å‰Šé™¤
 			it = m_objList.erase(it);
 		}
 		else
 		{
-			++it;	// Ÿ‚Ì—v‘f‚ÖƒCƒeƒŒ[ƒ^‚ği‚ß‚é
+			++it;	// æ¬¡ã®è¦ç´ ã¸ã‚¤ãƒ†ãƒ¬ãƒ¼ã‚¿ã‚’é€²ã‚ã‚‹
 		}
 	}
 
-	// ª‚ÌŒã‚É‚Í—LŒø‚ÈƒIƒuƒWƒFƒNƒg‚¾‚¯‚ÌƒŠƒXƒg‚É‚È‚Á‚Ä‚¢‚é
+	// â†‘ã®å¾Œã«ã¯æœ‰åŠ¹ãªã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã ã‘ã®ãƒªã‚¹ãƒˆã«ãªã£ã¦ã„ã‚‹
 
 	for (auto& obj : m_objList)
 	{
@@ -28,10 +28,10 @@ void BaseScene::PreUpdate()
 
 void BaseScene::Update()
 {
-	// ƒV[ƒ“–ˆ‚ÌƒCƒxƒ“ƒgˆ—
+	// ã‚·ãƒ¼ãƒ³æ¯ã®ã‚¤ãƒ™ãƒ³ãƒˆå‡¦ç†
 	Event();
 
-	// KdGameObject‚ğŒp³‚µ‚½‘S‚Ä‚ÌƒIƒuƒWƒFƒNƒg‚ÌXV (ƒ|ƒŠƒ‚[ƒtƒBƒYƒ€)
+	// KdGameObjectã‚’ç¶™æ‰¿ã—ãŸå…¨ã¦ã®ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã®æ›´æ–° (ãƒãƒªãƒ¢ãƒ¼ãƒ•ã‚£ã‚ºãƒ )
 	for (auto& obj : m_objList)
 	{
 		if (IsUpdatePaused() && !CanUpdateWhenPaused(obj)) { continue; }
@@ -85,6 +85,12 @@ void BaseScene::Draw()
 	{
 		for (auto& obj : m_objList)
 		{
+			if (obj->GetObjType() == KdGameObject::GhostObj)
+			{
+				// ã“ã®ä¸­ã«å…¥ã£ã¦ããŸã‚‰é€æ˜åŒ–
+				obj->SetObjType(KdGameObject::None);
+				continue;
+			}
 			obj->DrawLit();
 		}
 	}
@@ -126,7 +132,7 @@ void BaseScene::DrawSprite()
 
 void BaseScene::DrawDebug()
 {
-	// ZƒL[‚ğ‰Ÿ‚µ‚½uŠÔ‚¾‚¯A‘SƒfƒoƒbƒOƒƒCƒ„[‚Ì•\¦/”ñ•\¦‚ğØ‚è‘Ö‚¦‚éB
+	// Zã‚­ãƒ¼ã‚’æŠ¼ã—ãŸç¬é–“ã ã‘ã€å…¨ãƒ‡ãƒãƒƒã‚°ãƒ¯ã‚¤ãƒ¤ãƒ¼ã®è¡¨ç¤º/éè¡¨ç¤ºã‚’åˆ‡ã‚Šæ›¿ãˆã‚‹ã€‚
 	const bool isDebugWireKey = (GetAsyncKeyState('Z') & 0x8000);
 	if (isDebugWireKey && !m_prevDebugWireKey)
 	{
@@ -136,7 +142,7 @@ void BaseScene::DrawDebug()
 	m_prevDebugWireKey = isDebugWireKey;
 	KdDebugWireFrame::SetEnable(m_isDebugWireVisible);
 
-	// ”ñ•\¦’†‚àŠeƒIƒuƒWƒFƒNƒg‚ÍUpdate“à‚ÅƒƒCƒ„[î•ñ‚ğ’Ç‰Á‚µ‚Ä‚¢‚é‰Â”\«‚ª‚ ‚éB
+	// éè¡¨ç¤ºä¸­ã‚‚å„ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆã¯Updateå†…ã§ãƒ¯ã‚¤ãƒ¤ãƒ¼æƒ…å ±ã‚’è¿½åŠ ã—ã¦ã„ã‚‹å¯èƒ½æ€§ãŒã‚ã‚‹ã€‚
 	if (!m_isDebugWireVisible)
 	{
 		for (auto& obj : m_objList)
@@ -159,14 +165,10 @@ void BaseScene::DrawDebug()
 
 void BaseScene::Event()
 {
-	// ŠeƒV[ƒ“‚Å•K—v‚È“à—e‚ğÀ‘•(ƒI[ƒo[ƒ‰ƒCƒh)‚·‚é
+	// å„ã‚·ãƒ¼ãƒ³ã§å¿…è¦ãªå†…å®¹ã‚’å®Ÿè£…(ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰)ã™ã‚‹
 }
 
 void BaseScene::Init()
 {
-	// ŠeƒV[ƒ“‚Å•K—v‚È“à—e‚ğÀ‘•(ƒI[ƒo[ƒ‰ƒCƒh)‚·‚é
+	// å„ã‚·ãƒ¼ãƒ³ã§å¿…è¦ãªå†…å®¹ã‚’å®Ÿè£…(ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰)ã™ã‚‹
 }
-
-
-
-

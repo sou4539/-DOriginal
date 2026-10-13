@@ -66,7 +66,7 @@ bool KdMesh::Create(const std::vector<KdMeshVertex>& vertices, const std::vector
 		DirectX::BoundingBox::CreateFromPoints(m_aabb, m_positions.size(), &m_positions[0], sizeof(Math::Vector3));
 		// 境界球データ作成
 		DirectX::BoundingSphere::CreateFromPoints(m_bs, m_positions.size(), &m_positions[0], sizeof(Math::Vector3));
-	}	
+	}
 
 	//------------------------------
 	// インデックスバッファ作成
@@ -107,8 +107,6 @@ void KdMesh::DrawSubset(int subsetNo) const
 	// 描画
 	KdDirect3D::Instance().WorkDevContext()->DrawIndexed(m_subsets[subsetNo].FaceCount * 3, m_subsets[subsetNo].FaceStart * 3, 0);
 }
-
-// インスタンシング描画2
 void KdMesh::DrawSubsetInstanced(int subsetNo, UINT instanceCount) const
 {
 	// 存在しないサブセットは描画しない

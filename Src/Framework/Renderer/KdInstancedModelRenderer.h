@@ -2,6 +2,7 @@
 
 class KdModelData;
 class KdModelWork;
+class KdTexture;
 
 // 一括描画では設定が同じ個体だけをまとめる。省略すると両方とも無効。
 struct KdModelVisualEffects
@@ -12,10 +13,10 @@ struct KdModelVisualEffects
 	bool AlphaDither = false;
 	float Alpha = 0.4f; // 残す割合：0で消え、1で全部表示する
 	bool DistanceFade = false; // trueならカメラの近くで点模様に抜く
+	bool OpticalCamo = false;
+	std::shared_ptr<KdTexture> ScreenTexture;
 };
-
-// インスタンシング描画28
-// Collect matching models and render them together at the end of each pass.
+// 同じ設定のモデルを集め、各描画パスの最後にまとめて描画する。
 class KdModelInstanceBatcher
 {
 public:
@@ -58,7 +59,7 @@ private:
 	struct SkinnedBatch
 	{
 		KdModelVisualEffects Effects;
-		// Instances sharing one KdModelWork also share one animated bone pose.
+		// 同じKdModelWorkを使う個体は、アニメーションのボーン姿勢も共有する。
 		std::shared_ptr<KdModelWork> Model;
 		Math::Color Color = kWhiteColor;
 		Math::Vector3 Emissive = Math::Vector3::Zero;

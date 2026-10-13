@@ -9,11 +9,14 @@
 #include "../../../GameObject/Stage/Village/Village.h"
 #include "../../../GameObject/Character/Castle/NoneCastle.h"
 #include "../../../GameObject/Stage/Tree/Tree.h"
+#include "../../../GameObject/Stage/WarpStone.h"
 
 
 namespace
 {
-	constexpr float CastleWarpDistance = 40.0f;
+	const Math::Vector3 VillagePortalPos = { 0.0f, 0.0f, 30.0f };
+	constexpr float EntranceRadius = 6.0f;
+
 
 }
 
@@ -24,9 +27,10 @@ void GrassStage::Init()
 	auto status = m_status.lock();
 	auto camera = m_camera.lock();
 	if (!player || !status || !camera) { return; }
+	StartStageBgm("Asset/Sounds/BGM/Game/GrassStage/GrassBGM.wav");
 
 	// 草原の開始位置と復活位置。
-	const Math::Vector3 spawnPos = { 0.0f, 0.0f, -15.0f };
+	const Math::Vector3 spawnPos = { -30.0f, 0.0f, 0.0f };
 	player->SetPos(spawnPos);
 	player->SetRespawnPos(spawnPos);
 
@@ -36,13 +40,20 @@ void GrassStage::Init()
 	m_objList.push_back(ground);
 	m_objList.push_back(village);
 	m_objList.push_back(tree);
+	m_objList.push_back(std::make_shared<WarpStone>(VillagePortalPos));
 	// ランダム配置された城を保存し、デバッグワープで実際の位置を参照する。
 	auto castle = std::make_shared<NoneCastle>(village->GetSafeAreaCenter());
 	m_objList.push_back(castle);
 	m_castle = castle;
-	if (m_returnFromCastle)
+	if (m_arrivalPoint == GrassArrivalPoint::VillagePortal)
 	{
-		player->SetPos(castle->GetPos() + Math::Vector3(0.0f, 0.0f, -CastleWarpDistance));
+		player->SetPos(VillagePortalPos);
+		player->SetAngle(DirectX::XM_PI);
+		camera->SetYawDeg(180.0f);
+	}
+	else if (m_arrivalPoint == GrassArrivalPoint::CastleEntrance)
+	{
+		player->SetPos(castle->GetEntrancePosition());
 		player->SetAngle(DirectX::XM_PI);
 		camera->SetYawDeg(180.0f);
 	}
@@ -53,14 +64,18 @@ void GrassStage::Init()
 	// 草原用の敵の出現設定。
 	auto enemySpawner = std::make_shared<EnemySpawner>();
 	m_objList.push_back(enemySpawner);
-	// グループごとの補充上限も合計200匹にする（30×2 + 28×5）。
-	enemySpawner->AddSpawnArea({ -70.0f, 3.0f, 0.0f }, 16.0f, 30);
-	enemySpawner->AddSpawnArea({ -30.0f, 3.0f, 55.0f }, 14.0f, 28);
-	enemySpawner->AddSpawnArea({ -30.0f, 3.0f, -75.0f }, 14.0f, 28);
-	enemySpawner->AddSpawnArea({ 55.0f, 3.0f, -45.0f }, 14.0f, 28);
-	enemySpawner->AddSpawnArea({ -85.0f, 3.0f, 45.0f }, 14.0f, 28);
-	enemySpawner->AddSpawnArea({ -85.0f, 3.0f, -45.0f }, 14.0f, 28);
-	enemySpawner->AddSpawnArea({ -120.0f, 3.0f, 0.0f }, 16.0f, 30);
+	// 最大数を7グループへ分配し、上限設定を変えても合計を一致させる。
+	const Math::Vector3 spawnCenters[] = {
+		{-70, 3, 0}, {-30, 3, 55}, {-30, 3, -75}, {55, 3, -45},
+		{-85, 3, 45}, {-85, 3, -45}, {-120, 3, 0}
+	};
+	constexpr int groupCount = 7;
+	for (int i = 0; i < groupCount; ++i)
+	{
+		const int count = GameBalance::GrassMaxEnemies / groupCount
+			+ (i < GameBalance::GrassMaxEnemies % groupCount ? 1 : 0);
+		enemySpawner->AddSpawnArea(spawnCenters[i], 16.0f, count);
+	}
 	enemySpawner->SetStatus(status);
 
 	// 村の安全地帯と案内範囲。
@@ -94,14 +109,15 @@ void GrassStage::Event()
 	const bool enterDown = (GetAsyncKeyState('F') & 0x8000) != 0;
 	const bool enterPressed = enterDown && !m_prevEnterDown;
 	m_prevEnterDown = enterDown;
+	if (IsUpdatePaused()) { return; }
 
 	auto player = m_player.lock();
 	auto castle = m_castle.lock();
 	auto camera = m_camera.lock();
 	if (!player || !castle || !camera) { return; }
 
-	// 仮の入口を城の-Z側40ユニットに置く。Bのワープ先も同じ位置にする。
-	const Math::Vector3 warpPos = castle->GetPos() + Math::Vector3(0.0f, 0.0f, -CastleWarpDistance);
+	// モデルの中央を基準にした入口。Bのワープ先も同じ位置にする。
+	const Math::Vector3 warpPos = castle->GetEntrancePosition();
 	if (warpPressed)
 	{
 		player->SetPos(warpPos);
@@ -111,14 +127,29 @@ void GrassStage::Event()
 		camera->ResetMouseMove();
 	}
 
-	if (!enterPressed || !m_onCastleEntry) { return; }
-	// 入口から水平距離6ユニット以内でEを押したら、親へ入場を通知する。
-	constexpr float EntranceRadius = 6.0f;
-	Math::Vector3 toEntrance = warpPos - player->GetPos();
-	toEntrance.y = 0.0f;
-	if (toEntrance.LengthSquared() <= EntranceRadius * EntranceRadius)
+	if (enterPressed && GetInteractionAction() == InteractionAction::EnterCastle)
 	{
-		// ここではステージを破棄しない。GameSceneが次フレームに切り替える。
-		m_onCastleEntry();
+		m_onCastleEntry(IsNearVillagePortal() ? CastleEntryRoute::VillagePortal : CastleEntryRoute::Entrance);
 	}
+}
+
+bool GrassStage::IsNearVillagePortal() const
+{
+	auto player = m_player.lock();
+	if (!player) { return false; }
+	const auto pos = player->GetPos();
+	Math::Vector3 offset = pos - VillagePortalPos;
+	offset.y = 0.0f;
+	return offset.LengthSquared() <= EntranceRadius * EntranceRadius
+		&& pos.y >= VillagePortalPos.y - 0.5f && pos.y <= VillagePortalPos.y + 8.0f;
+}
+
+InteractionAction GrassStage::GetInteractionAction() const
+{
+	if (IsUpdatePaused() || !m_onCastleEntry) { return InteractionAction::None; }
+	auto player = m_player.lock();
+	auto castle = m_castle.lock();
+	if (!player || !castle) { return InteractionAction::None; }
+	return IsNearVillagePortal() || castle->CanEnter(player->GetPos())
+		? InteractionAction::EnterCastle : InteractionAction::None;
 }

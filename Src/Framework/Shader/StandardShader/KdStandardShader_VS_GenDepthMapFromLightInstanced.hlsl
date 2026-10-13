@@ -1,4 +1,3 @@
-// インスタンシング描画20
 
 #include "inc_KdStandardShader.hlsli"
 #include "../inc_KdCommon.hlsli"

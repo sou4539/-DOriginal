@@ -23,7 +23,7 @@ void KdAmbientController::Init()
 
 		m_parameter.m_distanceFogColor = cbFog.DistanceFogColor;
 		m_parameter.m_distanceFogDensity = cbFog.DistanceFogDensity;
-		
+
 		m_parameter.m_heightFogColor = cbFog.HeightFogColor;
 		m_parameter.m_heightFogTopValue= cbFog.HeightFogTopValue;
 		m_parameter.m_heightFogBottomValue = cbFog.HeightFogBottomValue;
@@ -141,7 +141,7 @@ void KdAmbientController::SetheightFog(const Math::Vector3& col, float topValue,
 	m_parameter.m_heightFogTopValue = topValue;
 
 	m_parameter.m_heightFogBottomValue = bottomValue;
-	
+
 	m_parameter.m_heightFogBeginDistance = distance;
 
 	m_dirtyFogHeight = true;
@@ -169,11 +169,8 @@ void KdAmbientController::WriteLightParams()
 		m_dirtyLightDir = false;
 	}
 
-	// 点光源
-	if (m_pointLights.size())
-	{
-		KdShaderManager::Instance().WriteCBPointLight(m_pointLights);
-	}
+	// 0個のフレームも反映し、城の杖の光が草原に残らないようにする。
+	KdShaderManager::Instance().WriteCBPointLight(m_pointLights);
 
 	// 影描画エリアの更新
 	KdShaderManager::Instance().WriteCBShadowArea(m_shadowProj, m_dirLightHeight);

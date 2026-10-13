@@ -71,7 +71,7 @@ void KdShaderManager::Init()
 	m_samplerStates[(int)KdSamplerState::Linear_Clamp_Cmp]	= KdDirect3D::Instance().CreateSamplerState(KdSamplerFilterMode::Linear, 0, KdSamplerAddressingMode::Clamp, true);
 	m_samplerStates[(int)KdSamplerState::Point_Wrap]		= KdDirect3D::Instance().CreateSamplerState(KdSamplerFilterMode::Point, 0, KdSamplerAddressingMode::Wrap, false);
 	m_samplerStates[(int)KdSamplerState::Point_Clamp]		= KdDirect3D::Instance().CreateSamplerState(KdSamplerFilterMode::Point, 0, KdSamplerAddressingMode::Clamp, false);
-	
+
 	// 初期サンプラーステートの設定
 	if (m_pixelArtStyle)
 	{
@@ -319,7 +319,7 @@ void KdShaderManager::UndoBlendState()
 
 	ID3D11BlendState* pNowBs = nullptr;
 	KdDirect3D::Instance().WorkDevContext()->OMGetBlendState(&pNowBs, nullptr, nullptr);
-	
+
 	if (pNowBs != m_bs_Undo.top())
 	{
 		KdDirect3D::Instance().WorkDevContext()->OMSetBlendState(m_bs_Undo.top(), Math::Color(0, 0, 0, 0), 0xFFFFFFFF);

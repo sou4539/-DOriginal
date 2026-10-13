@@ -38,7 +38,7 @@ public:
 
 	//アクセサ
 	const std::shared_ptr<KdMesh> GetMesh(UINT index) const { return index < m_originalNodes.size() ? m_originalNodes[ index ].m_spMesh : nullptr; }
-	
+
 	Node* FindNode(std::string name)
 	{
 		for (auto&& node : m_originalNodes)

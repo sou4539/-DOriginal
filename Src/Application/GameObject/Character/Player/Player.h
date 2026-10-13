@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "../CharaBase.h"
+#include <functional>
 
 class Status;
 class CameraBase;
@@ -48,6 +49,7 @@ public:
 	{
 		m_respawnPos = respawnPos;
 	}
+	void SetDeathCallback(const std::function<void()>& callback) { m_onDeath = callback; }
 
 	// 村の安全地帯スフィアを設定する。
 	void SetSafeArea(const Math::Vector3& center, float radius)
@@ -87,6 +89,7 @@ public:
 	void SetAngle(float angle) { m_angle = angle; }
 
 private:
+	std::function<void()> m_onDeath;
 	// プレイヤーの初期設定。
 	void Init() override;
 
@@ -142,8 +145,3 @@ private:
 	float m_FlyAngle = 0.0f;
 	Math::Matrix FlyMat() const;
 };
-
-
-
-
-

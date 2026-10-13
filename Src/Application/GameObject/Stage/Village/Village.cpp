@@ -50,7 +50,7 @@ void Village::DrawEffect()
 	if (!IsInVisibleRange()) { return; }
 	if (!m_spModel) { return; }
 
-	// Fake ground shadow.
+	// 地面に簡易的な影を描画する。
 	Math::Matrix shadowMat = m_mWorld * Math::Matrix::CreateScale(1.0f, 0.0f, 1.0f);
 	shadowMat.Translation({ 0.0f, 0.025f, 0.0f });
 
@@ -67,5 +67,3 @@ bool Village::IsInVisibleRange() const
 
 	return toVillage.LengthSquared() <= m_visibleRadius * m_visibleRadius;
 }
-
-

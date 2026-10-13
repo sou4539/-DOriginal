@@ -7,8 +7,8 @@
 KdDebugGUI::KdDebugGUI()
 {}
 KdDebugGUI::~KdDebugGUI()
-{ 
-	GuiRelease(); 
+{
+	GuiRelease();
 }
 
 void KdDebugGUI::GuiInit(int w, int h)
@@ -16,13 +16,13 @@ void KdDebugGUI::GuiInit(int w, int h)
 	// 初期化済みなら動作させない
 	if (m_uqLog) return;
 
-	// Setup Dear ImGui context
+	// ImGuiのコンテキストを作成する。
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	// Setup Dear ImGui style
+	// ImGuiの外観を設定する。
 	// ImGui::StyleColorsDark();
 	ImGui::StyleColorsClassic();
-	// Setup Platform/Renderer bindings
+	// ウィンドウと描画処理をImGuiへ接続する。
 	ImGui_ImplWin32_Init
 	(
 		Application::Instance().GetWindowHandle(),

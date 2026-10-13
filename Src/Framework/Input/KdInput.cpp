@@ -236,7 +236,7 @@ bool KdInputCollector::IsSomethingInput()
 	for (auto& button : m_spButtons)
 	{
 		if (!button.second) { continue; }
-		
+
 		// 入力を受け付けていたら「True」
 		if (button.second->GetState() != KdInputButtonBase::State::Free ) { return true; }
 	}
@@ -362,7 +362,7 @@ void KdInputCollector::Release()
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 KdInputButtonForWindows::KdInputButtonForWindows(int keyCode)
 {
-	m_keyCodes.push_back(keyCode); 
+	m_keyCodes.push_back(keyCode);
 }
 
 KdInputButtonForWindows::KdInputButtonForWindows(std::initializer_list<int> keyCodeList)
@@ -427,7 +427,6 @@ void KdInputButtonForWindows::GetCode(std::vector<int>& ret) const
 		ret.push_back(code);
 	}
 }
-
 
 
 // ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### ##### #####
@@ -496,7 +495,7 @@ KdInputAxisForWindows::KdInputAxisForWindows(const std::vector<int>& upCodes, co
 
 KdInputAxisForWindows::KdInputAxisForWindows(const std::shared_ptr<KdInputButtonBase> upButton,
 	const std::shared_ptr<KdInputButtonBase> rightButton,
-	const std::shared_ptr<KdInputButtonBase> downButton, 
+	const std::shared_ptr<KdInputButtonBase> downButton,
 	const std::shared_ptr<KdInputButtonBase> leftButton)
 {
 	m_spDirButtons.push_back(upButton);

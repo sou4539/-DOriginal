@@ -222,9 +222,9 @@ public:
 		std::initializer_list<int> downCodes, std::initializer_list<int> leftCodes);
 	KdInputAxisForWindows(const std::vector<int>& upCodes, const std::vector<int>& rightCodes,
 		const std::vector<int>& downCodes, const std::vector<int>& leftCodes);
-	KdInputAxisForWindows(const std::shared_ptr<KdInputButtonBase> upButton, 
-		const std::shared_ptr<KdInputButtonBase> rightButton, 
-		const std::shared_ptr<KdInputButtonBase> downButton, 
+	KdInputAxisForWindows(const std::shared_ptr<KdInputButtonBase> upButton,
+		const std::shared_ptr<KdInputButtonBase> rightButton,
+		const std::shared_ptr<KdInputButtonBase> downButton,
 		const std::shared_ptr<KdInputButtonBase> leftButton);
 
 	void PreUpdate() override;

@@ -12,7 +12,6 @@ void EnemySpawner::Init()
 
 void EnemySpawner::Update()
 {
-	// インスタンシング描画34
 	Bat::UpdateSharedAnimation();
 
 	if (m_pDebugWire)
@@ -100,25 +99,11 @@ Math::Vector3 EnemySpawner::MakeRandomPos(int areaIndex) const
 
 	const Math::Vector3 targetPos = spTarget->GetPos();
 	Math::Vector3 pos = targetPos;
-	Math::Vector3 areaDir = area.center - m_safeAreaCenter;
-	areaDir.y = 0.0f;
-
-	float baseAngle = KdRandom::GetFloat(0.0f, DirectX::XM_2PI);
-	if (areaDir.LengthSquared() > 0.0001f)
-	{
-		baseAngle = std::atan2(areaDir.z, areaDir.x);
-	}
-
 	for (int i = 0; i < 30; ++i)
 	{
-		float angle = baseAngle + KdRandom::GetFloat
-		(
-			-DirectX::XMConvertToRadians(18.0f),
-			DirectX::XMConvertToRadians(18.0f)
-		);
-
-		float radiusRate = std::sqrt(KdRandom::GetFloat(0.0f, 1.0f));
-		float radius = m_spawnMinRadius + (m_spawnMaxRadius - m_spawnMinRadius) * radiusRate;
+		float angle = KdRandom::GetFloat(0.0f, DirectX::XM_2PI);
+		float radius = std::sqrt(KdRandom::GetFloat(
+			m_spawnMinRadius * m_spawnMinRadius, m_spawnMaxRadius * m_spawnMaxRadius));
 
 		pos.x = targetPos.x + std::cos(angle) * radius;
 		pos.y = area.center.y;
@@ -130,9 +115,12 @@ Math::Vector3 EnemySpawner::MakeRandomPos(int areaIndex) const
 		}
 	}
 
-	pos.x = targetPos.x - m_spawnMaxRadius;
+	Math::Vector3 away = targetPos - m_safeAreaCenter;
+	away.y = 0.0f;
+	if (away.LengthSquared() < 0.0001f) { away = Math::Vector3(1.0f, 0.0f, 0.0f); }
+	away.Normalize();
+	pos = targetPos + away * m_spawnMaxRadius;
 	pos.y = area.center.y;
-	pos.z = targetPos.z;
 
 	return pos;
 }

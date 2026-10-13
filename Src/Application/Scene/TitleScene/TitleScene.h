@@ -43,5 +43,3 @@ private:
 	bool m_prevResetDown = false;
 	bool m_isExitRequested = false;
 };
-
-

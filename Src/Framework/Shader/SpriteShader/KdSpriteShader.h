@@ -25,7 +25,7 @@ public:
 	// 解放
 	void Release();
 
-	// 
+	//
 	~KdSpriteShader() {
 		Release();
 	}
@@ -43,7 +43,7 @@ public:
 	void Begin(bool linear = true, bool disableZBuffer = true);
 
 	// 描画終了
-	//  Begin()で記憶していたステートを復元 
+	//  Begin()で記憶していたステートを復元
 	void End();
 
 	// 変換行列セット

@@ -3,7 +3,6 @@
 #include "KdBuffer.h"
 
 
-
 bool KdBuffer::Create(UINT bindFlags, UINT bufferSize, D3D11_USAGE bufferUsage, const D3D11_SUBRESOURCE_DATA* initData)
 {
 	Release();
@@ -62,7 +61,7 @@ bool KdBuffer::Create(UINT bindFlags, UINT bufferSize, D3D11_USAGE bufferUsage, 
 		desc.BindFlags = 0;
 		desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 	}
-	
+
 	//--------------------------------
 	// バッファ作成
 	//--------------------------------
@@ -72,7 +71,7 @@ bool KdBuffer::Create(UINT bindFlags, UINT bufferSize, D3D11_USAGE bufferUsage, 
 		return false;
 	}
 
-	// 
+	//
 	m_bufUsage = bufferUsage;
 	m_bufSize = bufferSize;
 

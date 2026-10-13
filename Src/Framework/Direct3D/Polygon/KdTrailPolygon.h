@@ -62,7 +62,7 @@ public:
 	}
 
 	// パターンを設定
-	inline void SetPattern(Trail_Pattern pattern) 
+	inline void SetPattern(Trail_Pattern pattern)
 	{
 		if (m_pattern == pattern) { return; }
 

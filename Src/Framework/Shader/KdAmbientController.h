@@ -67,7 +67,7 @@ public:
 
 private:
 
-	void WriteLightParams(); 
+	void WriteLightParams();
 	void WriteFogParams();
 
 	KdAmbientParameter m_parameter;

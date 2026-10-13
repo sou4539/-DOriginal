@@ -16,7 +16,7 @@ struct KdGLTFMaterial
 
 	std::string		AlphaMode = "OPAQUE";		// "OPAQUE" : レンダリングされた出力は完全に不透明で、アルファ値は無視されます。
 												// "MASK"   : レンダリングされた出力は、アルファ値と指定されたアルファカットオフ値に応じて、完全に不透明または完全に透明になります。このモードは、木の葉やワイヤーフェンスなどのジオメトリをシミュレートするために使用されます。
-												// "BLEND"  : 
+												// "BLEND"  :
 
 	float			AlphaCutoff = 0.5f;			// MASKモード時に、カットオフの閾値として使用　それ以外のモードでは使用されない
 	bool			DoubleSided = false;		// 両面か？
@@ -134,7 +134,7 @@ struct KdGLTFModel
 // GLTF形式の3Dモデルを読み込む
 // LoaderはTinygltfを使用しています。
 // github:https://github.com/syoyo/tinygltf
-// 
+//
 // ・path				… .glflファイルのパス
 //===================================================
 std::shared_ptr<KdGLTFModel> KdLoadGLTFModel(std::string_view path);
