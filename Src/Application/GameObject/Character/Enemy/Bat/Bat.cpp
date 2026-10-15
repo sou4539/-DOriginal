@@ -8,7 +8,6 @@ namespace
 	// FPS優先のため、遠いコウモリは影の処理を止める。
 	constexpr float BatShadowDrawRadius = 22.0f;
 	constexpr float BatDebugDrawRadius = 80.0f;
-	constexpr float BatSearchRadius = 12.0f;
 	constexpr float BatChaseRadius = 24.0f;
 	constexpr float BatMoveSpeed = 0.11f;
 	constexpr int BatHitFlashFrame = 5;
@@ -100,7 +99,9 @@ void Bat::Update()
 
 		if (canDrawDebug)
 		{
-			float debugRadius = m_isChasing ? BatChaseRadius : BatSearchRadius;
+			float debugRadius = m_isChasing
+				? BatChaseRadius
+				: GetSearchRadius();
 			m_pDebugWire->AddDebugSphere(m_pos, debugRadius, kRedColor);
 		}
 	}
@@ -124,18 +125,26 @@ void Bat::Update()
 		{
 			m_isChasing = true;
 		}
+		else if (m_isChasing && KeepsChasing())
+		{
+			// 一度見つけた怨念は、距離が離れても追尾を続ける。
+		}
 		else if (isTargetInSafeArea)
 		{
 			m_isChasing = false;
 		}
 		else
 		{
-			// 見つける前は小さい索敵範囲で判定する。
-			if (!m_isChasing && distSq <= BatSearchRadius * BatSearchRadius)
+			// 最初の発見距離は通常のコウモリと共通。
+			const float searchRadius = GetSearchRadius();
+
+			if (!m_isChasing &&
+				distSq <= searchRadius * searchRadius)
 			{
 				m_isChasing = true;
 			}
-			else if (m_isChasing && distSq > BatChaseRadius * BatChaseRadius)
+			else if (m_isChasing &&
+				distSq > BatChaseRadius * BatChaseRadius)
 			{
 				m_isChasing = false;
 			}

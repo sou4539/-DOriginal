@@ -69,7 +69,6 @@
 
 // デバッグ機能
 #include "Utility/KdDebug/KdDebugWireFrame.h"
-#include "Utility/KdDebug/KdDebugGUI.h"
 
 // ゲームオブジェクト関連
 #include "GameObject/KdGameObject.h"

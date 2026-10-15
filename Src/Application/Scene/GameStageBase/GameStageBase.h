@@ -2,12 +2,14 @@
 
 #include "../BaseScene/BaseScene.h"
 #include "../../GameObject/UI/InteractionPrompt.h"
+#include<functional>
 
 class Status;
 class Player;
 class TPSCamera;
 class KdSoundInstance;
 class PauseMenu;
+class ReturnCircle;
 
 // 草原・城に共通するステージ処理。
 class GameStageBase : public BaseScene
@@ -18,7 +20,12 @@ public:
 
 	// GameSceneから一度だけ開始する。育成状態は外から引き継ぐ。
 	void Start(const std::shared_ptr<Status>& status);
+	void PostUpdate() override;
 	void DrawSprite() override;
+	void SetReturnToVillageCallback(const std::function<void()>& callback)
+	{
+		m_onReturnToVillage = callback;
+	}
 
 protected:
 	// 共通のイベント処理。
@@ -52,4 +59,20 @@ private:
 	bool m_prevEscapeDown = false;
 	bool m_cursorVisibleBeforeMenu = false;
 	bool m_started = false;
+
+	bool m_isReturnCasting = false;
+	float m_ReturnCastTime = 0.0f;
+
+	// 詠唱中に受けたダメージ回数
+	unsigned int m_ReturnCastDamageCount = 0;
+
+	std::function<void()> m_onReturnToVillage;
+
+	void StartReturnCast();
+	void UpdateReturnCast();
+
+	std::shared_ptr<ReturnCircle> m_returnCircle;
+
+	// 表示と帰還判定は同じ時間
+	static constexpr float ReturnCastDuration = 5.0f;
 };

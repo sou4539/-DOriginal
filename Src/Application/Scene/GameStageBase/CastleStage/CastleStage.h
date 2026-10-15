@@ -34,9 +34,12 @@ private:
 	std::shared_ptr<CastleExit> m_exit;
 	bool m_prevExitDown = false;
 	bool m_prevDebugSpawnDown = false;
+
 	// 指定数を追加する。倒した怨念は自動補充しない。
 	void CreateGrudges(int count, bool addToTotal = true);
 	void UpdateActiveGrudges();
+	void RefillGrudges();
+
 	std::shared_ptr<GrudgeBattleState> m_grudgeBattle;
 	std::vector<std::weak_ptr<GrudgeBat>> m_grudges;
 };

@@ -65,6 +65,9 @@
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Platform)'=='x64'">
+    <OutDir>$(ProjectDir)x64\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
@@ -83,7 +86,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\imgui;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;ASIO_STANDALONE;_WIN32_WINNT=0x0A00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -129,7 +132,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\imgui;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;ASIO_STANDALONE;_WIN32_WINNT=0x0A00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -177,7 +180,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\imgui;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;ASIO_STANDALONE;_WIN32_WINNT=0x0A00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -222,7 +225,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\imgui;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\asio-1.38.2\include;.\;src;..\Library;..\Library\DirectXTK\Inc;..\Library\DirectXTex\DirectXTex;..\Library\tinygltf;..\Library\Effekseer\Inc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;ASIO_STANDALONE;_WIN32_WINNT=0x0A00;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -260,16 +263,6 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\Library\imgui\imconfig.h" />
-    <ClInclude Include="..\Library\imgui\imgui.h" />
-    <ClInclude Include="..\Library\imgui\imgui_impl_dx11.h" />
-    <ClInclude Include="..\Library\imgui\imgui_impl_win32.h" />
-    <ClInclude Include="..\Library\imgui\imgui_internal.h" />
-    <ClInclude Include="..\Library\imgui\imgui_stdlib.h" />
-    <ClInclude Include="..\Library\imgui\imstb_rectpack.h" />
-    <ClInclude Include="..\Library\imgui\imstb_textedit.h" />
-    <ClInclude Include="..\Library\imgui\imstb_truetype.h" />
-    <ClInclude Include="..\Library\imgui\ja_glyph_ranges.h" />
     <ClInclude Include="..\Library\strconv.h" />
     <ClInclude Include="..\Library\tinygltf\json.hpp" />
     <ClInclude Include="..\Library\tinygltf\stb_image.h" />
@@ -283,6 +276,7 @@
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\GrudgeBat.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Status\GameBalance.h" />
+    <ClInclude Include="Src\Application\GameObject\UI\ReturnCircle.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UI.h" />
     <ClInclude Include="Src\Application\GameObject\UI\InteractionPrompt.h" />
     <ClInclude Include="Src\Application\GameObject\UI\PauseMenu.h" />
@@ -343,7 +337,6 @@
     <ClInclude Include="Src\Framework\Shader\StandardShader\KdStandardShader.h" />
     <ClInclude Include="Src\Framework\Utility\KdDataStorage.h" />
     <ClInclude Include="Src\Framework\Utility\KdCSVData.h" />
-    <ClInclude Include="Src\Framework\Utility\KdDebug\KdDebugGUI.h" />
     <ClInclude Include="Src\Framework\Utility\KdDebug\KdDebugWireFrame.h" />
     <ClInclude Include="Src\Framework\Utility\KdFPSController.h" />
     <ClInclude Include="Src\Framework\Utility\KdRandom.h" />
@@ -357,14 +350,6 @@
     <ClInclude Include="src\Framework\Window\KdWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Library\imgui\imgui.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_demo.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_stdlib.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\Library\imgui\imgui_widgets.cpp" />
     <ClCompile Include="Src\Application\GameObject\Camera\CameraBase.cpp" />
     <ClCompile Include="Src\Application\GameObject\Camera\FPSCamera\FPSCamera.cpp" />
     <ClCompile Include="Src\Application\GameObject\Camera\TPSCamera\TPSCamera.cpp" />
@@ -428,7 +413,6 @@
     <ClCompile Include="Src\Framework\Shader\KdRenderTargetChange.cpp" />
     <ClCompile Include="Src\Framework\Shader\StandardShader\KdStandardShader.cpp" />
     <ClCompile Include="Src\Framework\Utility\KdCSVData.cpp" />
-    <ClCompile Include="Src\Framework\Utility\KdDebug\KdDebugGUI.cpp" />
     <ClCompile Include="Src\Framework\Utility\KdDebug\KdDebugWireFrame.cpp" />
     <ClCompile Include="Src\Framework\Utility\KdFPSController.cpp" />
     <ClCompile Include="src\Pch.cpp">

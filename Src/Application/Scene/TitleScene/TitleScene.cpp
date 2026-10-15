@@ -7,6 +7,8 @@
 #include "../../GameObject/Character/Staff/FireStaff/FireStaff.h"
 #include "../../GameObject/Character/Staff/IceStaff/IceStaff.h"
 #include "../../GameObject/Character/Staff/VoltStaff/VoltStaff.h"
+#include "../../GameObject/Stage/WarpStone.h"
+#include "../../GameObject/Stage/Tree/Tree.h"
 #include "../../main.h"
 
 #include <filesystem>
@@ -325,8 +327,15 @@ void TitleScene::CreateBackground()
 	std::shared_ptr<Ground> ground = std::make_shared<Ground>();
 	m_objList.push_back(ground);
 
+	std::shared_ptr<Tree> tree = std::make_shared<Tree>();
+	m_objList.push_back(tree);
+
 	std::shared_ptr<Village> village = std::make_shared<Village>();
 	m_objList.push_back(village);
+
+	std::shared_ptr<WarpStone> portal;
+	portal= std::make_shared<WarpStone>(Math::Vector3(0.0f, 0.0f, 35.0f));
+	m_objList.push_back(portal);
 
 	std::shared_ptr<Player> player = std::make_shared<Player>();
 	player->SetControlEnable(false);
@@ -339,6 +348,7 @@ void TitleScene::CreateBackground()
 	camera->SetTarget(player);
 	camera->PostUpdate();
 	ground->SetTarget(player);
+	tree->SetTarget(player);
 
 	std::shared_ptr<FireStaff> fireStaff = std::make_shared<FireStaff>();
 	std::shared_ptr<IceStaff> iceStaff = std::make_shared<IceStaff>();

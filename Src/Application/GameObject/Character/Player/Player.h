@@ -20,9 +20,6 @@ public:
 	// 被弾直後だけ輪郭を光らせて、モデルを描画する。
 	void DrawLit() override;
 
-	// ImGuiのフレーム開始後に呼ぶ。Updateから直接呼ばない。
-	void DrawDebugGui() override;
-
 	// 影を落とすため、ライト視点の深度マップへプレイヤーモデルを描画する。
 	void GenerateDepthMapFromLight() override;
 

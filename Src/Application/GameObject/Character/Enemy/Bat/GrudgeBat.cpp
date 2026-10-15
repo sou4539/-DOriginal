@@ -57,12 +57,26 @@ void GrudgeBat::OnDefeated()
 void GrudgeBat::DrawLit()
 {
 	if (!m_spModel) { return; }
+
+	const bool hitFlashing = IsHitFlashing();
+
 	KdModelVisualEffects effects;
-	effects.RimLight = IsHitFlashing();
-	effects.RimColor = Math::Vector3(3.0f, 0.1f, 0.1f);
-	effects.RimPower = 2.0f;
+
+	// 通常時もリムライトを有効にして、縁を見やすくする。
+	effects.RimLight = true;
+
+	effects.RimColor = hitFlashing
+		? Math::Vector3(3.0f, 0.1f, 0.1f)
+		: Math::Vector3(0.15f, 0.35f, 0.5f);
+
+	effects.RimPower = hitFlashing ? 2.0f : 6.0f;
+
 	effects.OpticalCamo = true;
-	effects.ScreenTexture = SceneManager::Instance().GetRenderTargetTexture();
-	KdModelInstanceBatcher::Instance().SubmitLit(m_spModel, m_mWorld,
-		kWhiteColor, Math::Vector3::Zero, GetDissolveValue(), effects);
+	effects.ScreenTexture =
+		SceneManager::Instance().GetRenderTargetTexture();
+
+	KdModelInstanceBatcher::Instance().SubmitLit(
+		m_spModel, m_mWorld,
+		kWhiteColor, Math::Vector3::Zero,
+		GetDissolveValue(), effects);
 }

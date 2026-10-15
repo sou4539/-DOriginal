@@ -14,7 +14,7 @@
 
 namespace
 {
-	const Math::Vector3 CastlePortalPos = { -30.0f, 0.0f, 0.0f };
+	const Math::Vector3 CastlePortalPos = { -30.0f, 0.0f, -5.0f };
 }
 
 // 城の入口付近にある封鎖された出口。開放状態を描画と退出判定で共有する。
@@ -66,15 +66,7 @@ public:
 		}
 	}
 
-	void DrawDebugGui() override
-	{
-		if (ImGui::Begin("Castle Exit"))
-		{
-			ImGui::TextUnformatted(m_open ? "Exit open: touch and press F to return to grass."
-				: "Exit sealed: defeat every grudge to open.");
-		}
-		ImGui::End();
-	}
+
 
 private:
 	std::shared_ptr<KdSquarePolygon> m_wall;
@@ -135,9 +127,11 @@ void CastleStage::Init()
 	m_objList.push_back(std::make_shared<CastleSafeArea>(player));
 
 	if (!m_grudgeBattle) { m_grudgeBattle = std::make_shared<GrudgeBattleState>(); }
+
 	// 持ち越した残数に新たな草原の撃破数を追加する。復元分を合計へ二重加算しない。
 	m_grudgeBattle->TotalCount += batCount;
-	CreateGrudges(m_grudgeBattle->GetRemainingCount(), false);
+	RefillGrudges();
+
 	m_exit = std::make_shared<CastleExit>();
 	m_exit->SetOpen(m_grudgeBattle->DefeatedCount >= m_grudgeBattle->TotalCount);
 	m_objList.push_back(m_exit);
@@ -198,6 +192,47 @@ void CastleStage::UpdateActiveGrudges()
 	SceneManager::Instance().SetActiveEnemies(activeEnemies);
 }
 
+void CastleStage::RefillGrudges()
+{
+	if (!m_grudgeBattle) { return; }
+
+	int aliveCount = 0;
+
+	auto it = m_grudges.begin();
+	while (it != m_grudges.end())
+	{
+		auto grudge = it->lock();
+
+		if (!grudge)
+		{
+			it = m_grudges.erase(it);
+			continue;
+		}
+
+		if (grudge->CanBeTargeted())
+		{
+			++aliveCount;
+		}
+
+		++it;
+	}
+
+	const int remaining = m_grudgeBattle->GetRemainingCount();
+
+	const int emptySlots = std::max(
+		0, GameBalance::CastleMaxGrudges - aliveCount);
+
+	const int waitingCount = std::max(
+		0, remaining - aliveCount);
+
+	const int spawnCount = std::min(emptySlots, waitingCount);
+
+	if (spawnCount > 0)
+	{
+		CreateGrudges(spawnCount, false);
+	}
+}
+
 void CastleStage::Event()
 {
 	GameStageBase::Event();
@@ -216,7 +251,10 @@ void CastleStage::Event()
 		return;
 	}
 #ifdef _DEBUG
-	if (spawnPressed) { CreateGrudges(10); }
+	if (spawnPressed)
+	{
+		m_grudgeBattle->TotalCount += 10;
+	}
 #endif
 	if (m_exit && m_grudgeBattle)
 	{
@@ -227,7 +265,9 @@ void CastleStage::Event()
 			m_onExit();
 		}
 	}
+
 	Bat::UpdateSharedAnimation();
+	RefillGrudges();
 	UpdateActiveGrudges();
 }
 

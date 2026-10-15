@@ -60,9 +60,14 @@ protected:
 	void SetCombatStats(float maxHp, float experience);
 	virtual bool CountsAsGrassBat() const { return true; }
 	virtual bool AlwaysChases() const { return false; }
+	// 一度追尾を始めたら、距離や安全地帯で追尾を解除しない。
+	virtual bool KeepsChasing() const { return false; }
 	virtual void OnDefeated() {}
 	float GetDissolveValue() const { return m_dissolveThreshold; }
 	bool IsHitFlashing() const { return m_hitFlashFrame > 0; }
+
+	// コウモリの索敵範囲
+	virtual float GetSearchRadius() const { return 12.0f; }
 
 private:
 	static std::shared_ptr<KdModelWork> s_spSharedModel;

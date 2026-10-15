@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Library">
@@ -54,9 +54,6 @@
     </Filter>
     <Filter Include="Src\Framework\Effekseer">
       <UniqueIdentifier>{c81b93e4-2f33-496a-985e-98658f1cec51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Library\imgui">
-      <UniqueIdentifier>{9e2b992a-9c34-450b-a4cf-c4749feebcc6}</UniqueIdentifier>
     </Filter>
     <Filter Include="Src\Framework\Font">
       <UniqueIdentifier>{66aaa1ee-9cbd-4422-b7c2-7885620d808f}</UniqueIdentifier>
@@ -294,41 +291,8 @@
     <ClInclude Include="Src\Framework\Utility\KdRandom.h">
       <Filter>Src\Framework\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="..\Library\imgui\imconfig.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imgui.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imgui_impl_dx11.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imgui_impl_win32.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imgui_internal.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imgui_stdlib.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imstb_rectpack.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imstb_textedit.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\imstb_truetype.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Library\imgui\ja_glyph_ranges.h">
-      <Filter>Library\imgui</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Framework\Font\KdFont.h">
       <Filter>Src\Framework\Font</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Framework\Utility\KdDebug\KdDebugGUI.h">
-      <Filter>Src\Framework\Utility\KdDebug</Filter>
     </ClInclude>
     <ClInclude Include="Src\Framework\Utility\KdDebug\KdDebugWireFrame.h">
       <Filter>Src\Framework\Utility\KdDebug</Filter>
@@ -411,8 +375,6 @@
     <ClInclude Include="Src\Application\GameObject\UI\PauseMenu.h">
       <Filter>Src\Application\GameObject\UI</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Application\GameObject\Stage\WarpStone.h" />
-    <ClInclude Include="Src\Application\Scene\GameStageBase\StageTransition.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Magic\FireMagic\FireMagic.h">
       <Filter>Src\Application\GameObject\Character\Magic\FireMagic</Filter>
     </ClInclude>
@@ -451,6 +413,15 @@
     </ClInclude>
     <ClInclude Include="Src\Application\GameObject\Character\Status\GameBalance.h">
       <Filter>Src\Application\GameObject\Character\Status</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\UI\ReturnCircle.h">
+      <Filter>Src\Application\GameObject\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Stage\WarpStone.h">
+      <Filter>Src\Application\GameObject\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\Scene\GameStageBase\StageTransition.h">
+      <Filter>Src\Application\Scene\GameStageBase</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -553,35 +524,8 @@
     <ClCompile Include="Src\Framework\Effekseer\KdEffekseerManager.cpp">
       <Filter>Src\Framework\Effekseer</Filter>
     </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_demo.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_draw.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_impl_dx11.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_impl_win32.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_stdlib.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_tables.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Library\imgui\imgui_widgets.cpp">
-      <Filter>Library\imgui</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Framework\Font\KdFont.cpp">
       <Filter>Src\Framework\Font</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Framework\Utility\KdDebug\KdDebugGUI.cpp">
-      <Filter>Src\Framework\Utility\KdDebug</Filter>
     </ClCompile>
     <ClCompile Include="Src\Framework\Utility\KdDebug\KdDebugWireFrame.cpp">
       <Filter>Src\Framework\Utility\KdDebug</Filter>

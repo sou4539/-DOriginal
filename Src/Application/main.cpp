@@ -7,8 +7,24 @@
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 namespace
 {
+	// 属性の有無ではなく、ローダーと同じ読み取り操作が成功するか確認する。
+	DWORD CheckAssetReadable(const wchar_t* path)
+	{
+		const HANDLE file = CreateFileW(path, GENERIC_READ,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (file == INVALID_HANDLE_VALUE) { return GetLastError(); }
+		BYTE firstByte = 0;
+		DWORD bytesRead = 0;
+		const BOOL read = ReadFile(file, &firstByte, sizeof(firstByte), &bytesRead, nullptr);
+		const DWORD error = !read ? GetLastError()
+			: bytesRead == 0 ? ERROR_HANDLE_EOF : ERROR_SUCCESS;
+		CloseHandle(file);
+		return error;
+	}
+
 	// exeから親フォルダーをたどり、Assetがある場所を作業ディレクトリにする。
-	bool SetAssetWorkingDirectory()
+	bool SetAssetWorkingDirectory(bool showError = true)
 	{
 		// 起動方法によらずAssetとSaveの基準位置を固定する。
 		wchar_t executablePath[32768] = {};
@@ -27,22 +43,26 @@ namespace
 					// exeから得たUnicodeの実パスを使用する。短縮名へは変換しない。
 					const bool directorySet = SetCurrentDirectoryW(directory.c_str()) != FALSE;
 					const DWORD directoryError = directorySet ? ERROR_SUCCESS : GetLastError();
-					const auto noisePath = directory / L"Asset/Textures/System/WhiteNoise.png";
-					const auto titlePath = directory / L"Asset/Textures/UI/Title/StartButton.png";
-					const bool noiseExists = GetFileAttributesW(noisePath.c_str()) != INVALID_FILE_ATTRIBUTES;
-					const DWORD noiseError = noiseExists ? ERROR_SUCCESS : GetLastError();
-					const bool titleExists = GetFileAttributesW(titlePath.c_str()) != INVALID_FILE_ATTRIBUTES;
-					const DWORD titleError = titleExists ? ERROR_SUCCESS : GetLastError();
-					if (directorySet && noiseExists && titleExists)
+					// 実際のローダーと同じく、設定済みの作業フォルダーを基準に確認する。
+					// Win32へ渡すパスはWindows標準の区切り文字に統一する。
+					const wchar_t* noiseRelativePath = L"Asset\\Textures\\System\\WhiteNoise.png";
+					const wchar_t* titleRelativePath = L"Asset\\Textures\\UI\\Title\\StartButton.png";
+					const DWORD noiseError = directorySet ? CheckAssetReadable(noiseRelativePath) : directoryError;
+					const DWORD titleError = directorySet ? CheckAssetReadable(titleRelativePath) : directoryError;
+					if (directorySet && noiseError == ERROR_SUCCESS && titleError == ERROR_SUCCESS)
 					{
 						return true;
 					}
-					const std::wstring message = L"Required assets could not be found in:\n" + directory.wstring()
+					std::error_code currentPathError;
+					const auto currentPath = std::filesystem::current_path(currentPathError);
+					const std::wstring message = L"Asset read check v2\nRequired assets could not be read in:\n" + directory.wstring()
+						+ L"\n\nWorking directory:\n" + (currentPathError ? L"(unavailable)" : currentPath.wstring())
 						+ L"\n\nDirectory error: " + std::to_wstring(directoryError)
 						+ L"\nWhiteNoise error: " + std::to_wstring(noiseError)
 						+ L"\nStartButton error: " + std::to_wstring(titleError)
 						+ L"\n\nExecutable:\n" + executablePath;
-					MessageBoxW(nullptr, message.c_str(), L"Startup asset path error", MB_OK | MB_ICONERROR);
+					OutputDebugStringW(message.c_str());
+					if (showError) { MessageBoxW(nullptr, message.c_str(), L"Startup asset path error", MB_OK | MB_ICONERROR); }
 					return false;
 				}
 				const auto parent = directory.parent_path();
@@ -51,14 +71,22 @@ namespace
 				directory = parent;
 			}
 		}
-		MessageBoxW(nullptr, L"No Asset folder found beside the executable or its parent folders.",
-			L"Startup asset path error", MB_OK | MB_ICONERROR);
+		if (showError)
+		{
+			MessageBoxW(nullptr, L"No Asset folder found beside the executable or its parent folders.",
+				L"Startup asset path error", MB_OK | MB_ICONERROR);
+		}
 		return false;
 	}
 }
 
-int WINAPI WinMain(_In_ HINSTANCE, _In_opt_  HINSTANCE, _In_ LPSTR , _In_ int)
+int WINAPI WinMain(_In_ HINSTANCE, _In_opt_  HINSTANCE, _In_ LPSTR commandLine, _In_ int)
 {
+	// 起動パスだけを検証する。ウィンドウ・音声・セーブデータには触れない。
+	if (std::string_view(commandLine) == "--check-assets")
+	{
+		return SetAssetWorkingDirectory(false) ? 0 : 1;
+	}
 	if (!SetAssetWorkingDirectory()) { return 1; }
 
 	// メモリリークを知らせる
@@ -142,8 +170,6 @@ void Application::KdBeginDraw(bool usePostProcess)
 // ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// ///// /////
 void Application::KdPostDraw()
 {
-	// Imguiのレンダリング
-	KdDebugGUI::Instance().GuiProcess();
 
 	// BackBuffer -> 画面表示
 	KdDirect3D::Instance().WorkSwapChain()->Present(0, 0);
@@ -218,7 +244,6 @@ bool Application::Init(int w, int h)
 	}
 
 	//===================================================================
-	KdDebugGUI::Instance().GuiInit(w, h);
 
 	//===================================================================
 	KdShaderManager::Instance().Init();

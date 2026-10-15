@@ -19,19 +19,37 @@ std::shared_ptr<GameStageBase> GameScene::CreateGrassStage(GrassArrivalPoint arr
 {
 	auto grass = std::make_shared<GrassStage>();
 	grass->SetArrivalPoint(arrival);
+
+	grass->SetReturnToVillageCallback([this]()
+		{
+			SetNextStage(CreateGrassStage(GrassArrivalPoint::VillageSpawn));
+		});
+
 	// 草原は入場を通知するだけ。移動先を決めるのはGameSceneの役割。
 	// grassはこのGameSceneが所有するので、コールバックもその寿命内で使う。
 	grass->SetCastleEntryCallback([this](CastleEntryRoute route)
 	{
 		auto castle = std::make_shared<CastleStage>();
+		castle->SetReturnToVillageCallback([this]()
+			{
+				SetNextStage(CreateGrassStage(GrassArrivalPoint::VillageSpawn));
+			});
+		castle->SetExitCallback([this]() 
+			{ 
+				SetNextStage(CreateGrassStage(GrassArrivalPoint::CastleEntrance)); 
+			});
+		castle->SetDeathCallback([this]() 
+			{ 
+				SetNextStage(CreateGrassStage(GrassArrivalPoint::VillageSpawn));
+			});
+		castle->SetPortalReturnCallback([this]()
+			{
+				SetNextStage(CreateGrassStage(GrassArrivalPoint::VillagePortal));
+			});
+
 		castle->SetEntryRoute(route);
 		castle->SetGrudgeBattle(m_grudgeBattle);
-		castle->SetExitCallback([this]() { SetNextStage(CreateGrassStage(GrassArrivalPoint::CastleEntrance)); });
-		castle->SetDeathCallback([this]() { SetNextStage(CreateGrassStage(GrassArrivalPoint::VillageSpawn)); });
-		castle->SetPortalReturnCallback([this]()
-		{
-			SetNextStage(CreateGrassStage(GrassArrivalPoint::VillagePortal));
-		});
+
 		SetNextStage(castle);
 	});
 	return grass;

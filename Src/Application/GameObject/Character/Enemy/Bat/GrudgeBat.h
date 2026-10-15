@@ -33,8 +33,10 @@ public:
 protected:
 	// 怨念を倒しても、次回の城用の草原撃破数には含めない。
 	bool CountsAsGrassBat() const override { return false; }
-	bool AlwaysChases() const override { return true; }
+	// 一度追尾を始めたら、距離や安全地帯で追尾を解除しない。
+	bool KeepsChasing() const override { return true; }
 	void OnDefeated() override;
+	float GetSearchRadius() const override { return 24.0f; }
 
 private:
 	void RefreshStrength();

@@ -6,11 +6,20 @@
 class PauseMenu : public UI
 {
 public:
+
+	enum class Action
+	{
+		Resume,
+		Return_To_Village,
+		Return_To_Title,
+	};
+
 	PauseMenu()
 	{
 		m_frame = LoadTexture("Asset/Textures/UI/Menu/gold_panel.png");
-		m_resume = LoadTexture("Asset/Textures/UI/Menu/ReturnToGame-LogoStyle.png");
-		m_title = LoadTexture("Asset/Textures/UI/Menu/ReturnToTitle-LogoStyle.png");
+		m_resume = LoadTexture("Asset/Textures/UI/Menu/ReturnToGame.png");
+		m_title = LoadTexture("Asset/Textures/UI/Menu/ReturnToTitle.png");
+		m_village = LoadTexture("Asset/Textures/UI/Menu/ReturnToVillage.png");
 		m_cursor = LoadTexture("Asset/Textures/UI/Cursor.png");
 	}
 	void SetOpen(bool open)
@@ -19,7 +28,7 @@ public:
 		// メニューを開く前から押されていたクリックでは、項目を選択しない。
 		m_previousLeftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 	}
-	void SetCallback(const std::function<void(bool)>& callback) { m_callback = callback; }
+	void SetCallback(const std::function<void(Action)>& callback) { m_callback = callback; }
 
 	// 通常のオブジェクト更新を止めている間も、ステージから呼び出す。
 	void HandleInput()
@@ -27,14 +36,23 @@ public:
 		const bool leftDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
 		const bool clicked = leftDown && !m_previousLeftDown;
 		m_previousLeftDown = leftDown;
+
 		if (!m_open || !clicked || !m_callback) { return; }
+
 		if (IsMouseInSprite(0, ResumeY, ButtonWidth, ButtonHeight))
 		{
-			PlayUIClickSound(); m_callback(false);
+			PlayUIClickSound(); 
+			m_callback(Action::Resume);
+		}
+		else if (IsMouseInSprite(0, VillageY, ButtonWidth, ButtonHeight))
+		{
+			PlayUIClickSound();
+			m_callback(Action::Return_To_Village);
 		}
 		else if (IsMouseInSprite(0, TitleY, ButtonWidth, ButtonHeight))
 		{
-			PlayUIClickSound(); m_callback(true);
+			PlayUIClickSound();
+			m_callback(Action::Return_To_Title);
 		}
 	}
 
@@ -48,17 +66,22 @@ public:
 		// 1枚の共通枠に、個別に選択できる2つの文字画像を配置する。
 		if (m_frame) { shader.DrawTex(m_frame.get(), 0, 0, PanelWidth, PanelHeight); }
 		DrawButton(m_resume.get(), ResumeY);
+		DrawButton(m_village.get(), VillageY);
 		DrawButton(m_title.get(), TitleY);
 		DrawCursorUI(m_cursor.get());
 	}
 
 private:
+	// 枠とボタンのサイズ
 	static constexpr int PanelWidth = 560;
-	static constexpr int PanelHeight = 380;
+	static constexpr int PanelHeight = 500;
 	static constexpr int ButtonWidth = 500;
-	static constexpr int ButtonHeight = 130;
-	static constexpr int ResumeY = 85;
-	static constexpr int TitleY = -85;
+	static constexpr int ButtonHeight = 110;
+
+	// ボタンの位置
+	static constexpr int ResumeY = 150;
+	static constexpr int VillageY = 0;
+	static constexpr int TitleY = -150;
 
 	void DrawButton(KdTexture* label, int y) const
 	{
@@ -75,6 +98,6 @@ private:
 	}
 	bool m_open = false;
 	bool m_previousLeftDown = false;
-	std::function<void(bool)> m_callback;
-	std::shared_ptr<KdTexture> m_frame, m_resume, m_title, m_cursor;
+	std::function<void(Action)> m_callback;
+	std::shared_ptr<KdTexture> m_frame, m_resume, m_title, m_cursor, m_village;
 };

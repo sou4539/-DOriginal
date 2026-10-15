@@ -78,6 +78,12 @@ public:
 		m_KillBatCount = 0;
 	}
 
+	// 詠唱中に受けたダメージ回数の取得
+	unsigned int GetReturnCastDamageCount() const
+	{
+		return m_ReturnCastDamageCount;
+	}
+
 private:
 	void SaveProgress();
 	void LoadProgress();
@@ -139,4 +145,7 @@ private:
 	// 倒したコウモリの数
 	// これがそのまま敵の数にもなる
 	int m_KillBatCount = 0;
+
+	// 詠唱中に受けたダメージ回数
+	unsigned int m_ReturnCastDamageCount = 0;
 };

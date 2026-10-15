@@ -18,4 +18,6 @@ namespace GameBalance
 	inline constexpr float GrudgeStrengthPerKill = 0.05f;
 	// 死亡・通常出口・ポータルで退城したとき、一度だけ減算する。最低倍率は1。
 	inline constexpr float GrudgeStrengthLossPerExit = 0.05f;
+	// 城で同時に戦う怨念の最大数
+	inline constexpr int CastleMaxGrudges = 100;
 }

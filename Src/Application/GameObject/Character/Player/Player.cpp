@@ -93,23 +93,8 @@ void Player::Update()
 	}
 }
 
-// KdDebugGUIのNewFrameとRenderの間で呼び出す。
-void Player::DrawDebugGui()
-{
-	// 現在位置を確認するためのデバッグウィンドウ。
-	ImGui::Begin("Player Position");
 
-	const Math::Vector3 pos = GetPos();
-	ImGui::Text("X: %.3f  Y: %.3f  Z: %.3f", pos.x, pos.y, pos.z);
 
-	if (ImGui::Button("Set Spawn Position"))
-	{
-		// 現在位置を復活位置として登録する。
-		SetRespawnPos(pos);
-	}
-
-	ImGui::End();
-}
 
 // 無敵時間を更新する。
 void Player::UpdateInvincible()

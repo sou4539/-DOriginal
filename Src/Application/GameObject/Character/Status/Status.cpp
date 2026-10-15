@@ -442,7 +442,14 @@ void Status::EnhanceVolt()
 // プレイヤーHPを減らす処理。
 void Status::DamagePlayer(float damage)
 {
+	const float beforHp = m_stats.GetHp();
+
 	m_stats.Damage(damage);
+
+	if (m_stats.GetHp() < beforHp)
+	{
+		++m_ReturnCastDamageCount;
+	}
 }
 
 // プレイヤーHPを最大まで戻す処理。

@@ -14,7 +14,7 @@
 
 namespace
 {
-	const Math::Vector3 VillagePortalPos = { 0.0f, 0.0f, 30.0f };
+	const Math::Vector3 VillagePortalPos = { 0.0f, 0.0f, 35.0f };
 	constexpr float EntranceRadius = 6.0f;
 
 
