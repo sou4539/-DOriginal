@@ -103,6 +103,7 @@ void GameStageBase::PostUpdate()
 void GameStageBase::Init()
 {
 	m_pauseMenu = std::make_shared<PauseMenu>();
+	m_pauseMenu->SetRecallEnabled(CanRecall());
 	m_pauseMenu->SetCallback([this](PauseMenu::Action action)
 		{
 			switch (action)
@@ -220,8 +221,11 @@ bool GameStageBase::CanUpdateWhenPaused(const std::shared_ptr<KdGameObject>& obj
 
 void GameStageBase::StartReturnCast()
 {
+	if (!CanRecall()) { return; }
+
 	auto status = m_status.lock();
 	auto player = m_player.lock();
+
 	if (!status||!player||!m_returnCircle) { return; }
 
 	m_isReturnCasting = true;

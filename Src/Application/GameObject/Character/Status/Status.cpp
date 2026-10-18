@@ -473,6 +473,11 @@ void Status::AddExp(float exp)
 	SaveProgress();
 }
 
+void Status::HealPlayer(float amount)
+{
+	m_stats.Heal(amount);
+}
+
 void Status::SaveProgress()
 {
 	std::filesystem::create_directories("Save");

@@ -26,6 +26,7 @@ public:
 	void	Damage(float damage);
 	void	ResetHp();
 	void	Reset();
+	void	Heal(float amount);
 
 	bool	IsDead() const { return m_hp <= 0.0f; }
 

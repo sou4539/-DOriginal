@@ -39,6 +39,13 @@ void PlayerStatus::Reset()
 	m_hasVolt = false;
 }
 
+void PlayerStatus::Heal(float amount)
+{
+	if (amount <= 0.0f || IsDead()) { return; }
+
+	m_hp = std::min(m_hp + amount, m_maxHp);
+}
+
 int PlayerStatus::AddExp(float exp)
 {
 	if (exp <= 0.0f) { return 0; }

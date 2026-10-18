@@ -58,17 +58,22 @@ void BaseScene::PreDraw()
 	}
 }
 
+void BaseScene::GenerateShadowMap()
+{
+	auto& shader = KdShaderManager::Instance().m_StandardShader;
+
+	shader.BeginGenerateDepthMapFromLight();
+
+	for (const auto& obj : GetObjList())
+	{
+		obj->GenerateDepthMapFromLight();
+	}
+
+	shader.EndGenerateDepthMapFromLight();
+}
+
 void BaseScene::Draw()
 {
-	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
-	KdShaderManager::Instance().m_StandardShader.BeginGenerateDepthMapFromLight();
-	{
-		for (auto& obj : m_objList)
-		{
-			obj->GenerateDepthMapFromLight();
-		}
-	}
-	KdShaderManager::Instance().m_StandardShader.EndGenerateDepthMapFromLight();
 
 	// ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== ===== =====
 	KdShaderManager::Instance().m_StandardShader.BeginUnLit();

@@ -11,13 +11,31 @@
 #include "../../../GameObject/Stage/Tree/Tree.h"
 #include "../../../GameObject/Stage/WarpStone.h"
 
+#include "../../../main.h"
+
 
 namespace
 {
 	const Math::Vector3 VillagePortalPos = { 0.0f, 0.0f, 35.0f };
 	constexpr float EntranceRadius = 6.0f;
+	constexpr float VillageHealPerSecond = 10.0f;
+}
 
+void GrassStage::PostUpdate()
+{
+	GameStageBase::PostUpdate();
 
+	if (IsUpdatePaused()) { return; }
+
+	auto player = m_player.lock();
+	auto status = m_status.lock();
+
+	if (!player || !status) { return; }
+	if (!player->IsInSafeArea()) { return; }
+
+	status->HealPlayer(
+		VillageHealPerSecond *
+		Application::Instance().GetDeltaTime());
 }
 
 void GrassStage::Init()

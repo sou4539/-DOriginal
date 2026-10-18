@@ -44,7 +44,7 @@ public:
 			PlayUIClickSound(); 
 			m_callback(Action::Resume);
 		}
-		else if (IsMouseInSprite(0, VillageY, ButtonWidth, ButtonHeight))
+		else if (m_recallEnabled && IsMouseInSprite(0, VillageY, ButtonWidth, ButtonHeight))
 		{
 			PlayUIClickSound();
 			m_callback(Action::Return_To_Village);
@@ -66,9 +66,17 @@ public:
 		// 1枚の共通枠に、個別に選択できる2つの文字画像を配置する。
 		if (m_frame) { shader.DrawTex(m_frame.get(), 0, 0, PanelWidth, PanelHeight); }
 		DrawButton(m_resume.get(), ResumeY);
-		DrawButton(m_village.get(), VillageY);
+		if (m_recallEnabled)
+		{
+			DrawButton(m_village.get(), VillageY, 0.85f);
+		}
 		DrawButton(m_title.get(), TitleY);
 		DrawCursorUI(m_cursor.get());
+	}
+
+	void SetRecallEnabled(bool enabled)
+	{
+		m_recallEnabled = enabled;
 	}
 
 private:
@@ -83,7 +91,7 @@ private:
 	static constexpr int VillageY = 0;
 	static constexpr int TitleY = -150;
 
-	void DrawButton(KdTexture* label, int y) const
+	void DrawButton(KdTexture* label, int y, float labelScale = 1.0f) const
 	{
 		if (!m_frame || !label) { return; }
 		const bool hovered = IsMouseInSprite(0, y, ButtonWidth, ButtonHeight);
@@ -92,7 +100,7 @@ private:
 		const float brightness = pressed ? 0.8f : hovered ? 1.2f : 1.0f;
 		const Math::Color tint(brightness, brightness, brightness, 1.0f);
 		auto& shader = KdShaderManager::Instance().m_spriteShader;
-		const int labelWidth = static_cast<int>(420 * scale);
+		const int labelWidth =static_cast<int>(420 * scale * labelScale);
 		const int labelHeight = static_cast<int>(labelWidth / label->GetAspectRatio());
 		shader.DrawTex(label, 0, y, labelWidth, labelHeight, nullptr, &tint);
 	}
@@ -100,4 +108,5 @@ private:
 	bool m_previousLeftDown = false;
 	std::function<void(Action)> m_callback;
 	std::shared_ptr<KdTexture> m_frame, m_resume, m_title, m_cursor, m_village;
+	bool m_recallEnabled = true;
 };

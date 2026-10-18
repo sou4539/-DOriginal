@@ -22,7 +22,7 @@ public:
 	}
 
 	void SetArrivalPoint(GrassArrivalPoint arrival) { m_arrivalPoint = arrival; }
-
+	void PostUpdate() override;
 private:
 	void Init() override;
 	// Bのデバッグワープと、入口でのFキーの入場判定を行う。

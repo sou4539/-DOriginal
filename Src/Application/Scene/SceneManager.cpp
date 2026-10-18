@@ -28,12 +28,13 @@ void SceneManager::PostUpdate()
 void SceneManager::PreDraw()
 {
 	m_currentScene->PreDraw();
-	// 描画先をテクスチャに変更
+
+	// 影は1フレームに1回だけ作り、両方の描画で使う。
+	m_currentScene->GenerateShadowMap();
+
+	// 光学迷彩用の背景を描画する。
 	ChangeRenderTarget();
-
 	m_currentScene->Draw();
-
-	// 描画先を元に戻す
 	UndoRenderTarget();
 }
 

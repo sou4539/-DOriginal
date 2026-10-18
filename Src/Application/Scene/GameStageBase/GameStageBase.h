@@ -50,6 +50,9 @@ protected:
 	bool m_isCursorVisible = true;
 	bool m_prevTitleDown = false;
 
+	// ステージごとのリコール使用可否
+	virtual bool CanRecall() const { return true; }
+
 private:
 	std::shared_ptr<KdSoundInstance> m_stageBgm;
 	std::shared_ptr<InteractionPrompt> m_interactionPrompt;

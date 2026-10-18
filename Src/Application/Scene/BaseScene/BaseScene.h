@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class BaseScene
 {
@@ -12,6 +12,7 @@ public:
 	virtual void PostUpdate();
 
 	virtual void PreDraw();
+	void GenerateShadowMap();
 	virtual void Draw();
 	virtual void DrawSprite();
 	virtual void DrawDebug();

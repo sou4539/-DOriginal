@@ -84,6 +84,8 @@ public:
 		return m_ReturnCastDamageCount;
 	}
 
+	void HealPlayer(float amount);
+
 private:
 	void SaveProgress();
 	void LoadProgress();

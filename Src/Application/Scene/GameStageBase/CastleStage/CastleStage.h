@@ -39,6 +39,7 @@ private:
 	void CreateGrudges(int count, bool addToTotal = true);
 	void UpdateActiveGrudges();
 	void RefillGrudges();
+	bool CanRecall() const override { return false; }
 
 	std::shared_ptr<GrudgeBattleState> m_grudgeBattle;
 	std::vector<std::weak_ptr<GrudgeBat>> m_grudges;
