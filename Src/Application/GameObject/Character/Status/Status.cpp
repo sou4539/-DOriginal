@@ -102,6 +102,8 @@ void Status::Init()
 		m_cursorTex = LoadTexture("Asset/Textures/UI/Cursor.png");
 	}
 
+	// セーブが存在しない・読み込めない場合も、初期能力値から開始する。
+	m_stats.Reset();
 	LoadProgress();
 
 	// 初回開始時は魔法を持っていないため、最初の魔法取得UIを開く。
@@ -537,6 +539,7 @@ void Status::LoadProgress()
 	}
 
 	m_stats.ApplySaveData(data);
+	m_stats.ResetHp();
 }
 
 void Status::ResetProgress()
