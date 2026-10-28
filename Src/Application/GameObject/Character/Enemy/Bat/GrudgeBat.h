@@ -24,7 +24,7 @@ public:
 	explicit GrudgeBat(const std::shared_ptr<GrudgeBattleState>& battle);
 	void Update() override;
 	void OnHit() override { OnHit(10.0f); }
-	void OnHit(float damage) override;
+	void OnHit(float _damage,MagicType type=MagicType::None) override;
 	void DrawLit() override;
 	// 大量出現時の負荷を抑えるため、怨念は影用の描画へ登録しない。
 	void GenerateDepthMapFromLight() override {}
@@ -33,10 +33,9 @@ public:
 protected:
 	// 怨念を倒しても、次回の城用の草原撃破数には含めない。
 	bool CountsAsGrassBat() const override { return false; }
-	// 一度追尾を始めたら、距離や安全地帯で追尾を解除しない。
-	bool KeepsChasing() const override { return true; }
+	// 出現直後から、距離や安全地帯に関係なくプレイヤーを追尾する。
+	bool AlwaysChases() const override { return true; }
 	void OnDefeated() override;
-	float GetSearchRadius() const override { return 24.0f; }
 
 private:
 	void RefreshStrength();

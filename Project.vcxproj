@@ -275,7 +275,9 @@
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\Bat\GrudgeBat.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.h" />
+    <ClInclude Include="Src\Application\GameObject\Character\Magic\MagicType.h" />
     <ClInclude Include="Src\Application\GameObject\Character\Status\GameBalance.h" />
+    <ClInclude Include="Src\Application\GameObject\UI\DamageText\DamageText.h" />
     <ClInclude Include="Src\Application\GameObject\UI\ReturnCircle.h" />
     <ClInclude Include="Src\Application\GameObject\UI\UI.h" />
     <ClInclude Include="Src\Application\GameObject\UI\InteractionPrompt.h" />
@@ -357,6 +359,7 @@
     <ClCompile Include="Src\Application\GameObject\Character\Enemy\Bat\Bat.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Enemy\Bat\GrudgeBat.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Enemy\EnemySpawner\EnemySpawner.cpp" />
+    <ClCompile Include="Src\Application\GameObject\UI\DamageText\DamageText.cpp" />
     <ClCompile Include="Src\Application\GameObject\UI\UI.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Player\PlayerStatus\PlayerStatus.cpp" />
     <ClCompile Include="Src\Application\GameObject\Character\Enemy\EnemyBase.cpp" />

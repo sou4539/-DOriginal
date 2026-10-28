@@ -166,6 +166,9 @@
     <Filter Include="Src\Application\GameObject\Character\Castle">
       <UniqueIdentifier>{e7a2b0da-534b-4c01-9de6-d62ed339d8dd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Src\Application\GameObject\UI\DamageText">
+      <UniqueIdentifier>{4707763d-a306-4308-9025-16cbff37b72c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Pch.h">
@@ -423,6 +426,12 @@
     <ClInclude Include="Src\Application\Scene\GameStageBase\StageTransition.h">
       <Filter>Src\Application\Scene\GameStageBase</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\UI\DamageText\DamageText.h">
+      <Filter>Src\Application\GameObject\UI\DamageText</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Application\GameObject\Character\Magic\MagicType.h">
+      <Filter>Src\Application\GameObject\Character\Magic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Pch.cpp">
@@ -634,6 +643,9 @@
     </ClCompile>
     <ClCompile Include="Src\Application\GameObject\Character\Castle\NoneCastle.cpp">
       <Filter>Src\Application\GameObject\Character\Castle</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Application\GameObject\UI\DamageText\DamageText.cpp">
+      <Filter>Src\Application\GameObject\UI\DamageText</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

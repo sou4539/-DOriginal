@@ -56,4 +56,10 @@ private:
 	// Fire.pngの命中アニメーション範囲.
 	int m_hitFrameStart = 5;
 	int m_hitFrameEnd = 10;
+
+	// FireMagic.h
+	MagicType GetMagicType() const override
+	{
+		return MagicType::Fire;
+	}
 };

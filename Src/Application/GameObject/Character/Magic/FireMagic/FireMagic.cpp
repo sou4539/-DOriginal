@@ -173,7 +173,7 @@ void FireMagic::ApplyExplosion(const std::shared_ptr<EnemyBase>& hitEnemy)
 		if (toEnemy.LengthSquared() <= blastRadiusSq)
 		{
 			// 範囲内の敵にも同じ炎ダメージを与える.
-			spEnemy->OnHit(m_damage);
+			spEnemy->OnHit(m_damage,GetMagicType());
 			AddHitObject(spEnemy);
 		}
 	}

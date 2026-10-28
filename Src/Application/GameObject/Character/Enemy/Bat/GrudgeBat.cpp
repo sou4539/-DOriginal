@@ -32,11 +32,11 @@ void GrudgeBat::Update()
 	Bat::Update();
 }
 
-void GrudgeBat::OnHit(float damage)
+void GrudgeBat::OnHit(float damage,MagicType type)
 {
 	// 同フレームに連鎖や爆発で複数体が倒されても、最新の倍率で判定する。
 	RefreshStrength();
-	Bat::OnHit(damage);
+	Bat::OnHit(damage,type);
 }
 
 float GrudgeBat::GetContactDamage() const

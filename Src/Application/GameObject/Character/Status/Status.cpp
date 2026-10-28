@@ -148,8 +148,8 @@ void Status::UpdateDebugKeys()
 	}
 	m_prevSaveDown = saveDown;
 
-	// デバッグ用：F9キーで進行状況を初期状態へ戻す。
-	const bool resetDown = (GetAsyncKeyState(VK_F9) & 0x8000);
+	// デバッグ用：F8キーで進行状況を初期状態へ戻す。
+	const bool resetDown = (GetAsyncKeyState(VK_F8) & 0x8000);
 	if (resetDown && !m_prevResetDown)
 	{
 		ResetProgress();
@@ -324,6 +324,8 @@ void Status::DrawNumber(int value, int x, int y, int drawW, int drawH)
 		);
 	}
 }
+
+
 
 void Status::DrawVillageGuide()
 {

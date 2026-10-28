@@ -51,4 +51,10 @@ private:
 
 	// 通常氷弾が、この弾で分散を済ませたか.
 	bool m_hasSplit = false;
+
+	// IceMagic.h
+	MagicType GetMagicType() const override
+	{
+		return MagicType::Ice;
+	}
 };

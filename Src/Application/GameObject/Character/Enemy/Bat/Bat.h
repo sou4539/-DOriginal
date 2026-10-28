@@ -22,7 +22,7 @@ public:
 	void OnHit() override;
 
 	// 魔法などからダメージ量を指定して呼ぶ。
-	void OnHit(float damage) override;
+	void OnHit(float _damage,MagicType type=MagicType::None) override;
 
 	void SetTarget(const std::shared_ptr<KdGameObject>& target)
 	{

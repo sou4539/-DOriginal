@@ -1,19 +1,13 @@
 ﻿#pragma once
 
 #include "../CharaBase.h"
+#include "MagicType.h"
 
 #include <string>
 #include <vector>
 
 class EnemyBase;
-
-enum class MagicType
-{
-	Fire,
-	Ice,
-	Volt,
-	None
-};
+class Magictype;
 
 enum class MagicState
 {
@@ -88,6 +82,11 @@ protected:
 	virtual const char* GetHitSoundPath() const { return ""; }
 	virtual float GetDirectionAngleOffset() const { return 0.0f; }
 	virtual Math::Vector3 GetEmissiveColor() const { return Math::Vector3::Zero; }
+
+	virtual MagicType GetMagicType() const
+	{
+		return MagicType::None;
+	}
 
 	// 派生クラスから使う共通処理。
 	void StartFly();

@@ -222,7 +222,7 @@ bool MagicBase::HandleEnemyHit(const std::shared_ptr<EnemyBase>& enemy)
 	// 氷の分散はダメージ前に実行。仮想関数で各魔法の専用処理を呼ぶ。
 	OnBeforeDamage(enemy);
 	// 直撃ダメージを与える。HPが0になると敵側でディゾルブを開始する。
-	enemy->OnHit(m_damage);
+	enemy->OnHit(m_damage,GetMagicType());
 	// 炎の爆発と雷の連鎖は、直撃ダメージを与えた後に実行する。
 	OnAfterDamage(enemy);
 

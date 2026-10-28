@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "../CharaBase.h"
+#include "../Magic/MagicType.h"
 
 class EnemyBase : public CharaBase
 {
@@ -9,7 +10,7 @@ public:
 	~EnemyBase() override {}
 
 	// 魔法などからダメージ量を指定して呼ぶ。
-	virtual void OnHit(float) {}
+	virtual void OnHit(float _damege,MagicType type=MagicType::None) {}
 
 	// 敵として扱えるかを外部から確認する。
 	bool IsEnemy() const { return true; }

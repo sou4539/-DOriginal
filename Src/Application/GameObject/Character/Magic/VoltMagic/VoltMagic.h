@@ -54,4 +54,10 @@ private:
 	float m_chainRadius = 8.0f;
 
 	std::vector<std::weak_ptr<KdGameObject>> m_chainHits;
+
+	// VoltMagic.h
+	MagicType GetMagicType() const override
+	{
+		return MagicType::Volt;
+	}
 };

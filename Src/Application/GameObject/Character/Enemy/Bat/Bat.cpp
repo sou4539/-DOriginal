@@ -2,6 +2,8 @@
 
 #include "../../Player/Player.h"
 #include "../../Status/Status.h"
+#include "../../../UI/DamageText/DamageText.h"
+#include "../../../../Scene/SceneManager.h"
 
 namespace
 {
@@ -254,7 +256,7 @@ void Bat::OnHit()
 	OnHit(10.0f);
 }
 
-void Bat::OnHit(float damage)
+void Bat::OnHit(float damage,MagicType type)
 {
 	// すでに死亡処理中なら、経験値が重複しないよう何もしない。
 	if (!CanBeTargeted()) { return; }
@@ -265,6 +267,15 @@ void Bat::OnHit(float damage)
 	// 魔法が当たったので、受け取ったダメージ分だけHPを減らす。
 	m_hp -= damage;
 	m_hitFlashFrame = BatHitFlashFrame;
+
+	auto damageText = std::make_shared<DamageText>();
+
+	damageText->Init();
+	damageText->SetValue(damage);
+	damageText->SetPos(GetPos() + Math::Vector3(0.0f, 2.0f, 0.0f));
+	damageText->SetType(type);
+	
+	SceneManager::Instance().AddObject(damageText);
 
 	// HPが0以下なら、BaseScene::PreUpdateで削除されるようにする。
 	if (m_hp <= 0.0f)
