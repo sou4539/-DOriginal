@@ -168,11 +168,6 @@ void Status::UpdateDebugKeys()
 // HPバーの描画処理。
 void Status::DrawSprite()
 {
-	if (m_isChoosingMagic)
-	{
-		DrawLevelUpSelect();
-	}
-
 	if (m_hpBarTex && m_hpBarTex->GetSRView())
 	{
 		const int barX = HpBarX;

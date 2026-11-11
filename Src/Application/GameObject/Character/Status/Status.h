@@ -59,6 +59,8 @@ public:
 	bool HasAnyMagic() const { return m_stats.HasAnyMagic(); }
 	bool HasMagic(MagicType type) const;
 	bool IsLevelUpSelect() const { return m_isChoosingMagic; }
+	// 選択肢は通常UIの後に描画し、最前面に表示する。
+	void DrawLevelUpSelect();
 
 	// 倒したコウモリの数を加算する。
 	void AddKillBatCount()
@@ -95,9 +97,6 @@ private:
 
 	void OpenLevelUpSelect();
 	void CloseLevelUpSelect();
-
-	// レベルアップ選択UIを描画する。
-	void DrawLevelUpSelect();
 
 	// レベルアップ選択UIの入力を処理する。
 	void UpdateLevelUpSelect();

@@ -29,6 +29,15 @@ void GameStageBase::StartStageBgm(const char* path)
 void GameStageBase::DrawSprite()
 {
 	BaseScene::DrawSprite();
+
+	// フライテキストを含む通常のスプライトより後に描く。
+	if (auto status = m_status.lock(); status && status->IsLevelUpSelect())
+	{
+		KdShaderManager::Instance().m_spriteShader.Begin();
+		status->DrawLevelUpSelect();
+		KdShaderManager::Instance().m_spriteShader.End();
+	}
+
 	if (m_menuOpen && m_pauseMenu)
 	{
 		KdShaderManager::Instance().m_spriteShader.Begin();
